@@ -132,7 +132,7 @@ const ChatList = [
 const Chat_History = [
   {
     type: "msg",
-    message: "Hi 👋🏻, How are ya ?",
+    message: "Hi, How are you ?",
     incoming: true,
     outgoing: false,
   },
@@ -142,13 +142,13 @@ const Chat_History = [
   },
   {
     type: "msg",
-    message: "Hi 👋 Panda, not bad, u ?",
+    message: "Hi, not bad, u ?",
     incoming: false,
     outgoing: true,
   },
   {
     type: "msg",
-    message: "Can you send me an abstarct image?",
+    message: "Can you send me a image?",
     incoming: false,
     outgoing: true,
   },
