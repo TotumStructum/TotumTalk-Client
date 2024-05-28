@@ -1,13 +1,11 @@
-import React, { Suspense, lazy } from "react";
+import React from "react";
 
-const Cat = lazy(() => import("../../components/Cat"));
+import Chats from "./Chats";
 
 const GeneralApp = () => {
   return (
     <>
-      <Suspense fallback="Loading...">
-        <Cat />
-      </Suspense>
+      <Chats />
     </>
   );
 };

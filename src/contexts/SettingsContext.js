@@ -65,7 +65,7 @@ const SettingsProvider = ({ children }) => {
   const onToggleMode = () => {
     setSettings({
       ...settings,
-      themeMode: settings.themeMode === "light" ? "dark" : "light",
+      themeMode: settings.themeMode === "dark" ? "light" : "dark",
     });
   };
 
@@ -203,6 +203,6 @@ const SettingsProvider = ({ children }) => {
   );
 };
 
-export {SettingsContext};
+export { SettingsContext };
 
 export default SettingsProvider;
