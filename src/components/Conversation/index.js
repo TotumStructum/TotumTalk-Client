@@ -6,11 +6,28 @@ import {
   Typography,
   IconButton,
   Divider,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
 import { faker } from "@faker-js/faker";
 import React from "react";
-import { styled } from "@mui/material/styles";
-import { CaretDown, MagnifyingGlass, Phone, VideoCamera } from "phosphor-react";
+import { styled, useTheme } from "@mui/material/styles";
+import {
+  CaretDown,
+  LinkSimple,
+  MagnifyingGlass,
+  PaperPlaneTilt,
+  Phone,
+  Smiley,
+  VideoCamera,
+} from "phosphor-react";
+
+const StyledInput = styled(TextField)(({ theme }) => ({
+  "& .MuiInputBase-input": {
+    paddingTop: "12px",
+    paddingBottom: "12px",
+  },
+}));
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -42,6 +59,8 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 const Conversation = () => {
+  const theme = useTheme();
+
   return (
     <Stack height={"100%"} maxHeight={"100vh"}>
       {/* chat header */}
@@ -50,7 +69,10 @@ const Conversation = () => {
         sx={{
           height: 100,
           width: "100%",
-          backgroundColor: "#F8FAFF",
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? "#f8faff"
+              : theme.palette.background.paper,
           boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
         }}
       >
@@ -102,8 +124,61 @@ const Conversation = () => {
       </Box>
       {/* chat body */}
       <Box width={"100%"} sx={{ flexGrow: 1 }}></Box>
-      {/* chat input */}
-      <Box sx={{ height: 100, width: "100%", backgroundColor: "#000" }}></Box>
+      {/* chat footer */}
+      <Box
+        p={2}
+        sx={{
+          width: "100%",
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? "#f8faff"
+              : theme.palette.background.paper,
+          boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
+        }}
+      >
+        <Stack direction={"row"} alignItems={"center"} spacing={3}>
+          <StyledInput
+            fullWidth
+            placeholder="Write a message..."
+            variant="filled"
+            InputProps={{
+              disableUnderline: true,
+              startAdornment: (
+                <InputAdornment>
+                  <IconButton>
+                    <LinkSimple />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment>
+                  <IconButton>
+                    <Smiley />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Box
+            sx={{
+              height: 48,
+              width: 48,
+              backgroundColor: theme.palette.primary.main,
+              borderRadius: 1.5,
+            }}
+          >
+            <Stack
+              sx={{ height: "100%", width: "100%" }}
+              alignItems="center"
+              justifyContent="center"
+            >
+              <IconButton>
+                <PaperPlaneTilt color="#fff" />
+              </IconButton>
+            </Stack>
+          </Box>
+        </Stack>
+      </Box>
     </Stack>
   );
 };
