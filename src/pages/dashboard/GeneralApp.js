@@ -16,7 +16,7 @@ const GeneralApp = () => {
           width: "calc(100vw - 420px)",
           backgroundColor:
             theme.palette.mode === "light"
-              ? "#fff"
+              ? "#F8F4FA"
               : theme.palette.background.default,
         }}
       >

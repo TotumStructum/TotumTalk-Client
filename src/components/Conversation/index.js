@@ -1,6 +1,8 @@
 import { Box, Stack } from "@mui/material";
 import React from "react";
+
 import Header from "./Header";
+import Body from "./Body";
 import Footer from "./Footer";
 
 const Conversation = () => {
@@ -9,7 +11,13 @@ const Conversation = () => {
       {/* chat header */}
       <Header />
       {/* chat body */}
-      <Box width={"100%"} sx={{ flexGrow: 1 }}></Box>
+      <Box
+        width={"100%"}
+        sx={{ flexGrow: 1, height: "100vh", overflowY: "scroll" }}
+      >
+        <Body />
+      </Box>
+
       {/* chat footer */}
       <Footer />
     </Stack>
