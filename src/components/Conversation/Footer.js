@@ -5,13 +5,48 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
+import { LinkSimple, Smiley, PaperPlaneTilt } from "phosphor-react";
 import React from "react";
 
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+
 import StyledInput from "../StyledInput";
-import { LinkSimple, Smiley, PaperPlaneTilt } from "phosphor-react";
+
+const ChatInput = ({ setOpenPicker }) => {
+  return (
+    <StyledInput
+      fullWidth
+      placeholder="Write a message..."
+      variant="filled"
+      InputProps={{
+        disableUnderline: true,
+        startAdornment: (
+          <InputAdornment>
+            <IconButton>
+              <LinkSimple />
+            </IconButton>
+          </InputAdornment>
+        ),
+        endAdornment: (
+          <InputAdornment>
+            <IconButton
+              onClick={() => {
+                setOpenPicker((prev) => !prev);
+              }}
+            >
+              <Smiley />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+};
 
 function Footer() {
   const theme = useTheme();
+  const [openPicker, setOpenPicker] = React.useState(false);
 
   return (
     <Box
@@ -26,28 +61,26 @@ function Footer() {
       }}
     >
       <Stack direction={"row"} alignItems={"center"} spacing={3}>
-        <StyledInput
-          fullWidth
-          placeholder="Write a message..."
-          variant="filled"
-          InputProps={{
-            disableUnderline: true,
-            startAdornment: (
-              <InputAdornment>
-                <IconButton>
-                  <LinkSimple />
-                </IconButton>
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment>
-                <IconButton>
-                  <Smiley />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Stack sx={{ width: "100%" }}>
+          <Box
+            sx={{
+              display: openPicker ? "inline" : "none",
+              zIndex: 10,
+              position: "fixed",
+              bottom: 81,
+              right: 100,
+            }}
+          >
+            <Picker
+              theme={theme.palette.mode}
+              data={data}
+              onEmojiSelect={console.log}
+            />
+          </Box>
+
+          <ChatInput setOpenPicker={setOpenPicker} />
+        </Stack>
+
         <Box
           sx={{
             height: 48,
