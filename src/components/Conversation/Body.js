@@ -32,7 +32,6 @@ const Body = () => {
                 default:
                   return <TextMsg el={el} />;
               }
-              break;
             default:
               return <Typography>text</Typography>;
           }

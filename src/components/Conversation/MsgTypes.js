@@ -52,6 +52,7 @@ const DocMsg = ({ el }) => {
           </Typography>
         </Stack>
       </Box>
+      <MessageOptions />
     </Stack>
   );
 };
@@ -106,6 +107,7 @@ const LinkMsg = ({ el }) => {
           </Stack>
         </Stack>
       </Box>
+      <MessageOptions />
     </Stack>
   );
 };
@@ -147,6 +149,7 @@ const ReplyMsg = ({ el }) => {
           </Typography>
         </Stack>
       </Box>
+      <MessageOptions />
     </Stack>
   );
 };
@@ -177,6 +180,7 @@ const MediaMsg = ({ el }) => {
           ></Typography>
         </Stack>
       </Box>
+      <MessageOptions />
     </Stack>
   );
 };
@@ -216,6 +220,7 @@ const Timeline = ({ el }) => {
         {el.text}
       </Typography>
       <Divider width="46%" />
+      <MessageOptions />
     </Stack>
   );
 };
@@ -250,9 +255,9 @@ const MessageOptions = () => {
         }}
       >
         <Stack spacing={1} px={1}>
-          {Message_options.map((el) => {
-            <MenuItem onClick={handleClick}>{el.title}</MenuItem>;
-          })}
+          {Message_options.map((el) => (
+            <MenuItem onClick={handleClick}>{el.title}</MenuItem>
+          ))}
         </Stack>
       </Menu>
     </>
