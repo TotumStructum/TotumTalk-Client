@@ -1,16 +1,28 @@
 import {
   Avatar,
   Box,
+  Button,
+  Divider,
   IconButton,
   Stack,
   Typography,
   useTheme,
 } from "@mui/material";
 import React from "react";
-import { Camera, Phone, VideoCamera, X } from "phosphor-react";
+import {
+  Bell,
+  CaretRight,
+  Phone,
+  Prohibit,
+  Star,
+  Trash,
+  VideoCamera,
+  X,
+} from "phosphor-react";
 import { useDispatch } from "react-redux";
 import { ToggleSidebar } from "../redux/slices/app";
 import { faker } from "@faker-js/faker";
+import AntSwitch from "./AntSwitch";
 
 const Contact = () => {
   const theme = useTheme();
@@ -90,6 +102,74 @@ const Contact = () => {
               </IconButton>
               <Typography variant="overline">Video</Typography>
             </Stack>
+          </Stack>
+          <Divider />
+          <Stack spacing={0.5}>
+            <Typography variant="article">About</Typography>
+            <Typography variant="body2">
+              Imagination is the only limit
+            </Typography>
+          </Stack>
+          <Divider />
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+          >
+            <Typography variant="subtitle2">Media, links and docs</Typography>
+            <Button endIcon={<CaretRight />}>401</Button>
+          </Stack>
+          <Stack direction={"row"} spacing={2} alignItems={"center"}>
+            {[1, 2, 3].map((el) => (
+              <Box>
+                <img src={faker.image.food()} alt={faker.name.fullName()} />
+              </Box>
+            ))}
+          </Stack>
+          <Divider />
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+            spacing={2}
+          >
+            <Stack direction={"row"} alignItems={"center"} spacing={2}>
+              <Star size={21} />
+              <Typography variant="subtitle2">Starred Messages</Typography>
+            </Stack>
+            <IconButton>
+              <CaretRight />
+            </IconButton>
+          </Stack>
+          <Divider />
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            justifyContent={"space-between"}
+            spacing={2}
+          >
+            <Stack direction={"row"} alignItems={"center"} spacing={2}>
+              <Bell size={21} />
+              <Typography variant="subtitle2">Mute Notifications</Typography>
+            </Stack>
+            <AntSwitch />
+          </Stack>
+          <Divider />
+          <Typography variant="">1 group in common</Typography>
+          <Stack direction={"row"} alignItems={"center"} spacing={2}>
+            <Avatar src={faker.image.avatar()} alt={faker.name.fullName()} />
+            <Stack spacing={0.5}>
+              <Typography variant="subtitle2">Coding Monk</Typography>
+              <Typography variant="caption">Owl, Parrot, Mark, You</Typography>
+            </Stack>
+          </Stack>
+          <Stack direction={"row"} alignItems={"center"} spacing={2}>
+            <Button startIcon={<Prohibit />} fullWidth variant="outlined">
+              Block
+            </Button>
+            <Button startIcon={<Trash />} fullWidth variant="outlined">
+              Delete
+            </Button>
           </Stack>
         </Stack>
       </Stack>
