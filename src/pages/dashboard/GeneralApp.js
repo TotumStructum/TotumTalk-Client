@@ -6,6 +6,7 @@ import Conversation from "../../components/Conversation";
 import Chats from "./Chats";
 import Contact from "../../components/Contact";
 import { useSelector } from "react-redux";
+import SharedMessages from "../../components/SharedMessages";
 
 const GeneralApp = () => {
   const theme = useTheme();
@@ -26,7 +27,10 @@ const GeneralApp = () => {
       >
         <Conversation />
       </Box>
-      {sidebar.open && <Contact />}
+      {sidebar.open &&
+        ((sidebar.type === "CONTACT" && <Contact />) ||
+          (sidebar.type === "SHARED" && <SharedMessages />) ||
+          null)}
     </Stack>
   );
 };
