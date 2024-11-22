@@ -13,7 +13,7 @@ import { DotsThreeVertical, DownloadSimple, Image } from "phosphor-react";
 import React from "react";
 import { Message_options } from "../../data/index";
 
-const DocMsg = ({ el }) => {
+const DocMsg = ({ el, menu }) => {
   const theme = useTheme();
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
@@ -52,12 +52,12 @@ const DocMsg = ({ el }) => {
           </Typography>
         </Stack>
       </Box>
-      <MessageOptions />
+      {menu && <MessageOptions />}
     </Stack>
   );
 };
 
-const LinkMsg = ({ el }) => {
+const LinkMsg = ({ el, menu }) => {
   const theme = useTheme();
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
@@ -107,7 +107,7 @@ const LinkMsg = ({ el }) => {
           </Stack>
         </Stack>
       </Box>
-      <MessageOptions />
+      {menu && <MessageOptions />}
     </Stack>
   );
 };
@@ -154,7 +154,7 @@ const ReplyMsg = ({ el }) => {
   );
 };
 
-const MediaMsg = ({ el }) => {
+const MediaMsg = ({ el, menu }) => {
   const theme = useTheme();
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
@@ -180,12 +180,12 @@ const MediaMsg = ({ el }) => {
           ></Typography>
         </Stack>
       </Box>
-      <MessageOptions />
+      {menu && <MessageOptions />}
     </Stack>
   );
 };
 
-const TextMsg = ({ el }) => {
+const TextMsg = ({ el, menu }) => {
   const theme = useTheme();
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
@@ -206,7 +206,7 @@ const TextMsg = ({ el }) => {
           {el.message}
         </Typography>
       </Box>
-      <MessageOptions />
+      {menu && <MessageOptions />}
     </Stack>
   );
 };
