@@ -13,7 +13,7 @@ import { useDispatch } from "react-redux";
 import { UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
 import { faker } from "@faker-js/faker";
-import { SHARED_LINKS } from "../data";
+import { SHARED_DOCS, SHARED_LINKS } from "../data";
 import { LinkMsg, DocMsg } from "../components/Conversation/MsgTypes.js";
 
 const SharedMessages = () => {
@@ -95,10 +95,10 @@ const SharedMessages = () => {
                 );
               case 1:
                 //Links
-                break;
+                return SHARED_LINKS.map((el) => <LinkMsg el={el} />);
               case 2:
                 //Docs
-                break;
+                return SHARED_DOCS.map((el) => <DocMsg el={el} />);
 
               default:
                 break;
