@@ -1,9 +1,20 @@
-import { Box, IconButton, Stack, Tab, Tabs, Typography } from "@mui/material";
+import {
+  Box,
+  Grid,
+  IconButton,
+  Stack,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
 import React from "react";
 import { CaretLeft } from "phosphor-react";
 import { useDispatch } from "react-redux";
 import { UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
+import { faker } from "@faker-js/faker";
+import { SHARED_LINKS } from "../data";
+import { LinkMsg, DocMsg } from "../components/Conversation/MsgTypes.js";
 
 const SharedMessages = () => {
   const theme = useTheme();
@@ -68,7 +79,20 @@ const SharedMessages = () => {
             switch (value) {
               case 0:
                 //Media
-                break;
+                return (
+                  <Grid container spacing={2}>
+                    {[0, 1, 2, 3, 4, 5, 6].map((el) => {
+                      return (
+                        <Grid item xs={4}>
+                          <img
+                            src={faker.image.cats()}
+                            alt={faker.name.fullName()}
+                          />
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                );
               case 1:
                 //Links
                 break;
