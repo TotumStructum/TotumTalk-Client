@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
@@ -28,7 +29,7 @@ import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
 import { faker } from "@faker-js/faker";
 import AntSwitch from "./AntSwitch";
 
-const BlockDialog = () => {
+const BlockDialog = ({ open, handleClose }) => {
   return (
     <Dialog
       open={open}
@@ -36,19 +37,40 @@ const BlockDialog = () => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
-        {"Use Google's location service?"}
-      </DialogTitle>
+      <DialogTitle id="alert-dialog-title">Block this contact?</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Let Google help apps determine location. This means sending anonymous
-          location data to Google, even when no apps are running.
+          Are you sure you want to block this contact?
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Disagree</Button>
+        <Button onClick={handleClose}>Cancel</Button>
         <Button onClick={handleClose} autoFocus>
-          Agree
+          Yes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const DeleteDialog = ({ open, handleClose }) => {
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+    >
+      <DialogTitle id="alert-dialog-title">Delete this chat?</DialogTitle>
+      <DialogContent>
+        <DialogContentText id="alert-dialog-description">
+          Are you sure you want to delete this chat?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleClose} autoFocus>
+          Yes
         </Button>
       </DialogActions>
     </Dialog>
@@ -57,6 +79,17 @@ const BlockDialog = () => {
 
 const Contact = () => {
   const theme = useTheme();
+
+  const [openBlock, setOpenBlock] = React.useState(false);
+  const [openDelete, setOpenDelete] = React.useState(false);
+
+  const handleCloseBlock = () => {
+    setOpenBlock(false);
+  };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+  };
 
   const dispatch = useDispatch();
   return (
@@ -206,15 +239,35 @@ const Contact = () => {
             </Stack>
           </Stack>
           <Stack direction={"row"} alignItems={"center"} spacing={2}>
-            <Button startIcon={<Prohibit />} fullWidth variant="outlined">
+            <Button
+              onClick={() => {
+                setOpenBlock(true);
+              }}
+              startIcon={<Prohibit />}
+              fullWidth
+              variant="outlined"
+            >
               Block
             </Button>
-            <Button startIcon={<Trash />} fullWidth variant="outlined">
+            <Button
+              onClick={() => {
+                setOpenDelete(true);
+              }}
+              startIcon={<Trash />}
+              fullWidth
+              variant="outlined"
+            >
               Delete
             </Button>
           </Stack>
         </Stack>
       </Stack>
+      {openBlock && (
+        <BlockDialog open={openBlock} handleClose={handleCloseBlock} />
+      )}
+      {openDelete && (
+        <DeleteDialog open={openDelete} handleClose={handleCloseDelete} />
+      )}
     </Box>
   );
 };
