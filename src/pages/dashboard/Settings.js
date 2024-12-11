@@ -19,11 +19,21 @@ import {
   Note,
   PencilCircle,
 } from "phosphor-react";
-import React from "react";
+import React, { useState } from "react";
 import Shortcuts from "../../sections/settings/Shortcuts";
 
 const Settings = () => {
   const theme = useTheme();
+
+  const [openShortcuts, setOpenShortcuts] = useState(false);
+
+  const handleOpenShortcuts = () => {
+    setOpenShortcuts(true);
+  };
+
+  const handleCloseShortcuts = () => {
+    setOpenShortcuts(false);
+  };
 
   const list = [
     {
@@ -67,8 +77,7 @@ const Settings = () => {
       key: 6,
       icon: <Keyboard size={20} />,
       title: "Keyboard Shortcuts",
-      //   onclick: handleOpenShortcuts,
-      onclick: () => {},
+      onclick: handleOpenShortcuts,
     },
     {
       key: 7,
@@ -131,7 +140,9 @@ const Settings = () => {
           </Stack>
         </Box>
         {/* RightPanel */}
-        <Shortcuts open={true} handleClose={() => {}} />
+        {openShortcuts && (
+          <Shortcuts open={openShortcuts} handleClose={handleCloseShortcuts} />
+        )}
       </Stack>
     </>
   );
