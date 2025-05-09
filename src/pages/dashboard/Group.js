@@ -17,6 +17,7 @@ import {
 import { SimpleBarStyle } from "../../components/Scrollbar";
 import { ChatList } from "../../data";
 import ChatElement from "../../components/ChatElement";
+import Conversation from "../../components/Conversation";
 
 const Group = () => {
   const theme = useTheme();
@@ -65,7 +66,10 @@ const Group = () => {
               </IconButton>
             </Stack>
             <Divider />
-            <Stack sx={{ flexFlow: 1, overflowY: "scroll", height: "100%" }}>
+            <Stack
+              spacing={3}
+              sx={{ flexFlow: 1, overflowY: "scroll", height: "100%" }}
+            >
               <SimpleBarStyle timeout={500} clickOnTrack={false}>
                 <Stack spacing={2.4}>
                   {/*  */}
@@ -75,14 +79,14 @@ const Group = () => {
                   {ChatList.filter((el) => el.pinned).map((el) => {
                     return <ChatElement {...el} />;
                   })}
-                </Stack>
-
-                <Stack>
                   {/*  */}
                   <Typography variant="subtitle2" sx={{ color: "#676667" }}>
                     All Groups
                   </Typography>
                   {/* Chat List */}
+                  {ChatList.filter((el) => !el.pinned).map((el) => {
+                    return <ChatElement {...el} />;
+                  })}
                 </Stack>
               </SimpleBarStyle>
             </Stack>
