@@ -1,13 +1,25 @@
-import { Box, Stack, Typography } from "@mui/material";
 import React from "react";
-import { MagnifyingGlass } from "phosphor-react";
+import {
+  Box,
+  Divider,
+  IconButton,
+  Link,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { MagnifyingGlass, Plus } from "phosphor-react";
 import {
   Search,
   SearchIconWrapper,
   StyledInputBase,
 } from "../../components/Search";
+import { SimpleBarStyle } from "../../components/Scrollbar";
+import { ChatList } from "../../data";
+import ChatElement from "../../components/ChatElement";
 
 const Group = () => {
+  const theme = useTheme();
   return (
     <>
       <Stack direction={"row"} sx={{ width: "100%" }}>
@@ -33,8 +45,46 @@ const Group = () => {
                 <SearchIconWrapper>
                   <MagnifyingGlass color="#709ce6" />
                 </SearchIconWrapper>
-                <StyledInputBase placeholder="Search..." />
+                <StyledInputBase
+                  placeholder="Search..."
+                  inputProps={{ "aria-label": "search" }}
+                />
               </Search>
+            </Stack>
+
+            <Stack
+              direction={"row"}
+              justifyContent={"space-between"}
+              alignItems={"center"}
+            >
+              <Typography variant="subtitle2" component={Link}>
+                Create New Group
+              </Typography>
+              <IconButton>
+                <Plus style={{ color: theme.palette.primary.main }} />
+              </IconButton>
+            </Stack>
+            <Divider />
+            <Stack sx={{ flexFlow: 1, overflowY: "scroll", height: "100%" }}>
+              <SimpleBarStyle timeout={500} clickOnTrack={false}>
+                <Stack spacing={2.4}>
+                  {/*  */}
+                  <Typography variant="subtitle2" sx={{ color: "#676667" }}>
+                    Pinned
+                  </Typography>
+                  {ChatList.filter((el) => el.pinned).map((el) => {
+                    return <ChatElement {...el} />;
+                  })}
+                </Stack>
+
+                <Stack>
+                  {/*  */}
+                  <Typography variant="subtitle2" sx={{ color: "#676667" }}>
+                    All Groups
+                  </Typography>
+                  {/* Chat List */}
+                </Stack>
+              </SimpleBarStyle>
             </Stack>
           </Stack>
         </Box>
