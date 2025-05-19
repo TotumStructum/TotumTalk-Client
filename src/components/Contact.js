@@ -13,7 +13,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import React from "react";
+import { useState } from "react";
 import {
   Bell,
   CaretRight,
@@ -80,8 +80,8 @@ const DeleteDialog = ({ open, handleClose }) => {
 const Contact = () => {
   const theme = useTheme();
 
-  const [openBlock, setOpenBlock] = React.useState(false);
-  const [openDelete, setOpenDelete] = React.useState(false);
+  const [openBlock, setOpenBlock] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
   const handleCloseBlock = () => {
     setOpenBlock(false);
