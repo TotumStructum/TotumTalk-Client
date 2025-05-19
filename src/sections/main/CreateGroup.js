@@ -6,7 +6,6 @@ import {
   DialogTitle,
   Slide,
   Stack,
-  Typography,
 } from "@mui/material";
 import React from "react";
 import FormProvider from "../../components/hook-form/FormProvider";

@@ -14,15 +14,20 @@ import {
 } from "../../components/Search";
 import { useTheme } from "@mui/material/styles";
 
-import React from "react";
+import { useState } from "react";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { SimpleBarStyle } from "../../components/Scrollbar";
-import { CallLogs, ChatList } from "../../data";
-import ChatElement from "../../components/ChatElement";
+import { CallLogs } from "../../data";
 import { CallLogElement } from "../../components/CallElement";
+import StartCall from "../../sections/main/StartCall";
 
 const Call = () => {
   const theme = useTheme();
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
 
   return (
     <>
@@ -66,7 +71,7 @@ const Call = () => {
               </Typography>
               <IconButton
                 onClick={() => {
-                  //   setOpenDialog(true);
+                  setOpenDialog(true);
                 }}
               >
                 <Plus style={{ color: theme.palette.primary.main }} />
@@ -87,6 +92,10 @@ const Call = () => {
         </Box>
         {/* {right} */}
       </Stack>
+
+      {openDialog && (
+        <StartCall open={openDialog} handleClose={handleCloseDialog} />
+      )}
     </>
   );
 };
