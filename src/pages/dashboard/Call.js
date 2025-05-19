@@ -17,8 +17,9 @@ import { useTheme } from "@mui/material/styles";
 import React from "react";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { SimpleBarStyle } from "../../components/Scrollbar";
-import { ChatList } from "../../data";
+import { CallLogs, ChatList } from "../../data";
 import ChatElement from "../../components/ChatElement";
+import { CallLogElement } from "../../components/CallElement";
 
 const Call = () => {
   const theme = useTheme();
@@ -72,17 +73,16 @@ const Call = () => {
               </IconButton>
             </Stack>
             <Divider />
-            <Stack sx={{ flexFlow: 1, overflowY: "scroll", height: "100%" }}>
+            <Box sx={{ flexFlow: 1, height: "100%" }}>
               <SimpleBarStyle timeout={500} clickOnTrack={false}>
                 <Stack spacing={2.4}>
-                  {/*  */}
-                  <Typography variant="subtitle2" sx={{ color: "#676667" }}>
-                    Pinned
-                  </Typography>
                   {/* Call logs */}
+                  {CallLogs.map((el) => (
+                    <CallLogElement {...el} />
+                  ))}
                 </Stack>
               </SimpleBarStyle>
-            </Stack>
+            </Box>
           </Stack>
         </Box>
         {/* {right} */}
