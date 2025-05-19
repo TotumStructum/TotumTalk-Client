@@ -32,7 +32,7 @@ const Chats = () => {
         boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
       }}
     >
-      <Stack p={3} spacing={2} sx={{ height: "100vh" }}>
+      <Stack p={3} spacing={2} sx={{ maxHeight: "100vh" }}>
         <Stack
           direction="row"
           alignItems={"center"}
@@ -63,7 +63,7 @@ const Chats = () => {
         <Stack
           spacing={2}
           direction="column"
-          sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}
+          sx={{ flexGrow: 1, overflowY: "scroll", height: "100%" }}
         >
           <SimpleBarStyle timeout={500} clickOnTrack={false}>
             <Stack spacing={2.4}>
