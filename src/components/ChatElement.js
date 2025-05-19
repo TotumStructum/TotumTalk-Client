@@ -66,13 +66,12 @@ const ChatElement = ({ id, name, img, msg, time, unread, online }) => {
             <Typography variant="subtitle2">{name}</Typography>
             <Typography variant="caption">{msg}</Typography>
           </Stack>
-
-          <Stack spacing={2} alignItems="center">
-            <Typography sx={{ fontWeight: 600 }} variant="caption">
-              {time}
-            </Typography>
-            <Badge color="primary" badgeContent={unread}></Badge>
-          </Stack>
+        </Stack>
+        <Stack spacing={2} alignItems="center">
+          <Typography sx={{ fontWeight: 600 }} variant="caption">
+            {time}
+          </Typography>
+          <Badge color="primary" badgeContent={unread}></Badge>
         </Stack>
       </Stack>
     </Box>
