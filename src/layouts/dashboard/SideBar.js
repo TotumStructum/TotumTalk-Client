@@ -33,6 +33,23 @@ const getPath = (index) => {
   }
 };
 
+const getMenuPath = (index) => {
+  switch (index) {
+    case 0:
+      return "/profile";
+
+    case 1:
+      return "/settings";
+
+    case 2:
+      //TODO => update token & set isAuth = false
+      return "/auth/login";
+
+    default:
+      break;
+  }
+};
+
 const SideBar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -43,8 +60,6 @@ const SideBar = () => {
   const open = Boolean(anchorEl);
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
-    alert(e.currentTarget);
-    // navigate()
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -175,13 +190,20 @@ const SideBar = () => {
             transformOrigin={{ vertical: "bottom", horizontal: "left" }}
           >
             <Stack spacing={1} px={1}>
-              {Profile_Menu.map((el) => (
-                <MenuItem onClick={handleClick}>
+              {Profile_Menu.map((el, idx) => (
+                <MenuItem
+                  onClick={() => {
+                    handleClick();
+                  }}
+                >
                   <Stack
-                    sc={{ width: 100 }}
+                    sx={{ width: 100 }}
                     direction="row"
                     alignItems={"center"}
                     justifyContent="space-between"
+                    onClick={() => {
+                      navigate(getMenuPath(idx));
+                    }}
                   >
                     <span>{el.title}</span>
                     {el.icon}
