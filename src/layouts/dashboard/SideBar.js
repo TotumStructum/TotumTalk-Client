@@ -16,9 +16,26 @@ import AntSwitch from "../../components/AntSwitch";
 import useSettings from "../../hooks/useSettings";
 import Logo from "../../assets/Images/logo.ico";
 import { Nav_Buttons, Profile_Menu } from "../../data";
+import { useNavigate } from "react-router-dom";
+
+const getPath = (index) => {
+  switch (index) {
+    case 0:
+      return "/app";
+    case 1:
+      return "/group";
+    case 2:
+      return "/call";
+    case 3:
+      return "/settings";
+    default:
+      break;
+  }
+};
 
 const SideBar = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(0);
   const { onToggleMode } = useSettings();
 
@@ -84,6 +101,7 @@ const SideBar = () => {
                 <IconButton
                   onClick={() => {
                     setSelected(el.index);
+                    navigate(getPath(el.index));
                   }}
                   sx={{
                     width: "max-content",
@@ -114,6 +132,7 @@ const SideBar = () => {
               <IconButton
                 onClick={() => {
                   setSelected(3);
+                  navigate(getPath(3));
                 }}
                 sx={{
                   width: "max-content",
