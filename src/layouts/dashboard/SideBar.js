@@ -43,6 +43,8 @@ const SideBar = () => {
   const open = Boolean(anchorEl);
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
+    alert(e.currentTarget);
+    // navigate()
   };
   const handleClose = () => {
     setAnchorEl(null);
