@@ -8,6 +8,7 @@ import MainLayout from "../layouts/main";
 // config
 import { DEFAULT_PATH } from "../config";
 import LoadingScreen from "../components/LoadingScreen";
+import Verify from "../pages/auth/Verify";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -38,6 +39,10 @@ export default function Router() {
         {
           element: <NewPasswordPage />,
           path: "new-password",
+        },
+        {
+          element: <Verify />,
+          path: "verify",
         },
       ],
     },
@@ -82,3 +87,5 @@ const GroupPage = Loadable(lazy(() => import("../pages/dashboard/Group")));
 const Settings = Loadable(lazy(() => import("../pages/dashboard/Settings")));
 
 const Page404 = Loadable(lazy(() => import("../pages/Page404")));
+
+const VerifyPage = Loadable(lazy(() => import("../pages/auth/Verify")));
