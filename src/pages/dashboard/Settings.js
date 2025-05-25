@@ -21,6 +21,7 @@ import {
 } from "phosphor-react";
 import React, { useState } from "react";
 import Shortcuts from "../../sections/settings/Shortcuts";
+import { getFakeAvatar } from "../../utils/avatar";
 
 const Settings = () => {
   const theme = useTheme();
@@ -115,7 +116,7 @@ const Settings = () => {
             <Stack direction={"row"} spacing={3}>
               <Avatar
                 sx={{ width: 56, height: 56 }}
-                src={faker.image.avatar()}
+                src={getFakeAvatar()}
                 alt={faker.name.fullName()}
               />
               <Stack spacing={0.5}>

@@ -19,6 +19,7 @@ import { Nav_Buttons, Profile_Menu } from "../../data";
 import { useNavigate } from "react-router-dom";
 import { LogoutUser } from "../../redux/slices/auth";
 import { useDispatch } from "react-redux";
+import { getFakeAvatar } from "../../utils/avatar";
 
 const getPath = (index) => {
   switch (index) {
@@ -179,7 +180,7 @@ const SideBar = () => {
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
             onClick={handleClick}
-            src={faker.image.avatar()}
+            src={getFakeAvatar()}
           />
           <Menu
             id="basic-menu"

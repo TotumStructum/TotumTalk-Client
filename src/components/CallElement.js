@@ -1,4 +1,6 @@
 import { faker } from "@faker-js/faker";
+import { getFakeAvatar } from "../utils/avatar";
+
 import {
   Avatar,
   Box,
@@ -43,13 +45,10 @@ const CallLogElement = ({ online, incoming, missed }) => {
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 variant="dot"
               >
-                <Avatar
-                  src={faker.image.avatar()}
-                  alt={faker.name.fullName()}
-                />{" "}
+                <Avatar src={getFakeAvatar()} alt={faker.name.fullName()} />{" "}
               </StyledBadge>
             ) : (
-              <Avatar src={faker.image.avatar()} alt={faker.name.fullName()} />
+              <Avatar src={getFakeAvatar()} alt={faker.name.fullName()} />
             )}
 
             <Stack spacing={0.3}>
@@ -101,13 +100,10 @@ const CallElement = ({ online }) => {
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 variant="dot"
               >
-                <Avatar
-                  src={faker.image.avatar()}
-                  alt={faker.name.fullName()}
-                />{" "}
+                <Avatar src={getFakeAvatar()} alt={faker.name.fullName()} />{" "}
               </StyledBadge>
             ) : (
-              <Avatar src={faker.image.avatar()} alt={faker.name.fullName()} />
+              <Avatar src={getFakeAvatar()} alt={faker.name.fullName()} />
             )}
 
             <Stack spacing={0.3}>

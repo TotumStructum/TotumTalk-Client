@@ -13,6 +13,7 @@ import { faker } from "@faker-js/faker";
 import StyledBadge from "../StyledBadge";
 import { ToggleSidebar } from "../../redux/slices/app";
 import { useDispatch } from "react-redux";
+import { getFakeAvatar } from "../../utils/avatar";
 
 const Header = () => {
   const theme = useTheme();
@@ -52,7 +53,7 @@ const Header = () => {
               }}
               variant="dot"
             >
-              <Avatar alt={faker.name.fullName()} src={faker.image.avatar()} />
+              <Avatar alt={faker.name.fullName()} src={getFakeAvatar()} />
             </StyledBadge>
           </Box>
           <Stack spacing={0.2}>

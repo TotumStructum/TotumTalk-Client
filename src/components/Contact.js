@@ -28,6 +28,7 @@ import { useDispatch } from "react-redux";
 import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
 import { faker } from "@faker-js/faker";
 import AntSwitch from "./AntSwitch";
+import { getFakeAvatar } from "../utils/avatar";
 
 const BlockDialog = ({ open, handleClose }) => {
   return (
@@ -136,7 +137,7 @@ const Contact = () => {
         >
           <Stack alignItems={"center"} direction={"row"} spacing={2}>
             <Avatar
-              src={faker.image.avatar()}
+              src={getFakeAvatar()}
               alt={faker.name.firstName()}
               sx={{ height: 64, width: 64 }}
             />
@@ -232,7 +233,7 @@ const Contact = () => {
           <Divider />
           <Typography variant="">1 group in common</Typography>
           <Stack direction={"row"} alignItems={"center"} spacing={2}>
-            <Avatar src={faker.image.avatar()} alt={faker.name.fullName()} />
+            <Avatar src={getFakeAvatar()} alt={faker.name.fullName()} />
             <Stack spacing={0.5}>
               <Typography variant="subtitle2">Coding Monk</Typography>
               <Typography variant="caption">Owl, Parrot, Mark, You</Typography>

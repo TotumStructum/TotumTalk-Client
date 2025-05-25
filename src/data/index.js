@@ -8,6 +8,7 @@ import {
   User,
   Users,
 } from "phosphor-react";
+import { getFakeAvatar } from "../utils/avatar";
 
 const Profile_Menu = [
   {
@@ -49,43 +50,43 @@ const Nav_Setting = [
 const MembersList = [
   {
     id: 0,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: true,
   },
   {
     id: 1,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: true,
   },
   {
     id: 2,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: false,
   },
   {
     id: 3,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: true,
   },
   {
     id: 4,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: false,
   },
   {
     id: 5,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: false,
   },
   {
     id: 6,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     online: false,
   },
@@ -94,21 +95,21 @@ const MembersList = [
 const CallLogs = [
   {
     id: 0,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     missed: false,
     incoming: true,
   },
   {
     id: 1,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     missed: true,
     incoming: true,
   },
   {
     id: 2,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     missed: false,
     incoming: false,
@@ -118,7 +119,7 @@ const CallLogs = [
 const ChatList = [
   {
     id: 0,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "9:36",
@@ -128,7 +129,7 @@ const ChatList = [
   },
   {
     id: 1,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "12:02",
@@ -138,7 +139,7 @@ const ChatList = [
   },
   {
     id: 2,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "10:35",
@@ -148,7 +149,7 @@ const ChatList = [
   },
   {
     id: 3,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "04:00",
@@ -158,7 +159,7 @@ const ChatList = [
   },
   {
     id: 4,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "08:42",
@@ -168,7 +169,7 @@ const ChatList = [
   },
   {
     id: 5,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "08:42",
@@ -178,7 +179,7 @@ const ChatList = [
   },
   {
     id: 6,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "08:42",
@@ -188,7 +189,7 @@ const ChatList = [
   },
   {
     id: 7,
-    img: faker.image.avatar(),
+    img: getFakeAvatar(),
     name: faker.name.firstName(),
     msg: faker.music.songName(),
     time: "08:42",
