@@ -9,7 +9,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import React, { useState } from "react";
-import { faker } from "@faker-js/faker";
 import { Gear } from "phosphor-react";
 
 import AntSwitch from "../../components/AntSwitch";
