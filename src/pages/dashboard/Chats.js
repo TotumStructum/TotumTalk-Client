@@ -1,5 +1,10 @@
-import React from "react";
-import { ArchiveBox, CircleDashed, MagnifyingGlass } from "phosphor-react";
+import React, { useState } from "react";
+import {
+  ArchiveBox,
+  CircleDashed,
+  MagnifyingGlass,
+  Users,
+} from "phosphor-react";
 import { SimpleBarStyle } from "../../components/Scrollbar";
 import {
   Box,
@@ -19,7 +24,18 @@ import {
 import ChatElement from "../../components/ChatElement";
 
 const Chats = () => {
+  const [OpenDialog, setOpenDialog] = useState(false);
+
   const theme = useTheme();
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
   return (
     <Box
       sx={{
@@ -39,9 +55,19 @@ const Chats = () => {
           justifyContent={"space-between"}
         >
           <Typography variant="h5">Chats</Typography>
-          <IconButton>
-            <CircleDashed />
-          </IconButton>
+
+          <Stack direction={"row"} alignItems={"center"} spacing={1}>
+            <IconButton
+              onClick={() => {
+                handleOpenDialog();
+              }}
+            >
+              <Users />
+            </IconButton>
+            <IconButton>
+              <CircleDashed />
+            </IconButton>
+          </Stack>
         </Stack>
 
         <Stack sx={{ width: "100%" }}>
