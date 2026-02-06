@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import "./i18n";
 
 // contexts
 import SettingsProvider from "./contexts/SettingsContext";
@@ -15,6 +16,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <HelmetProvider>
+      {console.log("Initial Redux State:", store.getState())}
       <ReduxProvider store={store}>
         <SettingsProvider>
           <BrowserRouter>

@@ -50,7 +50,7 @@ const ProfileForm = () => {
         setValue("avatarUrl", newFile, { shouldValidate: true });
       }
     },
-    [setValue]
+    [setValue],
   );
 
   const onSubmit = async (data) => {

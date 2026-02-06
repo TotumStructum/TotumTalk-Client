@@ -74,8 +74,8 @@ export function LoginUser(formValues) {
 
 export function LogoutUser() {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.signOut());
     window.localStorage.removeItem("user_id");
+    dispatch(slice.actions.signOut());
   };
 }
 

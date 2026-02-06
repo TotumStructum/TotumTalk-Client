@@ -6,21 +6,26 @@ import {
   FetchFriends,
   FetchUsers,
 } from "../../redux/slices/app";
+import {
+  FriendComponent,
+  FriendRequestComponent,
+  UserComponent,
+} from "../../components/Friends";
 
 const UsersList = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(FetchUsers());
-  }, []);
+  }, [dispatch]);
 
   const { users } = useSelector((state) => state.app);
 
   return (
     <>
       {users.map((el, idx) => {
-        // TODO render user component
-        return <></>;
+        // render user component
+        return <UserComponent key={el._id} {...el} />;
       })}
     </>
   );
@@ -31,16 +36,23 @@ const FriendsList = () => {
 
   useEffect(() => {
     dispatch(FetchFriends());
-  }, []);
+  }, [dispatch]);
 
   const { friends } = useSelector((state) => state.app);
+  console.log(
+    "friends from store:",
+    friends,
+    "isArray:",
+    Array.isArray(friends)
+  );
+
+  const list = Array.isArray(friends) ? friends : friends?.friends ?? [];
 
   return (
     <>
-      {friends.map((el, idx) => {
-        // TODO render friend component
-        return <></>;
-      })}
+      {list.map((el) => (
+        <FriendComponent key={el._id} {...el} />
+      ))}
     </>
   );
 };
@@ -50,7 +62,7 @@ const FriendRequestList = () => {
 
   useEffect(() => {
     dispatch(FetchFriendRequests());
-  }, []);
+  }, [dispatch]);
 
   const { friendRequests } = useSelector((state) => state.app);
 
@@ -58,7 +70,9 @@ const FriendRequestList = () => {
     <>
       {friendRequests.map((el, idx) => {
         // TODO render friend request component
-        return <></>;
+        return (
+          <FriendRequestComponent key={el._id} {...el.sender} id={el._id} />
+        );
       })}
     </>
   );
@@ -81,10 +95,10 @@ const Friends = ({ open, handleClose }) => {
       sx={{ p: 4 }}
     >
       <Stack p={2} sx={{ width: "100%" }}>
-        <Tabs value={value} onChange={handleChange} center>
-          <Tab value={"Explore"} />
-          <Tab value={"Friends"} />
-          <Tab value={"Requests"} />
+        <Tabs value={value} onChange={handleChange} centered>
+          <Tab label={"Explore"} />
+          <Tab label={"Friends"} />
+          <Tab label={"Requests"} />
         </Tabs>
       </Stack>
       {/* Dialog Content */}
