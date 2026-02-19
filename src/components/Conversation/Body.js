@@ -15,25 +15,26 @@ const Body = ({ menu }) => {
   return (
     <Box p={3}>
       <Stack spacing={3}>
-        {Chat_History.map((el) => {
+        {Chat_History.map((el, idx) => {
+          const key = `${el.type}-${el.subtype ?? "text"}-${idx}`;
           switch (el.type) {
             case "divider":
-              return <Timeline el={el} />;
+              return <Timeline key={key} el={el} />;
             case "msg":
               switch (el.subtype) {
                 case "img":
-                  return <MediaMsg el={el} menu={menu} />;
+                  return <MediaMsg key={key} el={el} menu={menu} />;
                 case "doc":
-                  return <DocMsg el={el} menu={menu} />;
+                  return <DocMsg key={key} el={el} menu={menu} />;
                 case "link":
-                  return <LinkMsg el={el} menu={menu} />;
+                  return <LinkMsg key={key} el={el} menu={menu} />;
                 case "reply":
-                  return <ReplyMsg el={el} menu={menu} />;
+                  return <ReplyMsg key={key} el={el} menu={menu} />;
                 default:
-                  return <TextMsg el={el} menu={menu} />;
+                  return <TextMsg key={key} el={el} menu={menu} />;
               }
             default:
-              return <Typography>text</Typography>;
+              return <Typography key={key}>text</Typography>;
           }
         })}
       </Stack>

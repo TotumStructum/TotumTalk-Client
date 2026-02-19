@@ -1,5 +1,4 @@
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -49,7 +48,7 @@ const StartCall = ({ open, handleClose }) => {
           </Stack>
           {/* Call List */}
           {MembersList.map((el) => (
-            <CallElement {...el} />
+            <CallElement key={el.id} {...el} />
           ))}
         </Stack>
       </DialogContent>

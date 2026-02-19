@@ -76,7 +76,7 @@ const ChatInput = ({ openPicker, setOpenPicker }) => {
               }}
             >
               {Actions.map((el) => (
-                <Tooltip placement="right" title={el.title}>
+                <Tooltip key={el.title} placement="right" title={el.title}>
                   <Fab
                     onClick={() => {
                       setOpenActions(!openActions);

@@ -105,20 +105,19 @@ const SideBar = () => {
             {Nav_Buttons.map((el) =>
               el.index === selected ? (
                 <Box
+                  key={el.index}
                   sx={{
                     backgroundColor: theme.palette.primary.main,
                     borderRadius: 1.5,
                   }}
                 >
-                  <IconButton
-                    sx={{ width: "max-content", color: "#fff" }}
-                    key={el.index}
-                  >
+                  <IconButton sx={{ width: "max-content", color: "#fff" }}>
                     {el.icon}
                   </IconButton>
                 </Box>
               ) : (
                 <IconButton
+                  key={el.index}
                   onClick={() => {
                     setSelected(el.index);
                     navigate(getPath(el.index));
@@ -130,7 +129,6 @@ const SideBar = () => {
                         ? "#000"
                         : theme.palette.text.primary,
                   }}
-                  key={el.index}
                 >
                   {el.icon}
                 </IconButton>
@@ -195,6 +193,7 @@ const SideBar = () => {
             <Stack spacing={1} px={1}>
               {Profile_Menu.map((el, idx) => (
                 <MenuItem
+                  key={`${el.title}-${idx}`}
                   onClick={() => {
                     handleClick();
                   }}

@@ -83,7 +83,7 @@ const Call = () => {
                 <Stack spacing={2.4}>
                   {/* Call logs */}
                   {CallLogs.map((el) => (
-                    <CallLogElement {...el} />
+                    <CallLogElement key={el.id} {...el} />
                   ))}
                 </Stack>
               </SimpleBarStyle>

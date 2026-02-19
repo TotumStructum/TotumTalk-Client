@@ -131,9 +131,10 @@ const Shortcuts = ({ open, handleClose }) => {
                     {title}
                   </Typography>
                   <Stack spacing={2} direction={"row"}>
-                    {combination.map((el) => {
+                    {combination.map((el, idx) => {
                       return (
                         <Button
+                          key={`${key}-${el}-${idx}`}
                           disabled
                           variant="contained"
                           sx={{ color: "#212121" }}

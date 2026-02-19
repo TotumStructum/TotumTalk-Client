@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArchiveBox,
   CircleDashed,
@@ -14,7 +14,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { ChatList } from "../../data";
 import { useTheme } from "@emotion/react";
 import {
   Search,
@@ -23,11 +22,25 @@ import {
 } from "../../components/Search";
 import ChatElement from "../../components/ChatElement";
 import Friends from "../../sections/main/Friends";
+import { socket } from "../../socket";
+import { useSelector } from "react-redux";
+
+const user_id = window.localStorage.getItem("user_id");
 
 const Chats = () => {
   const [OpenDialog, setOpenDialog] = useState(false);
 
   const theme = useTheme();
+
+  const conversations = useSelector(
+    (state) => state.conversation?.direct_chat?.conversations ?? [],
+  );
+
+  useEffect(() => {
+    socket.emit("get_direct_conversations", { user_id }, (data) => {
+      // data => list of conversation
+    });
+  }, []);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -95,18 +108,20 @@ const Chats = () => {
           >
             <SimpleBarStyle timeout={500} clickOnTrack={false}>
               <Stack spacing={2.4}>
-                <Typography variant="subtitle" sx={{ color: "#676767" }}>
+                {/* <Typography variant="subtitle" sx={{ color: "#676767" }}>
                   Pinned
                 </Typography>
                 {ChatList.filter((el) => el.pinned).map((el) => {
                   return <ChatElement key={el.id} {...el} />;
-                })}
+                })} */}
                 <Typography variant="subtitle" sx={{ color: "#676767" }}>
                   All Chats
                 </Typography>
-                {ChatList.filter((el) => !el.pinned).map((el) => {
-                  return <ChatElement key={el.id} {...el} />;
-                })}
+                {conversations
+                  .filter((el) => !el.pinned)
+                  .map((el) => {
+                    return <ChatElement key={el.id} {...el} />;
+                  })}
               </Stack>
             </SimpleBarStyle>
           </Stack>
