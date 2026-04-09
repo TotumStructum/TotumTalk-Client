@@ -11,6 +11,7 @@ import {
   FriendRequestComponent,
   UserComponent,
 } from "../../components/Friends";
+import { socket } from "../../socket";
 
 const UsersList = () => {
   const dispatch = useDispatch();
@@ -44,11 +45,7 @@ const FriendsList = ({ handleClose }) => {
   return (
     <>
       {list.map((el) => (
-        <FriendComponent
-          key={el._id}
-          {...el}
-          onStartConversation={handleClose}
-        />
+        <FriendComponent key={el._id} {...el} />
       ))}
     </>
   );
@@ -74,6 +71,20 @@ const FriendRequestList = () => {
 
 const Friends = ({ open, handleClose }) => {
   const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!open || !socket) return;
+
+    const handleStartChat = () => {
+      handleClose();
+    };
+
+    socket.on("start_chat", handleStartChat);
+
+    return () => {
+      socket.off("start_chat", handleStartChat);
+    };
+  }, [open, handleClose]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

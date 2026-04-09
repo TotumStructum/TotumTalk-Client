@@ -121,14 +121,7 @@ const FriendRequestComponent = ({
   );
 };
 
-const FriendComponent = ({
-  firstName,
-  lastName,
-  _id,
-  status,
-  avatar,
-  onStartConversation,
-}) => {
+const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
   const theme = useTheme();
   const name = `${firstName} ${lastName}`;
   const isOnline = status === "Online";
@@ -167,7 +160,6 @@ const FriendComponent = ({
           <IconButton
             onClick={() => {
               socket.emit("start_conversation", { to: _id });
-              onStartConversation?.();
             }}
           >
             <Chat />
