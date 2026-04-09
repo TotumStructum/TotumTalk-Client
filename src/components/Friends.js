@@ -11,7 +11,7 @@ import StyledBadge from "./StyledBadge";
 import { socket } from "../socket";
 import { Chat } from "phosphor-react";
 
-const StyledChatBox = styled(Box)(({ theme }) => ({
+const StyledChatBox = styled(Box)(() => ({
   "&:hover": {
     cursor: "pointer",
   },
@@ -37,7 +37,6 @@ const UserComponent = ({ firstName, lastName, _id, status, avatar }) => {
         justifyContent={"space-between"}
       >
         <Stack direction={"row"} alignItems={"center"} spacing={2}>
-          {""}
           {isOnline ? (
             <StyledBadge
               overlap="circular"
@@ -70,7 +69,6 @@ const UserComponent = ({ firstName, lastName, _id, status, avatar }) => {
 const FriendRequestComponent = ({
   firstName,
   lastName,
-  _id,
   status,
   avatar,
   id,
@@ -94,7 +92,6 @@ const FriendRequestComponent = ({
         justifyContent={"space-between"}
       >
         <Stack direction={"row"} alignItems={"center"} spacing={2}>
-          {""}
           {isOnline ? (
             <StyledBadge
               overlap="circular"
@@ -124,7 +121,14 @@ const FriendRequestComponent = ({
   );
 };
 
-const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
+const FriendComponent = ({
+  firstName,
+  lastName,
+  _id,
+  status,
+  avatar,
+  onStartConversation,
+}) => {
   const theme = useTheme();
   const name = `${firstName} ${lastName}`;
   const isOnline = status === "Online";
@@ -144,7 +148,6 @@ const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
         justifyContent={"space-between"}
       >
         <Stack direction={"row"} alignItems={"center"} spacing={2}>
-          {""}
           {isOnline ? (
             <StyledBadge
               overlap="circular"
@@ -163,8 +166,8 @@ const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
         <Stack direction={"row"} spacing={2} alignItems={"center"}>
           <IconButton
             onClick={() => {
-              //start a new conversation
               socket.emit("start_conversation", { to: _id });
+              onStartConversation?.();
             }}
           >
             <Chat />

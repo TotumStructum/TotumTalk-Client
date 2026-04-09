@@ -23,14 +23,14 @@ const UsersList = () => {
 
   return (
     <>
-      {users.map((el, idx) => {
-        return <UserComponent key={el._id} {...el} />;
-      })}
+      {users.map((el) => (
+        <UserComponent key={el._id} {...el} />
+      ))}
     </>
   );
 };
 
-const FriendsList = () => {
+const FriendsList = ({ handleClose }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -44,7 +44,11 @@ const FriendsList = () => {
   return (
     <>
       {list.map((el) => (
-        <FriendComponent key={el._id} {...el} />
+        <FriendComponent
+          key={el._id}
+          {...el}
+          onStartConversation={handleClose}
+        />
       ))}
     </>
   );
@@ -61,11 +65,9 @@ const FriendRequestList = () => {
 
   return (
     <>
-      {friendRequests.map((el, idx) => {
-        return (
-          <FriendRequestComponent key={el._id} {...el.sender} id={el._id} />
-        );
-      })}
+      {friendRequests.map((el) => (
+        <FriendRequestComponent key={el._id} {...el.sender} id={el._id} />
+      ))}
     </>
   );
 };
@@ -93,20 +95,19 @@ const Friends = ({ open, handleClose }) => {
           <Tab label={"Requests"} />
         </Tabs>
       </Stack>
-      {/* Dialog Content */}
       <DialogContent>
         <Stack sx={{ height: "100%" }}>
           <Stack spacing={2.5}>
             {(() => {
               switch (value) {
-                case 0: //display all users
+                case 0:
                   return <UsersList />;
-                case 1: //display all friends
-                  return <FriendsList />;
-                case 2: //display all friends request
+                case 1:
+                  return <FriendsList handleClose={handleClose} />;
+                case 2:
                   return <FriendRequestList />;
                 default:
-                  break;
+                  return null;
               }
             })()}
           </Stack>

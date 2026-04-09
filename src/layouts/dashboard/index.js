@@ -5,13 +5,19 @@ import React, { useEffect, useRef } from "react";
 import SideBar from "./SideBar";
 import { useDispatch, useSelector } from "react-redux";
 import { connectSocket, socket } from "../../socket";
-import { SelectConversation, showSnackbar } from "../../redux/slices/app";
+import {
+  FetchFriendRequests,
+  FetchFriends,
+  FetchUsers,
+  SelectConversation,
+  showSnackbar,
+} from "../../redux/slices/app";
 import {
   AddDirectConversation,
   UpdateDirectConversation,
   AddDirectMessage,
+  FetchDirectConversations,
 } from "../../redux/slices/conversation";
-import { FetchDirectConversations } from "../../redux/slices/conversation";
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
@@ -36,10 +42,21 @@ const DashboardLayout = () => {
       connectSocket(token);
     }
 
+    const refreshRelationshipData = () => {
+      dispatch(FetchUsers());
+      dispatch(FetchFriends());
+      dispatch(FetchFriendRequests());
+    };
+
     const loadConversations = () => {
       socket.emit("get_direct_conversations", null, (data) => {
         dispatch(FetchDirectConversations({ conversations: data }));
       });
+    };
+
+    const loadInitialData = () => {
+      loadConversations();
+      refreshRelationshipData();
     };
 
     const handleNewMessage = (data) => {
@@ -53,22 +70,52 @@ const DashboardLayout = () => {
 
     const handleNewFriendRequest = (data) => {
       dispatch(showSnackbar({ severity: "success", message: data.message }));
+      refreshRelationshipData();
     };
 
     const handleRequestAccepted = (data) => {
       dispatch(showSnackbar({ severity: "success", message: data.message }));
+      refreshRelationshipData();
     };
 
     const handleRequestSent = (data) => {
       dispatch(showSnackbar({ severity: "success", message: data.message }));
+      refreshRelationshipData();
+    };
+
+    const handleRequestError = (data) => {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message: data?.message || "Request action failed",
+        }),
+      );
+    };
+
+    const handleConversationError = (data) => {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message: data?.message || "Conversation action failed",
+        }),
+      );
+    };
+
+    const handleMessageError = (data) => {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message: data?.message || "Message action failed",
+        }),
+      );
     };
 
     const handleStartChat = (data) => {
-      const existing_conversation = conversationsRef.current.find(
+      const existingConversation = conversationsRef.current.find(
         (el) => el.id === data._id,
       );
 
-      if (existing_conversation) {
+      if (existingConversation) {
         dispatch(UpdateDirectConversation({ conversation: data }));
       } else {
         dispatch(AddDirectConversation({ conversation: data }));
@@ -78,21 +125,27 @@ const DashboardLayout = () => {
     };
 
     if (socket.connected) {
-      loadConversations();
+      loadInitialData();
     }
 
-    socket.on("connect", loadConversations);
+    socket.on("connect", loadInitialData);
     socket.on("new_friend_request", handleNewFriendRequest);
     socket.on("request_accepted", handleRequestAccepted);
     socket.on("request_sent", handleRequestSent);
+    socket.on("request_error", handleRequestError);
+    socket.on("conversation_error", handleConversationError);
+    socket.on("message_error", handleMessageError);
     socket.on("start_chat", handleStartChat);
     socket.on("new_message", handleNewMessage);
 
     return () => {
-      socket?.off("connect", loadConversations);
+      socket?.off("connect", loadInitialData);
       socket?.off("new_friend_request", handleNewFriendRequest);
       socket?.off("request_accepted", handleRequestAccepted);
       socket?.off("request_sent", handleRequestSent);
+      socket?.off("request_error", handleRequestError);
+      socket?.off("conversation_error", handleConversationError);
+      socket?.off("message_error", handleMessageError);
       socket?.off("start_chat", handleStartChat);
       socket?.off("new_message", handleNewMessage);
     };
@@ -103,12 +156,10 @@ const DashboardLayout = () => {
   }
 
   return (
-    <>
-      <Stack direction="row">
-        <SideBar />
-        <Outlet />
-      </Stack>
-    </>
+    <Stack direction="row">
+      <SideBar />
+      <Outlet />
+    </Stack>
   );
 };
 
