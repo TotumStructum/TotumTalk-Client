@@ -3,7 +3,11 @@ import { CaretLeft } from "phosphor-react";
 import React from "react";
 import ProfileForm from "../../sections/settings/ProfileForm";
 
+import { useNavigate } from "react-router-dom";
+
 const Profile = () => {
+  const navigate = useNavigate();
+
   return (
     <>
       <Stack direction={"row"} sx={{ width: "100%" }}>
@@ -13,27 +17,22 @@ const Profile = () => {
             backgroundColor: (theme) =>
               theme.palette.mode === "light"
                 ? "#F8FAFF"
-                : theme.palette.background,
+                : theme.palette.background.paper,
             width: 320,
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
           }}
         >
           <Stack p={4} spacing={5}>
-            {/* Header */}
             <Stack direction={"row"} alignItems={"center"} spacing={3}>
-              <IconButton>
+              <IconButton onClick={() => navigate(-1)}>
                 <CaretLeft size={24} color={"#4B4B4B"} />
               </IconButton>
-
               <Typography variant="h5">Profile</Typography>
             </Stack>
-
-            {/* Profile Form */}
             <ProfileForm />
           </Stack>
         </Box>
       </Stack>
-      ;
     </>
   );
 };

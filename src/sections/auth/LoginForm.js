@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import FormProvider, { RHFTextField } from "../../components/hook-form";
 import { Stack } from "@mui/system";
-import { Alert, Button, IconButton, InputAdornment, Link } from "@mui/material";
+import { Button, IconButton, InputAdornment, Link } from "@mui/material";
 import { Eye, EyeSlash } from "phosphor-react";
 import { LoginUser } from "../../redux/slices/auth";
 import { useDispatch } from "react-redux";
@@ -22,8 +22,8 @@ const LoginForm = () => {
   });
 
   const defaultValues = {
-    email: "korzhevskyiv@gmail.com",
-    password: "123456",
+    email: "",
+    password: "",
   };
 
   const methods = useForm({
@@ -31,33 +31,15 @@ const LoginForm = () => {
     defaultValues,
   });
 
-  const {
-    reset,
-    setError,
-    handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = methods;
+  const { handleSubmit } = methods;
 
-  const onSubmit = async (data) => {
-    try {
-      //submit data for backend
-      dispatch(LoginUser(data));
-    } catch (error) {
-      console.log(error);
-      reset();
-      setError("afterSubmit", {
-        ...error,
-        message: error.message,
-      });
-    }
+  const onSubmit = (data) => {
+    dispatch(LoginUser(data));
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        {!!errors.afterSubmit && (
-          <Alert severity="error">{errors.afterSubmit.message}</Alert>
-        )}
         <RHFTextField name="email" label="Email address" />
 
         <RHFTextField

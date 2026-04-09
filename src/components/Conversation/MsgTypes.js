@@ -3,53 +3,86 @@ import {
   Box,
   Divider,
   IconButton,
-  Link,
+  Link as MuiLink,
   Menu,
   MenuItem,
   Stack,
   Typography,
 } from "@mui/material";
-import { DotsThreeVertical, DownloadSimple, Image } from "phosphor-react";
+import { DotsThreeVertical, DownloadSimple, File, Image } from "phosphor-react";
 import React from "react";
 import { Message_options } from "../../data/index";
 
+const getBubbleStyles = (theme, incoming) => ({
+  backgroundColor: incoming
+    ? theme.palette.background.default
+    : theme.palette.primary.main,
+  borderRadius: 1.5,
+  width: "max-content",
+  maxWidth: "85%",
+});
+
+const getTextColor = (theme, incoming) =>
+  incoming ? theme.palette.text.primary : "#fff";
+
+const getFileName = (file = "") => {
+  if (!file) return "Document";
+  const parts = file.split("/");
+  return decodeURIComponent(parts[parts.length - 1] || "Document");
+};
+
+const getNormalizedUrl = (value = "") => {
+  const match = value.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+
+  if (!match) return null;
+
+  return match[0].startsWith("http") ? match[0] : `https://${match[0]}`;
+};
+
 const DocMsg = ({ el, menu }) => {
   const theme = useTheme();
+  const fileName = getFileName(el.file);
+
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
-      <Box
-        p={1.5}
-        sx={{
-          backgroundColor: el.incoming
-            ? theme.palette.background.default
-            : theme.palette.primary.main,
-          borderRadius: 1.5,
-          width: "max-contet",
-        }}
-      >
-        <Stack spacing={2}>
+      <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
+        <Stack spacing={1.5}>
           <Stack
-            p={2}
+            p={1.5}
             direction="row"
-            spacing={3}
+            spacing={1.5}
             alignItems="center"
             sx={{
               backgroundColor: theme.palette.background.paper,
               borderRadius: 1,
             }}
           >
-            <Image size={48} />
-            <Typography variant="caption">Abstarct.png</Typography>
-            <IconButton>
-              <DownloadSimple />
-            </IconButton>
+            <File size={40} />
+            <Stack sx={{ minWidth: 0, flexGrow: 1 }}>
+              <Typography variant="caption" sx={{ wordBreak: "break-word" }}>
+                {fileName}
+              </Typography>
+            </Stack>
+            {el.file && (
+              <IconButton
+                component="a"
+                href={el.file}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <DownloadSimple />
+              </IconButton>
+            )}
           </Stack>
-          <Typography
-            variant="body2"
-            sx={{ color: el.incoming ? theme.palette.text : "#fff" }}
-          >
-            {el.message}
-          </Typography>
+
+          {el.text ? (
+            <Typography
+              variant="body2"
+              sx={{ color: getTextColor(theme, el.incoming) }}
+            >
+              {el.text}
+            </Typography>
+          ) : null}
         </Stack>
       </Box>
       {menu && <MessageOptions />}
@@ -59,52 +92,42 @@ const DocMsg = ({ el, menu }) => {
 
 const LinkMsg = ({ el, menu }) => {
   const theme = useTheme();
+  const url = el.url || getNormalizedUrl(el.text || "");
+
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
-      <Box
-        p={1.5}
-        sx={{
-          backgroundColor: el.incoming
-            ? theme.palette.background.default
-            : theme.palette.primary.main,
-          borderRadius: 1.5,
-          width: "max-contet",
-        }}
-      >
-        <Stack spacing={2}>
-          <Stack
-            p={2}
-            spacing={3}
-            alignItems="center"
-            direction="column"
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              borderRadius: 1,
-            }}
-          >
-            <img
-              src={el.preview}
-              alt={el.message}
-              style={{ maxHeight: 210, borderRadius: "10px" }}
-            />
-            <Stack spacing={2}>
-              <Typography vartiant="subtitle2">Super puper link</Typography>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: theme.palette.primary.main }}
-                component={Link}
-                to="//https://www.youtube.com"
-              >
-                www.youtube.com
-              </Typography>
-            </Stack>
+      <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
+        <Stack spacing={1}>
+          {el.text && el.text !== url ? (
             <Typography
               variant="body2"
-              color={el.incoming ? theme.palette.text : "#fff"}
+              sx={{ color: getTextColor(theme, el.incoming) }}
             >
-              {el.message}
+              {el.text}
             </Typography>
-          </Stack>
+          ) : null}
+
+          {url ? (
+            <MuiLink
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              underline="hover"
+              sx={{
+                wordBreak: "break-all",
+                color: el.incoming ? theme.palette.primary.main : "#fff",
+              }}
+            >
+              {url}
+            </MuiLink>
+          ) : (
+            <Typography
+              variant="body2"
+              sx={{ color: getTextColor(theme, el.incoming) }}
+            >
+              {el.text}
+            </Typography>
+          )}
         </Stack>
       </Box>
       {menu && <MessageOptions />}
@@ -114,18 +137,10 @@ const LinkMsg = ({ el, menu }) => {
 
 const ReplyMsg = ({ el }) => {
   const theme = useTheme();
+
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
-      <Box
-        p={1.5}
-        sx={{
-          backgroundColor: el.incoming
-            ? theme.palette.background.default
-            : theme.palette.primary.main,
-          borderRadius: 1.5,
-          width: "max-contet",
-        }}
-      >
+      <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Stack spacing={2}>
           <Stack
             p={2}
@@ -137,13 +152,13 @@ const ReplyMsg = ({ el }) => {
               borderRadius: 1.5,
             }}
           >
-            <Typography variant="body2" color={theme.palette.text}>
+            <Typography variant="body2" color={theme.palette.text.primary}>
               {el.message}
             </Typography>
           </Stack>
           <Typography
             variant="body2"
-            color={el.incoming ? theme.palette.text : "#fff"}
+            sx={{ color: getTextColor(theme, el.incoming) }}
           >
             {el.reply}
           </Typography>
@@ -156,28 +171,38 @@ const ReplyMsg = ({ el }) => {
 
 const MediaMsg = ({ el, menu }) => {
   const theme = useTheme();
+
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
-      <Box
-        p={1.5}
-        sx={{
-          backgroundColor: el.incoming
-            ? theme.palette.background.default
-            : theme.palette.primary.main,
-          borderRadius: 1.5,
-          width: "max-contet",
-        }}
-      >
+      <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Stack spacing={1}>
-          <img
-            src={el.img}
-            alt={el.message}
-            style={{ maxHeight: 210, borderRadius: "10px" }}
-          />
-          <Typography
-            variant="body2"
-            color={el.incoming ? theme.palette.text : "fff"}
-          ></Typography>
+          {el.file ? (
+            <Box
+              component="img"
+              src={el.file}
+              alt="Media message"
+              sx={{
+                maxHeight: 210,
+                maxWidth: 240,
+                borderRadius: "10px",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <Stack
+              p={2}
+              direction="row"
+              spacing={1.5}
+              alignItems="center"
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: 1,
+              }}
+            >
+              <Image size={32} />
+              <Typography variant="caption">Media file</Typography>
+            </Stack>
+          )}
         </Stack>
       </Box>
       {menu && <MessageOptions />}
@@ -187,21 +212,16 @@ const MediaMsg = ({ el, menu }) => {
 
 const TextMsg = ({ el, menu }) => {
   const theme = useTheme();
+
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
-      <Box
-        p={1.5}
-        sx={{
-          backgroundColor: el.incoming
-            ? theme.palette.background.default
-            : theme.palette.primary.main,
-          borderRadius: 1.5,
-          width: "max-contet",
-        }}
-      >
+      <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Typography
           variant="body2"
-          color={el.incoming ? theme.palette.text : "#fff"}
+          sx={{
+            color: getTextColor(theme, el.incoming),
+            wordBreak: "break-word",
+          }}
         >
           {el.message}
         </Typography>
@@ -213,14 +233,14 @@ const TextMsg = ({ el, menu }) => {
 
 const Timeline = ({ el }) => {
   const theme = useTheme();
+
   return (
     <Stack direction="row" alignItems="center" justifyContent="space-between">
       <Divider width="46%" />
-      <Typography variant="caption" sx={{ color: theme.palette.text }}>
+      <Typography variant="caption" sx={{ color: theme.palette.text.primary }}>
         {el.text}
       </Typography>
       <Divider width="46%" />
-      <MessageOptions />
     </Stack>
   );
 };
@@ -228,9 +248,11 @@ const Timeline = ({ el }) => {
 const MessageOptions = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };

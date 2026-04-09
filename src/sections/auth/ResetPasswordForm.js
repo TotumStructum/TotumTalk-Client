@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import FormProvider, { RHFTextField } from "../../components/hook-form";
 import { Stack } from "@mui/system";
-import { Alert, Button } from "@mui/material";
+import { Button } from "@mui/material";
 import { ForgotPassword } from "../../redux/slices/auth";
 import { useDispatch } from "react-redux";
 
@@ -17,7 +17,7 @@ const ResetPasswordForm = () => {
   });
 
   const defaultValues = {
-    email: "demo@alysa.com",
+    email: "",
   };
 
   const methods = useForm({
@@ -25,33 +25,15 @@ const ResetPasswordForm = () => {
     defaultValues,
   });
 
-  const {
-    reset,
-    setError,
-    handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = methods;
+  const { handleSubmit } = methods;
 
-  const onSubmit = async (data) => {
-    try {
-      //submit data for backend
-      dispatch(ForgotPassword(data));
-    } catch (error) {
-      console.log(error);
-      reset();
-      setError("afterSubmit", {
-        ...error,
-        message: error.message,
-      });
-    }
+  const onSubmit = (data) => {
+    dispatch(ForgotPassword(data));
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        {!!errors.afterSubmit && (
-          <Alert severity="error">{errors.afterSubmit.message}</Alert>
-        )}
         <RHFTextField name="email" label="Email address" />
         <Button
           fullWidth

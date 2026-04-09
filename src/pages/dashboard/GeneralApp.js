@@ -28,11 +28,6 @@ const GeneralApp = () => {
               : theme.palette.background.default,
         }}
       >
-        {console.log(
-          "Render condition:",
-          room_id !== null && chat_type === "individual",
-        )}
-
         {room_id !== null && chat_type === "individual" ? (
           <Conversation />
         ) : (

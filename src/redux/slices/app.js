@@ -48,7 +48,6 @@ const slice = createSlice({
       state.friendRequests = action.payload.request;
     },
     selectConversation(state, action) {
-      console.log("Selected conversation!", action.payload);
       state.chat_type = "individual";
       state.room_id = action.payload.room_id;
     },
@@ -68,7 +67,7 @@ export function UpdateSidebarType(type) {
     dispatch(
       slice.actions.updateSidebarType({
         type,
-      })
+      }),
     );
   };
 }
@@ -79,7 +78,7 @@ export function showSnackbar({ severity, message }) {
       slice.actions.openSnackbar({
         message,
         severity,
-      })
+      }),
     );
 
     setTimeout(() => {
@@ -102,11 +101,10 @@ export const FetchFriends = () => {
         },
       })
       .then((response) => {
-        console.log(response);
         dispatch(slice.actions.updateFriends({ friends: response.data.data }));
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   };
 };
@@ -121,13 +119,12 @@ export const FetchFriendRequests = () => {
         },
       })
       .then((response) => {
-        console.log(response);
         dispatch(
-          slice.actions.updateFriendRequests({ request: response.data.data })
+          slice.actions.updateFriendRequests({ request: response.data.data }),
         );
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   };
 };
@@ -142,11 +139,10 @@ export const FetchUsers = () => {
         },
       })
       .then((response) => {
-        console.log(response);
         dispatch(slice.actions.updateUsers({ users: response.data.data }));
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   };
 };

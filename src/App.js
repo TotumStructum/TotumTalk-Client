@@ -21,7 +21,7 @@ function App() {
   const dispatch = useDispatch();
 
   const { open, message, severity } = useSelector(
-    (state) => state.app.snackbar
+    (state) => state.app.snackbar,
   );
   return (
     <>
@@ -39,7 +39,6 @@ function App() {
           autoHideDuration={4000}
           key={vertical + horizontal}
           onClose={() => {
-            console.log("This is clicked");
             dispatch(closeSnackbar());
           }}
         >

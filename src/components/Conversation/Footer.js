@@ -23,6 +23,8 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 
 import StyledInput from "../StyledInput";
+import { socket } from "../../socket";
+import { useSelector } from "react-redux";
 
 const Actions = [
   {
@@ -57,12 +59,26 @@ const Actions = [
   },
 ];
 
-const ChatInput = ({ openPicker, setOpenPicker }) => {
+const ChatInput = ({
+  openPicker,
+  setOpenPicker,
+  value,
+  setValue,
+  handleSend,
+}) => {
   const [openActions, setOpenActions] = React.useState(false);
 
   return (
     <StyledInput
       fullWidth
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      }}
       placeholder="Write a message..."
       variant="filled"
       InputProps={{
@@ -123,6 +139,27 @@ const ChatInput = ({ openPicker, setOpenPicker }) => {
 function Footer() {
   const theme = useTheme();
   const [openPicker, setOpenPicker] = React.useState(false);
+  const [value, setValue] = React.useState("");
+
+  const { room_id } = useSelector((state) => state.app);
+  const { current_conversation } = useSelector(
+    (state) => state.conversation.direct_chat,
+  );
+
+  const handleSend = () => {
+    const trimmed = value.trim();
+
+    if (!trimmed || !socket || !room_id || !current_conversation) return;
+
+    socket.emit("text_message", {
+      to: current_conversation.user_id,
+      message: trimmed,
+      conversation_id: room_id,
+      type: "Text",
+    });
+
+    setValue("");
+  };
 
   return (
     <Box
@@ -150,11 +187,19 @@ function Footer() {
             <Picker
               theme={theme.palette.mode}
               data={data}
-              onEmojiSelect={console.log}
+              onEmojiSelect={(emoji) => {
+                setValue((prev) => prev + (emoji.native || ""));
+              }}
             />
           </Box>
 
-          <ChatInput openPicker={openPicker} setOpenPicker={setOpenPicker} />
+          <ChatInput
+            openPicker={openPicker}
+            setOpenPicker={setOpenPicker}
+            value={value}
+            setValue={setValue}
+            handleSend={handleSend}
+          />
         </Stack>
 
         <Box
@@ -170,7 +215,7 @@ function Footer() {
             alignItems="center"
             justifyContent="center"
           >
-            <IconButton>
+            <IconButton onClick={handleSend}>
               <PaperPlaneTilt color="#fff" />
             </IconButton>
           </Stack>

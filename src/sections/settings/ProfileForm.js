@@ -1,94 +1,150 @@
-import React, { useCallback, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import React, { useEffect } from "react";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import FormProvider, { RHFTextField } from "../../components/hook-form";
 import { Stack } from "@mui/system";
-import { Alert, Button, IconButton, InputAdornment, Link } from "@mui/material";
-import { Eye, EyeSlash } from "phosphor-react";
+import { Button } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+
+import FormProvider, { RHFTextField } from "../../components/hook-form";
+import axios from "../../utils/axios";
+import { showSnackbar } from "../../redux/slices/app";
 
 const ProfileForm = () => {
-  const LoginSchema = Yup.object().shape({
-    name: Yup.string().required("Name is required"),
-    about: Yup.string().required("About is required"),
-    avatarUrl: Yup.string()
-      .required("Profile avatar is required")
-      .nullable(true),
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.auth.token);
+
+  const ProfileSchema = Yup.object().shape({
+    firstName: Yup.string().required("First name is required"),
+    lastName: Yup.string().required("Last name is required"),
+    about: Yup.string().nullable(),
+    avatar: Yup.string().nullable(),
   });
 
   const defaultValues = {
-    name: "Volodymyr Korzhevskyi",
-    about: "demo",
+    firstName: "",
+    lastName: "",
+    about: "",
+    avatar: "",
   };
 
   const methods = useForm({
-    resolver: yupResolver(LoginSchema),
+    resolver: yupResolver(ProfileSchema),
     defaultValues,
   });
 
   const {
     reset,
-    watch,
-    control,
-    setError,
-    setValue,
     handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { isSubmitting },
   } = methods;
 
-  const values = watch();
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get("/user/me", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  const handleDrop = useCallback(
-    (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      const newFile = Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      });
-
-      if (file) {
-        setValue("avatarUrl", newFile, { shouldValidate: true });
+        reset({
+          firstName: response.data.data.firstName || "",
+          lastName: response.data.data.lastName || "",
+          about: response.data.data.about || "",
+          avatar: response.data.data.avatar || "",
+        });
+      } catch (error) {
+        dispatch(
+          showSnackbar({
+            severity: "error",
+            message:
+              error?.response?.data?.message ||
+              error?.message ||
+              "Failed to load profile",
+          }),
+        );
       }
-    },
-    [setValue],
-  );
+    };
+
+    if (token) {
+      fetchProfile();
+    }
+  }, [token, reset, dispatch]);
 
   const onSubmit = async (data) => {
     try {
-      //submit data for backend
-      console.log("Data", data);
-    } catch (error) {
-      console.log(error);
-      reset();
-      setError("afterSubmit", {
-        ...error,
-        message: error.message,
+      const response = await axios.patch("/user/update-me", data, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      reset({
+        firstName: response.data.data.firstName || "",
+        lastName: response.data.data.lastName || "",
+        about: response.data.data.about || "",
+        avatar: response.data.data.avatar || "",
+      });
+
+      dispatch(
+        showSnackbar({
+          severity: "success",
+          message: response.data.message,
+        }),
+      );
+    } catch (error) {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to update profile",
+        }),
+      );
     }
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        <Stack spacing={3}>
-          {!!errors.afterSubmit && (
-            <Alert severity="error">{errors.afterSubmit.message}</Alert>
-          )}
-          <RHFTextField
-            name="name"
-            label="Name"
-            helperText={"This name is visible to your contacts"}
-          />
-          <RHFTextField
-            multiline
-            rows={3}
-            maxRows={5}
-            name="about"
-            label="About"
-          />
-        </Stack>
+        <RHFTextField
+          name="firstName"
+          label="First name"
+          helperText="This name is visible to your contacts"
+        />
+
+        <RHFTextField
+          name="lastName"
+          label="Last name"
+          helperText="This surname is visible to your contacts"
+        />
+
+        <RHFTextField
+          multiline
+          rows={3}
+          maxRows={5}
+          name="about"
+          label="About"
+        />
+
+        <RHFTextField
+          name="avatar"
+          label="Avatar URL"
+          helperText="Paste an image URL for now"
+        />
+
         <Stack direction={"row"} justifyContent={"end"}>
-          <Button color="primary" size="large" type="submit" variant="outlined">
+          <Button
+            color="primary"
+            size="large"
+            type="submit"
+            variant="outlined"
+            disabled={isSubmitting}
+          >
             Save
           </Button>
         </Stack>

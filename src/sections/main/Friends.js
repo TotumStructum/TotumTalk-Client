@@ -24,7 +24,6 @@ const UsersList = () => {
   return (
     <>
       {users.map((el, idx) => {
-        // render user component
         return <UserComponent key={el._id} {...el} />;
       })}
     </>
@@ -39,14 +38,8 @@ const FriendsList = () => {
   }, [dispatch]);
 
   const { friends } = useSelector((state) => state.app);
-  console.log(
-    "friends from store:",
-    friends,
-    "isArray:",
-    Array.isArray(friends)
-  );
 
-  const list = Array.isArray(friends) ? friends : friends?.friends ?? [];
+  const list = Array.isArray(friends) ? friends : (friends?.friends ?? []);
 
   return (
     <>
@@ -69,7 +62,6 @@ const FriendRequestList = () => {
   return (
     <>
       {friendRequests.map((el, idx) => {
-        // TODO render friend request component
         return (
           <FriendRequestComponent key={el._id} {...el.sender} id={el._id} />
         );

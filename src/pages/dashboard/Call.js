@@ -17,8 +17,6 @@ import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { SimpleBarStyle } from "../../components/Scrollbar";
-import { CallLogs } from "../../data";
-import { CallLogElement } from "../../components/CallElement";
 import StartCall from "../../sections/main/StartCall";
 
 const Call = () => {
@@ -39,7 +37,7 @@ const Call = () => {
             backgroundColor: (theme) =>
               theme.palette.mode === "light"
                 ? "#F8FAFF"
-                : theme.palette.background,
+                : theme.palette.background.paper,
             width: 320,
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
           }}
@@ -81,10 +79,9 @@ const Call = () => {
             <Box sx={{ flexFlow: 1, height: "100%" }}>
               <SimpleBarStyle timeout={500} clickOnTrack={false}>
                 <Stack spacing={2.4}>
-                  {/* Call logs */}
-                  {CallLogs.map((el) => (
-                    <CallLogElement key={el.id} {...el} />
-                  ))}
+                  <Typography variant="body2" color="text.secondary">
+                    Call logs are not connected yet.
+                  </Typography>
                 </Stack>
               </SimpleBarStyle>
             </Box>

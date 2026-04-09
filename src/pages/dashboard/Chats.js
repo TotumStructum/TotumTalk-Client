@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ArchiveBox,
   CircleDashed,
@@ -22,10 +22,7 @@ import {
 } from "../../components/Search";
 import ChatElement from "../../components/ChatElement";
 import Friends from "../../sections/main/Friends";
-import { socket } from "../../socket";
 import { useSelector } from "react-redux";
-
-const user_id = window.localStorage.getItem("user_id");
 
 const Chats = () => {
   const [OpenDialog, setOpenDialog] = useState(false);
@@ -35,12 +32,6 @@ const Chats = () => {
   const conversations = useSelector(
     (state) => state.conversation?.direct_chat?.conversations ?? [],
   );
-
-  useEffect(() => {
-    socket.emit("get_direct_conversations", { user_id }, (data) => {
-      // data => list of conversation
-    });
-  }, []);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);

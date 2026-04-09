@@ -2,10 +2,19 @@ import io from "socket.io-client";
 
 let socket;
 
-const connectSocket = (user_id) => {
-  socket = io("http://localhost:3001", {
-    query: `user_id=${user_id}`,
+const connectSocket = (token) => {
+  socket = io("http://localhost:3000", {
+    auth: {
+      token,
+    },
   });
 };
 
-export { socket, connectSocket };
+const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+};
+
+export { socket, connectSocket, disconnectSocket };

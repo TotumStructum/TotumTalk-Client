@@ -7,7 +7,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme, styled } from "@mui/material/styles";
-import React from "react";
 import StyledBadge from "./StyledBadge";
 import { socket } from "../socket";
 import { Chat } from "phosphor-react";
@@ -18,11 +17,10 @@ const StyledChatBox = styled(Box)(({ theme }) => ({
   },
 }));
 
-const user_id = window.localStorage.getItem("user_id");
-
-const UserComponent = ({ firstName, lastName, _id, online, img }) => {
+const UserComponent = ({ firstName, lastName, _id, status, avatar }) => {
   const theme = useTheme();
   const name = `${firstName} ${lastName}`;
+  const isOnline = status === "Online";
 
   return (
     <StyledChatBox
@@ -40,16 +38,16 @@ const UserComponent = ({ firstName, lastName, _id, online, img }) => {
       >
         <Stack direction={"row"} alignItems={"center"} spacing={2}>
           {""}
-          {online ? (
+          {isOnline ? (
             <StyledBadge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar alt={name} src={img} />
+              <Avatar alt={name} src={avatar} />
             </StyledBadge>
           ) : (
-            <Avatar alt={name} src={img} />
+            <Avatar alt={name} src={avatar} />
           )}
           <Stack spacing={0.3}>
             <Typography variant="subtitle2">{name}</Typography>
@@ -58,9 +56,7 @@ const UserComponent = ({ firstName, lastName, _id, online, img }) => {
         <Stack direction={"row"} spacing={2} alignItems={"center"}>
           <Button
             onClick={() => {
-              socket.emit("friend_requset", { to: _id, from: user_id }, () => {
-                alert("request sent");
-              });
+              socket.emit("friend_request", { to: _id });
             }}
           >
             Send Request
@@ -75,12 +71,13 @@ const FriendRequestComponent = ({
   firstName,
   lastName,
   _id,
-  online,
-  img,
+  status,
+  avatar,
   id,
 }) => {
   const theme = useTheme();
   const name = `${firstName} ${lastName}`;
+  const isOnline = status === "Online";
 
   return (
     <StyledChatBox
@@ -98,16 +95,16 @@ const FriendRequestComponent = ({
       >
         <Stack direction={"row"} alignItems={"center"} spacing={2}>
           {""}
-          {online ? (
+          {isOnline ? (
             <StyledBadge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar alt={name} src={img} />
+              <Avatar alt={name} src={avatar} />
             </StyledBadge>
           ) : (
-            <Avatar alt={name} src={img} />
+            <Avatar alt={name} src={avatar} />
           )}
           <Stack spacing={0.3}>
             <Typography variant="subtitle2">{name}</Typography>
@@ -116,7 +113,7 @@ const FriendRequestComponent = ({
         <Stack direction={"row"} spacing={2} alignItems={"center"}>
           <Button
             onClick={() => {
-              socket.emit("accept_requset", { request_id: id });
+              socket.emit("accept_request", { request_id: id });
             }}
           >
             Accept Request
@@ -127,9 +124,10 @@ const FriendRequestComponent = ({
   );
 };
 
-const FriendComponent = ({ firstName, lastName, _id, online, img }) => {
+const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
   const theme = useTheme();
   const name = `${firstName} ${lastName}`;
+  const isOnline = status === "Online";
 
   return (
     <StyledChatBox
@@ -147,16 +145,16 @@ const FriendComponent = ({ firstName, lastName, _id, online, img }) => {
       >
         <Stack direction={"row"} alignItems={"center"} spacing={2}>
           {""}
-          {online ? (
+          {isOnline ? (
             <StyledBadge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar alt={name} src={img} />
+              <Avatar alt={name} src={avatar} />
             </StyledBadge>
           ) : (
-            <Avatar alt={name} src={img} />
+            <Avatar alt={name} src={avatar} />
           )}
           <Stack spacing={0.3}>
             <Typography variant="subtitle2">{name}</Typography>
@@ -166,7 +164,7 @@ const FriendComponent = ({ firstName, lastName, _id, online, img }) => {
           <IconButton
             onClick={() => {
               //start a new conversation
-              socket.emit("start_conversation", { to: _id, from: user_id });
+              socket.emit("start_conversation", { to: _id });
             }}
           >
             <Chat />

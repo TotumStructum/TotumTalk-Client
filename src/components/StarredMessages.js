@@ -1,10 +1,8 @@
 import { Box, IconButton, Stack, Typography } from "@mui/material";
-import React from "react";
 import { CaretLeft } from "phosphor-react";
 import { useDispatch } from "react-redux";
 import { UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
-import Body from "./Conversation/Body";
 
 const StarredMessages = () => {
   const theme = useTheme();
@@ -20,7 +18,7 @@ const StarredMessages = () => {
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
-                : theme.palette.background,
+                : theme.palette.background.paper,
           }}
         >
           <Stack
@@ -44,12 +42,16 @@ const StarredMessages = () => {
             height: "100%",
             position: "relative",
             flexGrow: 1,
-            overflowY: "scroll",
+            overflowY: "auto",
           }}
           p={3}
           spacing={2}
+          alignItems="center"
+          justifyContent="center"
         >
-          <Body />
+          <Typography variant="body2" color="text.secondary">
+            Starred messages are not implemented yet
+          </Typography>
         </Stack>
       </Stack>
     </Box>

@@ -6,7 +6,6 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "./i18n";
 
-// contexts
 import SettingsProvider from "./contexts/SettingsContext";
 import { store } from "./redux/store";
 import { Provider as ReduxProvider } from "react-redux";
@@ -16,7 +15,6 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <HelmetProvider>
-      {console.log("Initial Redux State:", store.getState())}
       <ReduxProvider store={store}>
         <SettingsProvider>
           <BrowserRouter>
@@ -25,10 +23,7 @@ root.render(
         </SettingsProvider>
       </ReduxProvider>
     </HelmetProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

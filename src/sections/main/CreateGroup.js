@@ -46,13 +46,8 @@ const CreateGroupForm = ({ handleClose }) => {
     formState: { errors, isSubmitting, isSubmitSuccessful, isValid },
   } = methods;
 
-  const onSubmit = async (data) => {
-    try {
-      //Api Call
-      console.log("DATA", data);
-    } catch (error) {
-      console.log("error", error);
-    }
+  const onSubmit = (data) => {
+    void data;
   };
 
   return (

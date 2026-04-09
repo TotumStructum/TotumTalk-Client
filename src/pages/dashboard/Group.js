@@ -15,8 +15,6 @@ import {
   StyledInputBase,
 } from "../../components/Search";
 import { SimpleBarStyle } from "../../components/Scrollbar";
-import { ChatList } from "../../data";
-import ChatElement from "../../components/ChatElement";
 import CreateGroup from "../../sections/main/CreateGroup";
 
 const Group = () => {
@@ -37,7 +35,7 @@ const Group = () => {
             backgroundColor: (theme) =>
               theme.palette.mode === "light"
                 ? "#F8FAFF"
-                : theme.palette.background,
+                : theme.palette.background.paper,
             width: 320,
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
           }}
@@ -79,21 +77,9 @@ const Group = () => {
             <Stack sx={{ flexFlow: 1, overflowY: "scroll", height: "100%" }}>
               <SimpleBarStyle timeout={500} clickOnTrack={false}>
                 <Stack spacing={2.4}>
-                  {/*  */}
-                  <Typography variant="subtitle2" sx={{ color: "#676667" }}>
-                    Pinned
+                  <Typography variant="body2" color="text.secondary">
+                    Group conversations are not connected yet.
                   </Typography>
-                  {ChatList.filter((el) => el.pinned).map((el) => {
-                    return <ChatElement key={el.id} {...el} />;
-                  })}
-                  {/*  */}
-                  <Typography variant="subtitle2" sx={{ color: "#676667" }}>
-                    All Groups
-                  </Typography>
-                  {/* Chat List */}
-                  {ChatList.filter((el) => !el.pinned).map((el) => {
-                    return <ChatElement key={el.id} {...el} />;
-                  })}
                 </Stack>
               </SimpleBarStyle>
             </Stack>

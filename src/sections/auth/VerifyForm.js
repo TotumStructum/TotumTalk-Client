@@ -38,20 +38,15 @@ const VerifyForm = () => {
     defaultValues,
   });
 
-  const { handleSubmit, formState } = methods;
+  const { handleSubmit } = methods;
 
-  const onSubmit = async (data) => {
-    try {
-      // send api request
-      dispatch(
-        VerifyEmail({
-          email,
-          otp: `${data.code1}${data.code2}${data.code3}${data.code4}${data.code5}${data.code6}`,
-        })
-      );
-    } catch (error) {
-      console.log(error);
-    }
+  const onSubmit = (data) => {
+    dispatch(
+      VerifyEmail({
+        email,
+        otp: `${data.code1}${data.code2}${data.code3}${data.code4}${data.code5}${data.code6}`,
+      }),
+    );
   };
 
   return (

@@ -8,17 +8,16 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import React, { useState } from "react";
+import React from "react";
 import { Gear } from "phosphor-react";
 
 import AntSwitch from "../../components/AntSwitch";
 import useSettings from "../../hooks/useSettings";
 import Logo from "../../assets/Images/logo.ico";
 import { Nav_Buttons, Profile_Menu } from "../../data";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { LogoutUser } from "../../redux/slices/auth";
 import { useDispatch } from "react-redux";
-import { getFakeAvatar } from "../../utils/avatar";
 
 const getPath = (index) => {
   switch (index) {
@@ -31,7 +30,7 @@ const getPath = (index) => {
     case 3:
       return "/settings";
     default:
-      break;
+      return null;
   }
 };
 
@@ -39,16 +38,27 @@ const getMenuPath = (index) => {
   switch (index) {
     case 0:
       return "/profile";
-
     case 1:
       return "/settings";
-
     case 2:
-      //TODO => update token & set isAuth = false
       return "/auth/login";
-
     default:
-      break;
+      return null;
+  }
+};
+
+const getSelectedIndex = (pathname) => {
+  switch (pathname) {
+    case "/app":
+      return 0;
+    case "/group":
+      return 1;
+    case "/call":
+      return 2;
+    case "/settings":
+      return 3;
+    default:
+      return null;
   }
 };
 
@@ -56,16 +66,43 @@ const SideBar = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const navigate = useNavigate();
-  const [selected, setSelected] = useState(0);
+  const { pathname } = useLocation();
   const { onToggleMode } = useSettings();
+
+  const selected = getSelectedIndex(pathname);
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const handleClick = (e) => {
+
+  const handleOpenMenu = (e) => {
     setAnchorEl(e.currentTarget);
   };
-  const handleClose = () => {
+
+  const handleCloseMenu = () => {
     setAnchorEl(null);
+  };
+
+  const handleNavigate = (index) => {
+    const path = getPath(index);
+
+    if (!path) return;
+
+    navigate(path);
+  };
+
+  const handleProfileMenuAction = (idx) => {
+    handleCloseMenu();
+
+    if (idx === 2) {
+      dispatch(LogoutUser());
+      return;
+    }
+
+    const path = getMenuPath(idx);
+
+    if (path) {
+      navigate(path);
+    }
   };
 
   return (
@@ -94,10 +131,11 @@ const SideBar = () => {
               borderRadius: 1.5,
             }}
           >
-            <img src={Logo} alt={"Logo"} />
+            <img src={Logo} alt="Logo" />
           </Box>
+
           <Stack
-            sc={{ width: "max-content" }}
+            sx={{ width: "max-content" }}
             direction="column"
             alignItems="center"
             spacing={3}
@@ -119,8 +157,7 @@ const SideBar = () => {
                 <IconButton
                   key={el.index}
                   onClick={() => {
-                    setSelected(el.index);
-                    navigate(getPath(el.index));
+                    handleNavigate(el.index);
                   }}
                   sx={{
                     width: "max-content",
@@ -132,9 +169,11 @@ const SideBar = () => {
                 >
                   {el.icon}
                 </IconButton>
-              )
+              ),
             )}
+
             <Divider sx={{ width: "48px" }} />
+
             {selected === 3 ? (
               <Box
                 sx={{
@@ -149,8 +188,7 @@ const SideBar = () => {
             ) : (
               <IconButton
                 onClick={() => {
-                  setSelected(3);
-                  navigate(getPath(3));
+                  handleNavigate(3);
                 }}
                 sx={{
                   width: "max-content",
@@ -165,25 +203,27 @@ const SideBar = () => {
             )}
           </Stack>
         </Stack>
+
         <Stack alignItems={"center"} spacing={4}>
-          {/* Here will be switch, in the future... */}
           <AntSwitch
             defaultChecked={theme.palette.mode === "dark"}
             onChange={onToggleMode}
           />
+
           <Avatar
             id="basic-button"
             aria-controls={open ? "basic-menu" : undefined}
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
-            onClick={handleClick}
-            src={getFakeAvatar()}
+            onClick={handleOpenMenu}
+            alt="User menu"
           />
+
           <Menu
             id="basic-menu"
             anchorEl={anchorEl}
             open={open}
-            onClose={handleClose}
+            onClose={handleCloseMenu}
             MenuListProps={{
               "aria-labelledby": "basic-button",
             }}
@@ -195,7 +235,7 @@ const SideBar = () => {
                 <MenuItem
                   key={`${el.title}-${idx}`}
                   onClick={() => {
-                    handleClick();
+                    handleProfileMenuAction(idx);
                   }}
                 >
                   <Stack
@@ -203,13 +243,6 @@ const SideBar = () => {
                     direction="row"
                     alignItems={"center"}
                     justifyContent="space-between"
-                    onClick={() => {
-                      if (idx === 2) {
-                        dispatch(LogoutUser());
-                      } else {
-                        navigate(getMenuPath(idx));
-                      }
-                    }}
                   >
                     <span>{el.title}</span>
                     {el.icon}

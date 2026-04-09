@@ -4,6 +4,7 @@ import {
   DialogTitle,
   Slide,
   Stack,
+  Typography,
 } from "@mui/material";
 import React from "react";
 import {
@@ -12,8 +13,6 @@ import {
   StyledInputBase,
 } from "../../components/Search";
 import { MagnifyingGlass } from "phosphor-react";
-import { CallElement } from "../../components/CallElement";
-import { MembersList } from "../../data";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -47,9 +46,9 @@ const StartCall = ({ open, handleClose }) => {
             </Search>
           </Stack>
           {/* Call List */}
-          {MembersList.map((el) => (
-            <CallElement key={el.id} {...el} />
-          ))}
+          <Typography variant="body2" color="text.secondary">
+            Contact list for starting calls is not connected yet.
+          </Typography>
         </Stack>
       </DialogContent>
     </Dialog>

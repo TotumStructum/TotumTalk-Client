@@ -9,23 +9,53 @@ import {
 } from "@mui/material";
 import React from "react";
 import { CaretLeft } from "phosphor-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
-import { faker } from "@faker-js/faker";
-import { SHARED_DOCS, SHARED_LINKS } from "../data";
 import { LinkMsg, DocMsg } from "../components/Conversation/MsgTypes.js";
+
+const extractFirstUrl = (text = "") => {
+  const match = text.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+
+  if (!match) return null;
+
+  return match[0].startsWith("http") ? match[0] : `https://${match[0]}`;
+};
 
 const SharedMessages = () => {
   const theme = useTheme();
-
+  const dispatch = useDispatch();
   const [value, setValue] = React.useState(0);
+
+  const currentUserId = window.localStorage.getItem("user_id");
+
+  const { current_messages } = useSelector(
+    (state) => state.conversation.direct_chat,
+  );
+
+  const mediaMessages = current_messages.filter(
+    (message) => message.type === "Media" && message.file,
+  );
+
+  const linkMessages = current_messages.filter(
+    (message) =>
+      message.type === "Link" || Boolean(extractFirstUrl(message.text)),
+  );
+
+  const docMessages = current_messages.filter(
+    (message) => message.type === "Document" && message.file,
+  );
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  const dispatch = useDispatch();
+  const renderEmpty = (text) => (
+    <Typography variant="body2" color="text.secondary">
+      {text}
+    </Typography>
+  );
+
   return (
     <Box sx={{ width: 320, height: "100vh" }}>
       <Stack sx={{ height: "100%" }}>
@@ -36,15 +66,10 @@ const SharedMessages = () => {
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
-                : theme.palette.background,
+                : theme.palette.background.paper,
           }}
         >
-          <Stack
-            sx={{ height: "100%", p: 2 }}
-            direction="row"
-            alignItems={"center"}
-            spacing={3}
-          >
+          <Stack sx={{ p: 2 }} direction="row" alignItems="center" spacing={3}>
             <IconButton
               onClick={() => {
                 dispatch(UpdateSidebarType("CONTACT"));
@@ -55,6 +80,7 @@ const SharedMessages = () => {
             <Typography variant="subtitle2">Shared Messages</Typography>
           </Stack>
         </Box>
+
         <Tabs
           sx={{ px: 2, pt: 2 }}
           value={value}
@@ -65,49 +91,66 @@ const SharedMessages = () => {
           <Tab label="Links" />
           <Tab label="Docs" />
         </Tabs>
+
         <Stack
-          sx={{
-            height: "100%",
-            position: "relative",
-            flexGrow: 1,
-            overflowY: "scroll",
-          }}
           p={3}
           spacing={value === 1 ? 1 : 3}
+          sx={{
+            height: "100%",
+            flexGrow: 1,
+            overflowY: "auto",
+          }}
         >
-          {(() => {
-            switch (value) {
-              case 0:
-                //Media
-                return (
-                  <Grid container spacing={2}>
-                    {[0, 1, 2, 3, 4, 5, 6].map((el) => {
-                      return (
-                        <Grid key={el} item xs={4}>
-                          <img
-                            src={faker.image.cats()}
-                            alt={faker.name.fullName()}
-                          />
-                        </Grid>
-                      );
-                    })}
+          {value === 0 &&
+            (mediaMessages.length > 0 ? (
+              <Grid container spacing={2}>
+                {mediaMessages.map((message) => (
+                  <Grid key={message._id} item xs={4}>
+                    <Box
+                      component="img"
+                      src={message.file}
+                      alt="Shared media"
+                      sx={{
+                        width: "100%",
+                        aspectRatio: "1 / 1",
+                        objectFit: "cover",
+                        borderRadius: 1.5,
+                      }}
+                    />
                   </Grid>
-                );
-              case 1:
-                //Links
-                return SHARED_LINKS.map((el, idx) => (
-                  <LinkMsg key={`shared-link-${idx}`} el={el} />
-                ));
-              case 2:
-                //Docs
-                return SHARED_DOCS.map((el, idx) => (
-                  <DocMsg key={`shared-doc-${idx}`} el={el} />
-                ));
+                ))}
+              </Grid>
+            ) : (
+              renderEmpty("No shared media yet")
+            ))}
 
-              default:
-                break;
-            }
-          })()}
+          {value === 1 &&
+            (linkMessages.length > 0
+              ? linkMessages.map((message) => (
+                  <LinkMsg
+                    key={message._id}
+                    el={{
+                      incoming: message.from?.toString() !== currentUserId,
+                      text: message.text || "",
+                      url: extractFirstUrl(message.text),
+                    }}
+                  />
+                ))
+              : renderEmpty("No shared links yet"))}
+
+          {value === 2 &&
+            (docMessages.length > 0
+              ? docMessages.map((message) => (
+                  <DocMsg
+                    key={message._id}
+                    el={{
+                      incoming: message.from?.toString() !== currentUserId,
+                      file: message.file,
+                      text: message.text || "",
+                    }}
+                  />
+                ))
+              : renderEmpty("No shared documents yet"))}
         </Stack>
       </Stack>
     </Box>
