@@ -1,19 +1,59 @@
 import { Stack, Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import React from "react";
+import React, { useEffect } from "react";
 
 import Conversation from "../../components/Conversation";
 import Chats from "./Chats";
 import Contact from "../../components/Contact";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import SharedMessages from "../../components/SharedMessages";
 import StarredMessages from "../../components/StarredMessages";
 
 import NoChatSVG from "../../assets/Illustration/NoChat";
+import {
+  ResetConversationSelection,
+  ToggleSidebar,
+  UpdateSidebarType,
+} from "../../redux/slices/app";
+import { ClearCurrentConversation } from "../../redux/slices/conversation";
 
 const GeneralApp = () => {
   const theme = useTheme();
+  const dispatch = useDispatch();
+
   const { sidebar, room_id, chat_type } = useSelector((store) => store.app);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+
+      dispatch(ResetConversationSelection());
+      dispatch(ClearCurrentConversation());
+
+      if (sidebar.open) {
+        dispatch(UpdateSidebarType("CONTACT"));
+        dispatch(ToggleSidebar());
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [dispatch, sidebar.open]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(ResetConversationSelection());
+      dispatch(ClearCurrentConversation());
+
+      if (sidebar.open) {
+        dispatch(UpdateSidebarType("CONTACT"));
+        dispatch(ToggleSidebar());
+      }
+    };
+  }, [dispatch, sidebar.open]);
 
   return (
     <Stack direction={"row"} sx={{ width: "100%" }}>

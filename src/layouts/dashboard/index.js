@@ -4,7 +4,8 @@ import React, { useEffect, useRef } from "react";
 
 import SideBar from "./SideBar";
 import { useDispatch, useSelector } from "react-redux";
-import { connectSocket, socket } from "../../socket";
+import { connectSocket } from "../../socket";
+import axios from "../../utils/axios";
 import {
   FetchFriendRequests,
   FetchFriends,
@@ -22,14 +23,12 @@ import {
 const DashboardLayout = () => {
   const dispatch = useDispatch();
 
-  const { isLoggedIn } = useSelector((state) => state.auth);
+  const { isLoggedIn, token } = useSelector((state) => state.auth);
   const { conversations } = useSelector(
     (state) => state.conversation.direct_chat,
   );
 
   const conversationsRef = useRef(conversations);
-
-  const token = window.localStorage.getItem("token");
 
   useEffect(() => {
     conversationsRef.current = conversations;
@@ -38,9 +37,7 @@ const DashboardLayout = () => {
   useEffect(() => {
     if (!isLoggedIn || !token) return;
 
-    if (!socket) {
-      connectSocket(token);
-    }
+    const currentSocket = connectSocket(token);
 
     const refreshRelationshipData = () => {
       dispatch(FetchUsers());
@@ -48,15 +45,36 @@ const DashboardLayout = () => {
       dispatch(FetchFriendRequests());
     };
 
-    const loadConversations = () => {
-      socket.emit("get_direct_conversations", null, (data) => {
-        dispatch(FetchDirectConversations({ conversations: data }));
-      });
+    const loadConversations = async () => {
+      try {
+        const response = await axios.get("/conversation/direct", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        dispatch(
+          FetchDirectConversations({
+            conversations: response.data.data || [],
+          }),
+        );
+      } catch (error) {
+        dispatch(
+          showSnackbar({
+            severity: "error",
+            message:
+              error?.response?.data?.message ||
+              error?.message ||
+              "Failed to load conversations",
+          }),
+        );
+      }
     };
 
-    const loadInitialData = () => {
-      loadConversations();
+    const handleConnect = () => {
       refreshRelationshipData();
+      loadConversations();
     };
 
     const handleNewMessage = (data) => {
@@ -124,30 +142,32 @@ const DashboardLayout = () => {
       dispatch(SelectConversation({ room_id: data._id }));
     };
 
-    if (socket.connected) {
-      loadInitialData();
-    }
+    currentSocket.on("connect", handleConnect);
+    currentSocket.on("new_friend_request", handleNewFriendRequest);
+    currentSocket.on("request_accepted", handleRequestAccepted);
+    currentSocket.on("request_sent", handleRequestSent);
+    currentSocket.on("request_error", handleRequestError);
+    currentSocket.on("conversation_error", handleConversationError);
+    currentSocket.on("message_error", handleMessageError);
+    currentSocket.on("start_chat", handleStartChat);
+    currentSocket.on("new_message", handleNewMessage);
 
-    socket.on("connect", loadInitialData);
-    socket.on("new_friend_request", handleNewFriendRequest);
-    socket.on("request_accepted", handleRequestAccepted);
-    socket.on("request_sent", handleRequestSent);
-    socket.on("request_error", handleRequestError);
-    socket.on("conversation_error", handleConversationError);
-    socket.on("message_error", handleMessageError);
-    socket.on("start_chat", handleStartChat);
-    socket.on("new_message", handleNewMessage);
+    loadConversations();
+    refreshRelationshipData();
+
+    currentSocket.auth = { token };
+    currentSocket.connect();
 
     return () => {
-      socket?.off("connect", loadInitialData);
-      socket?.off("new_friend_request", handleNewFriendRequest);
-      socket?.off("request_accepted", handleRequestAccepted);
-      socket?.off("request_sent", handleRequestSent);
-      socket?.off("request_error", handleRequestError);
-      socket?.off("conversation_error", handleConversationError);
-      socket?.off("message_error", handleMessageError);
-      socket?.off("start_chat", handleStartChat);
-      socket?.off("new_message", handleNewMessage);
+      currentSocket.off("connect", handleConnect);
+      currentSocket.off("new_friend_request", handleNewFriendRequest);
+      currentSocket.off("request_accepted", handleRequestAccepted);
+      currentSocket.off("request_sent", handleRequestSent);
+      currentSocket.off("request_error", handleRequestError);
+      currentSocket.off("conversation_error", handleConversationError);
+      currentSocket.off("message_error", handleMessageError);
+      currentSocket.off("start_chat", handleStartChat);
+      currentSocket.off("new_message", handleNewMessage);
     };
   }, [isLoggedIn, token, dispatch]);
 

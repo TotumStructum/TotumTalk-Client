@@ -5,37 +5,59 @@ import appReducer from "./slices/app";
 import authReducer from "./slices/auth";
 import conversationReducer from "./slices/conversation";
 
-//slices
-
-const resetActiveChatTransform = createTransform(
+const resetRuntimeUiTransform = createTransform(
   (inboundState, key) => {
-    if (key !== "app") return inboundState;
+    if (key === "app") {
+      return {
+        ...inboundState,
+        chat_type: null,
+        room_id: null,
+      };
+    }
 
-    return {
-      ...inboundState,
-      chat_type: null,
-      room_id: null,
-    };
+    if (key === "conversation") {
+      return {
+        ...inboundState,
+        direct_chat: {
+          ...inboundState.direct_chat,
+          current_conversation: null,
+          current_messages: [],
+        },
+      };
+    }
+
+    return inboundState;
   },
   (outboundState, key) => {
-    if (key !== "app") return outboundState;
+    if (key === "app") {
+      return {
+        ...outboundState,
+        chat_type: null,
+        room_id: null,
+      };
+    }
 
-    return {
-      ...outboundState,
-      chat_type: null,
-      room_id: null,
-    };
+    if (key === "conversation") {
+      return {
+        ...outboundState,
+        direct_chat: {
+          ...outboundState.direct_chat,
+          current_conversation: null,
+          current_messages: [],
+        },
+      };
+    }
+
+    return outboundState;
   },
-  { whitelist: ["app"] },
+  { whitelist: ["app", "conversation"] },
 );
 
 const rootPeristConfig = {
   key: "root",
   storage,
   keyPrefix: "redux=",
-  transforms: [resetActiveChatTransform],
-  // whiteList: [],
-  // blackList: [],
+  transforms: [resetRuntimeUiTransform],
 };
 
 const rootReducer = combineReducers({
