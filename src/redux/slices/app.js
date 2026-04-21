@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "../../utils/axios";
+import { MarkConversationRead } from "./conversation";
 
 const initialState = {
   sidebar: {
@@ -148,7 +149,8 @@ export const FetchUsers = () => {
 };
 
 export const SelectConversation = ({ room_id }) => {
-  return (dispatch, getState) => {
+  return (dispatch) => {
     dispatch(slice.actions.selectConversation({ room_id }));
+    dispatch(MarkConversationRead({ conversation_id: room_id }));
   };
 };

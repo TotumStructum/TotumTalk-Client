@@ -105,7 +105,7 @@ const Chats = () => {
                 {ChatList.filter((el) => el.pinned).map((el) => {
                   return <ChatElement key={el.id} {...el} />;
                 })} */}
-                <Typography variant="subtitle" sx={{ color: "#676767" }}>
+                <Typography variant="subtitle2" sx={{ color: "#676767" }}>
                   All Chats
                 </Typography>
                 {conversations

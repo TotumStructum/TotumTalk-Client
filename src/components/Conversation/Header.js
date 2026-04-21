@@ -10,7 +10,7 @@ import {
 import { CaretDown, MagnifyingGlass, Phone, VideoCamera } from "phosphor-react";
 import React from "react";
 import StyledBadge from "../StyledBadge";
-import { ToggleSidebar } from "../../redux/slices/app";
+import { ToggleSidebar, UpdateSidebarType } from "../../redux/slices/app";
 import { useDispatch, useSelector } from "react-redux";
 
 const Header = () => {
@@ -20,8 +20,17 @@ const Header = () => {
   const { current_conversation } = useSelector(
     (state) => state.conversation.direct_chat,
   );
+  const { sidebar } = useSelector((state) => state.app);
 
   if (!current_conversation) return null;
+
+  const handleOpenContactSidebar = () => {
+    dispatch(UpdateSidebarType("CONTACT"));
+
+    if (!sidebar.open) {
+      dispatch(ToggleSidebar());
+    }
+  };
 
   return (
     <Box
@@ -41,13 +50,7 @@ const Header = () => {
         justifyContent={"space-between"}
         sx={{ width: "100%", height: "100%" }}
       >
-        <Stack
-          onClick={() => {
-            dispatch(ToggleSidebar());
-          }}
-          direction={"row"}
-          spacing={2}
-        >
+        <Stack onClick={handleOpenContactSidebar} direction={"row"} spacing={2}>
           <Box>
             {current_conversation.online ? (
               <StyledBadge

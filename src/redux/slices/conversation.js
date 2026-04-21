@@ -141,6 +141,20 @@ const slice = createSlice({
       );
     },
 
+    markConversationRead(state, action) {
+      const conversationId = action.payload.conversation_id;
+
+      state.direct_chat.conversations = state.direct_chat.conversations.map(
+        (el) =>
+          el.id === conversationId
+            ? {
+                ...el,
+                unread: 0,
+              }
+            : el,
+      );
+    },
+
     clearCurrentConversation(state) {
       state.direct_chat.current_conversation = null;
       state.direct_chat.current_messages = [];
@@ -189,5 +203,11 @@ export const AddDirectMessage = ({ conversation_id, message }) => {
 export const ClearCurrentConversation = () => {
   return async (dispatch) => {
     dispatch(slice.actions.clearCurrentConversation());
+  };
+};
+
+export const MarkConversationRead = ({ conversation_id }) => {
+  return async (dispatch) => {
+    dispatch(slice.actions.markConversationRead({ conversation_id }));
   };
 };
