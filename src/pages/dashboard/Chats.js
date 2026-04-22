@@ -47,6 +47,7 @@ const Chats = () => {
         sx={{
           position: "relative",
           width: 320,
+          height: "100vh",
           backgroundColor:
             theme.palette.mode === "light"
               ? "#f8faff"
@@ -54,7 +55,7 @@ const Chats = () => {
           boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
         }}
       >
-        <Stack p={3} spacing={2} sx={{ maxHeight: "100vh" }}>
+        <Stack p={3} spacing={2} sx={{ maxHeight: "100%" }}>
           <Stack
             direction="row"
             alignItems={"center"}
@@ -92,30 +93,22 @@ const Chats = () => {
             </Stack>
             <Divider />
           </Stack>
-          <Stack
-            spacing={2}
-            direction="column"
-            sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}
+          <SimpleBarStyle
+            timeout={500}
+            clickOnTrack={false}
+            sx={{ flexGrow: 1, minHeight: 0 }}
           >
-            <SimpleBarStyle timeout={500} clickOnTrack={false}>
-              <Stack spacing={2.4}>
-                {/* <Typography variant="subtitle" sx={{ color: "#676767" }}>
-                  Pinned
-                </Typography>
-                {ChatList.filter((el) => el.pinned).map((el) => {
+            <Stack spacing={2.4}>
+              <Typography variant="subtitle2" sx={{ color: "#676767" }}>
+                All Chats
+              </Typography>
+              {conversations
+                .filter((el) => !el.pinned)
+                .map((el) => {
                   return <ChatElement key={el.id} {...el} />;
-                })} */}
-                <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-                  All Chats
-                </Typography>
-                {conversations
-                  .filter((el) => !el.pinned)
-                  .map((el) => {
-                    return <ChatElement key={el.id} {...el} />;
-                  })}
-              </Stack>
-            </SimpleBarStyle>
-          </Stack>
+                })}
+            </Stack>
+          </SimpleBarStyle>
         </Stack>
       </Box>
 

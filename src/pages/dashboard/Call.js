@@ -42,7 +42,7 @@ const Call = () => {
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Stack p={3} spacing={2} sx={{ maxHeight: "100vh" }}>
+          <Stack p={3} spacing={2} sx={{ height: "100%" }}>
             <Stack>
               <Typography variant="h5">Call Logs</Typography>
             </Stack>
@@ -76,15 +76,17 @@ const Call = () => {
               </IconButton>
             </Stack>
             <Divider />
-            <Box sx={{ flexFlow: 1, height: "100%" }}>
-              <SimpleBarStyle timeout={500} clickOnTrack={false}>
-                <Stack spacing={2.4}>
-                  <Typography variant="body2" color="text.secondary">
-                    Call logs are not connected yet.
-                  </Typography>
-                </Stack>
-              </SimpleBarStyle>
-            </Box>
+            <SimpleBarStyle
+              timeout={500}
+              clickOnTrack={false}
+              sx={{ flexGrow: 1, minHeight: 0 }}
+            >
+              <Stack spacing={2.4}>
+                <Typography variant="body2" color="text.secondary">
+                  Call logs are not connected yet.
+                </Typography>
+              </Stack>
+            </SimpleBarStyle>
           </Stack>
         </Box>
         {/* {right} */}

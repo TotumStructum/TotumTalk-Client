@@ -40,7 +40,7 @@ const Group = () => {
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Stack p={3} spacing={2} sx={{ maxHeight: "100vh" }}>
+          <Stack p={3} spacing={2} sx={{ height: "100%" }}>
             <Stack>
               <Typography variant="h5">Groups</Typography>
             </Stack>
@@ -74,15 +74,17 @@ const Group = () => {
               </IconButton>
             </Stack>
             <Divider />
-            <Stack sx={{ flexFlow: 1, overflowY: "scroll", height: "100%" }}>
-              <SimpleBarStyle timeout={500} clickOnTrack={false}>
-                <Stack spacing={2.4}>
-                  <Typography variant="body2" color="text.secondary">
-                    Group conversations are not connected yet.
-                  </Typography>
-                </Stack>
-              </SimpleBarStyle>
-            </Stack>
+            <SimpleBarStyle
+              timeout={500}
+              clickOnTrack={false}
+              sx={{ flexGrow: 1, minHeight: 0 }}
+            >
+              <Stack spacing={2.4}>
+                <Typography variant="body2" color="text.secondary">
+                  Group conversations are not connected yet.
+                </Typography>
+              </Stack>
+            </SimpleBarStyle>
           </Stack>
         </Box>
         {/* {right} */}
