@@ -70,11 +70,11 @@ const Conversation = () => {
   }, [room_id, token, conversations, dispatch]);
 
   return (
-    <Stack height={"100%"} maxHeight={"100vh"}>
+    <Stack height={"100%"} maxHeight={"100vh"} sx={{ minHeight: 0 }}>
       <Header />
       <Box
         width={"100%"}
-        sx={{ flexGrow: 1, height: "100vh", overflowY: "scroll" }}
+        sx={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}
       >
         <Body menu={true} />
       </Box>
