@@ -28,6 +28,29 @@ const getMessagePreview = (message) => {
   }
 };
 
+const getConversationLastActivity = (conversation) => {
+  const lastMessage =
+    conversation.messages && conversation.messages.length > 0
+      ? conversation.messages[conversation.messages.length - 1]
+      : null;
+
+  return (
+    lastMessage?.created_at ||
+    conversation.updatedAt ||
+    conversation.createdAt ||
+    0
+  );
+};
+
+const sortConversationList = (list) => {
+  return [...list].sort((a, b) => {
+    const aTime = new Date(a.lastActivity || 0).getTime();
+    const bTime = new Date(b.lastActivity || 0).getTime();
+
+    return bTime - aTime;
+  });
+};
+
 const mapConversation = (conversation, user_id) => {
   const this_user = conversation.participants.find(
     (participant) => participant._id.toString() !== user_id,
@@ -50,6 +73,7 @@ const mapConversation = (conversation, user_id) => {
     time: formatMessageTime(lastMessage?.created_at),
     unread: 0,
     pinned: false,
+    lastActivity: getConversationLastActivity(conversation),
   };
 };
 
@@ -69,8 +93,8 @@ const slice = createSlice({
     fetchDirectConversations(state, action) {
       const user_id = getStoredUserId();
 
-      state.direct_chat.conversations = action.payload.conversations.map((el) =>
-        mapConversation(el, user_id),
+      state.direct_chat.conversations = sortConversationList(
+        action.payload.conversations.map((el) => mapConversation(el, user_id)),
       );
     },
 
@@ -78,8 +102,8 @@ const slice = createSlice({
       const user_id = getStoredUserId();
       const this_conversation = action.payload.conversation;
 
-      state.direct_chat.conversations = state.direct_chat.conversations.map(
-        (el) => {
+      state.direct_chat.conversations = sortConversationList(
+        state.direct_chat.conversations.map((el) => {
           if (el.id !== this_conversation._id) {
             return el;
           }
@@ -88,7 +112,7 @@ const slice = createSlice({
             ...mapConversation(this_conversation, user_id),
             unread: el.unread,
           };
-        },
+        }),
       );
     },
 
@@ -96,9 +120,10 @@ const slice = createSlice({
       const user_id = getStoredUserId();
       const this_conversation = action.payload.conversation;
 
-      state.direct_chat.conversations.push(
+      state.direct_chat.conversations = sortConversationList([
+        ...state.direct_chat.conversations,
         mapConversation(this_conversation, user_id),
-      );
+      ]);
     },
 
     setCurrentConversation(state, action) {
@@ -120,8 +145,8 @@ const slice = createSlice({
         state.direct_chat.current_messages.push(message);
       }
 
-      state.direct_chat.conversations = state.direct_chat.conversations.map(
-        (el) => {
+      state.direct_chat.conversations = sortConversationList(
+        state.direct_chat.conversations.map((el) => {
           if (el.id !== conversation_id) return el;
 
           const isIncoming = message.from?.toString() !== user_id;
@@ -130,6 +155,7 @@ const slice = createSlice({
             ...el,
             msg: getMessagePreview(message),
             time: formatMessageTime(message.created_at || Date.now()),
+            lastActivity: message.created_at || Date.now(),
             unread:
               state.direct_chat.current_conversation?.id === conversation_id
                 ? 0
@@ -137,7 +163,7 @@ const slice = createSlice({
                   ? el.unread + 1
                   : el.unread,
           };
-        },
+        }),
       );
     },
 
