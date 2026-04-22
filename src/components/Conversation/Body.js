@@ -34,8 +34,15 @@ const Body = ({ menu }) => {
       sx={{
         height: "100%",
         overflowY: "auto",
+        overflowX: "hidden",
         px: 3,
         py: 3,
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        "&::-webkit-scrollbar": {
+          width: 0,
+          height: 0,
+        },
       }}
     >
       <Stack spacing={3}>
