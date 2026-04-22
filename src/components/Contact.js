@@ -3,12 +3,14 @@ import {
   Box,
   Button,
   Divider,
+  FormControlLabel,
   IconButton,
   Stack,
+  Switch,
   Typography,
   useTheme,
 } from "@mui/material";
-import { CaretRight, X } from "phosphor-react";
+import { CaretRight, Phone, Star, Trash, VideoCamera, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
 
@@ -86,13 +88,13 @@ const Contact = () => {
             overflowY: "auto",
           }}
         >
-          <Stack alignItems="center" direction="row" spacing={2}>
+          <Stack alignItems="center" spacing={2}>
             <Avatar
               src={current_conversation.img}
               alt={current_conversation.name}
-              sx={{ height: 64, width: 64 }}
+              sx={{ height: 72, width: 72 }}
             />
-            <Stack spacing={0.5}>
+            <Stack spacing={0.5} alignItems="center">
               <Typography variant="subtitle1" fontWeight={600}>
                 {current_conversation.name}
               </Typography>
@@ -101,6 +103,26 @@ const Contact = () => {
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {current_conversation.online ? "Online" : "Offline"}
+              </Typography>
+            </Stack>
+          </Stack>
+
+          <Stack direction="row" justifyContent="center" spacing={4}>
+            <Stack spacing={1} alignItems="center">
+              <IconButton disabled>
+                <VideoCamera />
+              </IconButton>
+              <Typography variant="caption" color="text.secondary">
+                Video
+              </Typography>
+            </Stack>
+
+            <Stack spacing={1} alignItems="center">
+              <IconButton disabled>
+                <Phone />
+              </IconButton>
+              <Typography variant="caption" color="text.secondary">
+                Voice
               </Typography>
             </Stack>
           </Stack>
@@ -154,7 +176,50 @@ const Contact = () => {
               No shared media yet
             </Typography>
           )}
+
+          <Divider />
+
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ cursor: "pointer" }}
+            onClick={() => {
+              dispatch(UpdateSidebarType("STARRED"));
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Star size={18} />
+              <Typography variant="subtitle2">Starred Messages</Typography>
+            </Stack>
+            <CaretRight />
+          </Stack>
+
+          <Divider />
+
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography variant="subtitle2">Mute notifications</Typography>
+            <FormControlLabel
+              control={<Switch checked={false} disabled />}
+              label=""
+              sx={{ mr: 0 }}
+            />
+          </Stack>
+
+          <Divider />
+
+          <Stack spacing={1.5}>
+            <Typography variant="subtitle2">Shared groups</Typography>
+            <Typography variant="body2" color="text.secondary">
+              No shared groups yet
+            </Typography>
+          </Stack>
         </Stack>
+
         <Box
           sx={{
             height: 88,
@@ -164,8 +229,32 @@ const Contact = () => {
               theme.palette.mode === "light"
                 ? "#f8faff"
                 : theme.palette.background.paper,
+            display: "flex",
+            alignItems: "center",
+            px: 2,
           }}
-        />
+        >
+          <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="inherit"
+              disabled
+              startIcon={<Star size={18} />}
+            >
+              Block
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              disabled
+              startIcon={<Trash size={18} />}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </Box>
       </Stack>
     </Box>
   );
