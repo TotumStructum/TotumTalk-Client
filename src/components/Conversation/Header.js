@@ -44,6 +44,8 @@ const Header = () => {
       p={2}
       sx={{
         width: "100%",
+        height: 72,
+        boxSizing: "border-box",
         backgroundColor:
           theme.palette.mode === "light"
             ? "#f8faff"
@@ -97,7 +99,12 @@ const Header = () => {
           </Stack>
         </Stack>
 
-        <Stack direction="row" alignItems={"center"} spacing={3}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={3}
+          sx={{ height: "100%" }}
+        >
           <IconButton>
             <VideoCamera />
           </IconButton>

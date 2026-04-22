@@ -55,6 +55,8 @@ const Contact = () => {
           sx={{
             boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
             width: "100%",
+            height: 72,
+            boxSizing: "border-box",
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
@@ -62,7 +64,7 @@ const Contact = () => {
           }}
         >
           <Stack
-            sx={{ p: 2 }}
+            sx={{ p: 2, height: "100%" }}
             direction="row"
             alignItems="center"
             justifyContent="space-between"
@@ -224,6 +226,7 @@ const Contact = () => {
           sx={{
             height: 88,
             flexShrink: 0,
+            boxSizing: "border-box",
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
             backgroundColor:
               theme.palette.mode === "light"

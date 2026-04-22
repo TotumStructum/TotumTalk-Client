@@ -15,7 +15,9 @@ import { Message_options } from "../../data/index";
 
 const getBubbleStyles = (theme, incoming) => ({
   backgroundColor: incoming
-    ? theme.palette.background.default
+    ? theme.palette.mode === "light"
+      ? theme.palette.common.white
+      : theme.palette.background.paper
     : theme.palette.primary.main,
   borderRadius: 1.5,
   width: "max-content",
@@ -85,7 +87,17 @@ const DocMsg = ({ el, menu }) => {
           ) : null}
         </Stack>
       </Box>
-      {menu && <MessageOptions />}
+      {menu && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            px: 0.5,
+          }}
+        >
+          <MessageOptions />
+        </Box>
+      )}
     </Stack>
   );
 };
@@ -130,7 +142,17 @@ const LinkMsg = ({ el, menu }) => {
           )}
         </Stack>
       </Box>
-      {menu && <MessageOptions />}
+      {menu && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            px: 0.5,
+          }}
+        >
+          <MessageOptions />
+        </Box>
+      )}
     </Stack>
   );
 };
@@ -164,7 +186,15 @@ const ReplyMsg = ({ el }) => {
           </Typography>
         </Stack>
       </Box>
-      <MessageOptions />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          px: 0.5,
+        }}
+      >
+        <MessageOptions />
+      </Box>
     </Stack>
   );
 };
@@ -205,7 +235,17 @@ const MediaMsg = ({ el, menu }) => {
           )}
         </Stack>
       </Box>
-      {menu && <MessageOptions />}
+      {menu && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            px: 0.5,
+          }}
+        >
+          <MessageOptions />
+        </Box>
+      )}
     </Stack>
   );
 };
@@ -226,7 +266,17 @@ const TextMsg = ({ el, menu }) => {
           {el.message}
         </Typography>
       </Box>
-      {menu && <MessageOptions />}
+      {menu && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            px: 0.5,
+          }}
+        >
+          <MessageOptions />
+        </Box>
+      )}
     </Stack>
   );
 };
@@ -259,14 +309,19 @@ const MessageOptions = () => {
 
   return (
     <>
-      <DotsThreeVertical
+      <IconButton
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
-        size={20}
-      />
+        size="small"
+        sx={{
+          color: "text.secondary",
+        }}
+      >
+        <DotsThreeVertical size={20} />
+      </IconButton>
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}

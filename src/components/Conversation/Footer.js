@@ -167,6 +167,7 @@ function Footer() {
       sx={{
         width: "100%",
         height: 88,
+        boxSizing: "border-box",
         backgroundColor:
           theme.palette.mode === "light"
             ? "#f8faff"

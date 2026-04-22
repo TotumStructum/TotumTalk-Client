@@ -1,4 +1,4 @@
-import { useTheme, styled } from "@mui/material/styles";
+import { alpha, useTheme, styled } from "@mui/material/styles";
 import { Avatar, Badge, Box, Typography, Stack } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectConversation } from "../redux/slices/app";
@@ -38,13 +38,20 @@ const ChatElement = ({ id, name, img, msg, time, unread, online }) => {
         borderRadius: 1,
         cursor: "pointer",
         backgroundColor: isSelected
-          ? theme.palette.primary.lighter || "rgba(112, 156, 230, 0.16)"
+          ? alpha(
+              theme.palette.primary.main,
+              theme.palette.mode === "light" ? 0.12 : 0.2,
+            )
           : theme.palette.mode === "light"
             ? "#fff"
-            : theme.palette.background.default,
+            : theme.palette.background.paper,
         border: isSelected
-          ? `1px solid ${theme.palette.primary.main}`
-          : "1px solid transparent",
+          ? `1px solid ${alpha(theme.palette.primary.main, 0.32)}`
+          : `1px solid ${
+              theme.palette.mode === "light"
+                ? "transparent"
+                : alpha(theme.palette.common.white, 0.08)
+            }`,
       }}
       p={2}
     >

@@ -67,7 +67,7 @@ const SideBar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { onToggleMode } = useSettings();
+  const { onToggleMode, themeMode } = useSettings();
 
   const selected = getSelectedIndex(pathname);
 
@@ -205,10 +205,7 @@ const SideBar = () => {
         </Stack>
 
         <Stack alignItems={"center"} spacing={4}>
-          <AntSwitch
-            defaultChecked={theme.palette.mode === "dark"}
-            onChange={onToggleMode}
-          />
+          <AntSwitch checked={themeMode === "dark"} onChange={onToggleMode} />
 
           <Avatar
             id="basic-button"
