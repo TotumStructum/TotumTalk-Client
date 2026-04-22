@@ -96,8 +96,8 @@ const SharedMessages = () => {
           p={3}
           spacing={value === 1 ? 1 : 3}
           sx={{
-            height: "100%",
             flexGrow: 1,
+            minHeight: 0,
             overflowY: "auto",
           }}
         >
@@ -152,6 +152,17 @@ const SharedMessages = () => {
                 ))
               : renderEmpty("No shared documents yet"))}
         </Stack>
+        <Box
+          sx={{
+            height: 88,
+            flexShrink: 0,
+            boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "#f8faff"
+                : theme.palette.background.paper,
+          }}
+        />
       </Stack>
     </Box>
   );

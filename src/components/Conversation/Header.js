@@ -24,7 +24,14 @@ const Header = () => {
 
   if (!current_conversation) return null;
 
-  const handleOpenContactSidebar = () => {
+  const isContactSidebarOpen = sidebar.open && sidebar.type === "CONTACT";
+
+  const handleContactSidebarToggle = () => {
+    if (isContactSidebarOpen) {
+      dispatch(ToggleSidebar());
+      return;
+    }
+
     dispatch(UpdateSidebarType("CONTACT"));
 
     if (!sidebar.open) {
@@ -50,7 +57,13 @@ const Header = () => {
         justifyContent={"space-between"}
         sx={{ width: "100%", height: "100%" }}
       >
-        <Stack onClick={handleOpenContactSidebar} direction={"row"} spacing={2}>
+        <Stack
+          onClick={handleContactSidebarToggle}
+          direction={"row"}
+          spacing={2}
+          sx={{ cursor: "pointer" }}
+          alignItems="center"
+        >
           <Box>
             {current_conversation.online ? (
               <StyledBadge
@@ -95,8 +108,15 @@ const Header = () => {
             <MagnifyingGlass />
           </IconButton>
           <Divider orientation="vertical" flexItem />
-          <IconButton>
-            <CaretDown />
+          <IconButton onClick={handleContactSidebarToggle}>
+            <CaretDown
+              style={{
+                transform: isContactSidebarOpen
+                  ? "rotate(-90deg)"
+                  : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            />
           </IconButton>
         </Stack>
       </Stack>

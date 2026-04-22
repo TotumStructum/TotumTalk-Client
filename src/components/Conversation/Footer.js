@@ -166,6 +166,7 @@ function Footer() {
       p={2}
       sx={{
         width: "100%",
+        height: 88,
         backgroundColor:
           theme.palette.mode === "light"
             ? "#f8faff"

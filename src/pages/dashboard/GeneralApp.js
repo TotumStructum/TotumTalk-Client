@@ -1,6 +1,6 @@
 import { Stack, Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import Conversation from "../../components/Conversation";
 import Chats from "./Chats";
@@ -22,6 +22,11 @@ const GeneralApp = () => {
   const dispatch = useDispatch();
 
   const { sidebar, room_id, chat_type } = useSelector((store) => store.app);
+  const sidebarOpenRef = useRef(sidebar.open);
+
+  useEffect(() => {
+    sidebarOpenRef.current = sidebar.open;
+  }, [sidebar.open]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -30,7 +35,7 @@ const GeneralApp = () => {
       dispatch(ResetConversationSelection());
       dispatch(ClearCurrentConversation());
 
-      if (sidebar.open) {
+      if (sidebarOpenRef.current) {
         dispatch(UpdateSidebarType("CONTACT"));
         dispatch(ToggleSidebar());
       }
@@ -41,19 +46,19 @@ const GeneralApp = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [dispatch, sidebar.open]);
+  }, [dispatch]);
 
   useEffect(() => {
     return () => {
       dispatch(ResetConversationSelection());
       dispatch(ClearCurrentConversation());
 
-      if (sidebar.open) {
+      if (sidebarOpenRef.current) {
         dispatch(UpdateSidebarType("CONTACT"));
         dispatch(ToggleSidebar());
       }
     };
-  }, [dispatch, sidebar.open]);
+  }, [dispatch]);
 
   return (
     <Stack direction={"row"} sx={{ width: "100%" }}>
