@@ -33,12 +33,72 @@ const getFileName = (file = "") => {
   return decodeURIComponent(parts[parts.length - 1] || "Document");
 };
 
+const URL_PATTERN =
+  /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
+
+const createGlobalUrlRegex = () =>
+  /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/gi;
+
+const containsUrl = (text = "") => {
+  return URL_PATTERN.test(text);
+};
+
 const getNormalizedUrl = (value = "") => {
-  const match = value.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+  if (!value) return null;
 
-  if (!match) return null;
+  return value.startsWith("http") ? value : `https://${value}`;
+};
 
-  return match[0].startsWith("http") ? match[0] : `https://${match[0]}`;
+const renderTextWithLinks = (text, theme, incoming) => {
+  const regex = createGlobalUrlRegex();
+  const matches = [...text.matchAll(regex)];
+
+  if (matches.length === 0) {
+    return text;
+  }
+
+  const parts = [];
+  let lastIndex = 0;
+
+  matches.forEach((match, index) => {
+    const matchedText = match[0];
+    const start = match.index ?? 0;
+    const end = start + matchedText.length;
+
+    if (start > lastIndex) {
+      parts.push(
+        <React.Fragment key={`text-${index}`}>
+          {text.slice(lastIndex, start)}
+        </React.Fragment>,
+      );
+    }
+
+    parts.push(
+      <MuiLink
+        key={`link-${index}`}
+        href={getNormalizedUrl(matchedText)}
+        target="_blank"
+        rel="noreferrer"
+        underline="hover"
+        sx={{
+          wordBreak: "break-all",
+          color: incoming ? theme.palette.primary.main : "#fff",
+        }}
+      >
+        {matchedText}
+      </MuiLink>,
+    );
+
+    lastIndex = end;
+  });
+
+  if (lastIndex < text.length) {
+    parts.push(
+      <React.Fragment key="text-tail">{text.slice(lastIndex)}</React.Fragment>,
+    );
+  }
+
+  return parts;
 };
 
 const DocMsg = ({ el, menu }) => {
@@ -104,43 +164,23 @@ const DocMsg = ({ el, menu }) => {
 
 const LinkMsg = ({ el, menu }) => {
   const theme = useTheme();
-  const url = el.url || getNormalizedUrl(el.text || "");
+  const hasUrl = containsUrl(el.text || "");
 
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
-        <Stack spacing={1}>
-          {el.text && el.text !== url ? (
-            <Typography
-              variant="body2"
-              sx={{ color: getTextColor(theme, el.incoming) }}
-            >
-              {el.text}
-            </Typography>
-          ) : null}
-
-          {url ? (
-            <MuiLink
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              underline="hover"
-              sx={{
-                wordBreak: "break-all",
-                color: el.incoming ? theme.palette.primary.main : "#fff",
-              }}
-            >
-              {url}
-            </MuiLink>
-          ) : (
-            <Typography
-              variant="body2"
-              sx={{ color: getTextColor(theme, el.incoming) }}
-            >
-              {el.text}
-            </Typography>
-          )}
-        </Stack>
+        <Typography
+          component="div"
+          variant="body2"
+          sx={{
+            color: getTextColor(theme, el.incoming),
+            wordBreak: "break-word",
+          }}
+        >
+          {hasUrl
+            ? renderTextWithLinks(el.text || "", theme, el.incoming)
+            : el.text}
+        </Typography>
       </Box>
       {menu && (
         <Box

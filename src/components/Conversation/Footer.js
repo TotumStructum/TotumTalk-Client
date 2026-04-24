@@ -59,8 +59,11 @@ const Actions = [
   },
 ];
 
+const URL_DETECTION_REGEX =
+  /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
+
 const containsUrl = (text = "") => {
-  return /(https?:\/\/[^\s]+|www\.[^\s]+)/i.test(text);
+  return URL_DETECTION_REGEX.test(text);
 };
 
 const ChatInput = ({

@@ -4,8 +4,11 @@ import { useSelector } from "react-redux";
 
 import { DocMsg, LinkMsg, MediaMsg, TextMsg } from "./MsgTypes";
 
+const URL_PATTERN =
+  /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
+
 const extractFirstUrl = (text = "") => {
-  const match = text.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+  const match = text.match(URL_PATTERN);
 
   if (!match) return null;
 
@@ -75,7 +78,7 @@ const Body = ({ menu }) => {
             );
           }
 
-          if (message.type === "Link") {
+          if (message.type === "Link" || extractFirstUrl(message.text || "")) {
             return (
               <LinkMsg
                 key={message._id}
