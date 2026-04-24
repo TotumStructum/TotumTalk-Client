@@ -59,6 +59,10 @@ const Actions = [
   },
 ];
 
+const containsUrl = (text = "") => {
+  return /(https?:\/\/[^\s]+|www\.[^\s]+)/i.test(text);
+};
+
 const ChatInput = ({
   openPicker,
   setOpenPicker,
@@ -155,7 +159,7 @@ function Footer() {
       to: current_conversation.user_id,
       message: trimmed,
       conversation_id: room_id,
-      type: "Text",
+      type: containsUrl(trimmed) ? "Link" : "Text",
     });
 
     setValue("");
