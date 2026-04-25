@@ -25,6 +25,7 @@ import Picker from "@emoji-mart/react";
 import StyledInput from "../StyledInput";
 import { socket } from "../../socket";
 import { useSelector } from "react-redux";
+import axios from "../../utils/axios";
 
 const Actions = [
   {
@@ -72,8 +73,18 @@ const ChatInput = ({
   value,
   setValue,
   handleSend,
+  documentInputRef,
+  handleDocumentSelected,
 }) => {
   const [openActions, setOpenActions] = React.useState(false);
+
+  const handleActionClick = (title) => {
+    if (title === "Document") {
+      documentInputRef.current?.click();
+    }
+
+    setOpenActions(false);
+  };
 
   return (
     <StyledInput
@@ -92,6 +103,14 @@ const ChatInput = ({
         disableUnderline: true,
         startAdornment: (
           <Stack sx={{ width: "max-content" }}>
+            <input
+              ref={documentInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+              style={{ display: "none" }}
+              onChange={handleDocumentSelected}
+            />
+
             <Stack
               sx={{
                 position: "relative",
@@ -102,24 +121,25 @@ const ChatInput = ({
                 <Tooltip key={el.title} placement="right" title={el.title}>
                   <Fab
                     onClick={() => {
-                      setOpenActions(!openActions);
+                      handleActionClick(el.title);
                     }}
                     sx={{
                       position: "absolute",
                       top: -el.y,
                       backgroundColor: el.color,
                     }}
-                    aria-label="add"
+                    aria-label={el.title}
                   >
                     {el.icon}
                   </Fab>
                 </Tooltip>
               ))}
             </Stack>
+
             <InputAdornment position="start">
               <IconButton
                 onClick={() => {
-                  setOpenActions(!openActions);
+                  setOpenActions((prev) => !prev);
                 }}
               >
                 <LinkSimple />
@@ -147,8 +167,10 @@ function Footer() {
   const theme = useTheme();
   const [openPicker, setOpenPicker] = React.useState(false);
   const [value, setValue] = React.useState("");
+  const documentInputRef = React.useRef(null);
 
   const { room_id } = useSelector((state) => state.app);
+  const { token } = useSelector((state) => state.auth);
   const { current_conversation } = useSelector(
     (state) => state.conversation.direct_chat,
   );
@@ -166,6 +188,56 @@ function Footer() {
     });
 
     setValue("");
+  };
+
+  const handleDocumentSelected = async (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (
+      !selectedFile ||
+      !socket ||
+      !room_id ||
+      !current_conversation ||
+      !token
+    ) {
+      if (event.target) {
+        event.target.value = "";
+      }
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await axios.post("/upload/document", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const fileUrl = response?.data?.data?.fileUrl;
+
+      if (!fileUrl) {
+        throw new Error("Document upload did not return fileUrl");
+      }
+
+      socket.emit("file_message", {
+        to: current_conversation.user_id,
+        conversation_id: room_id,
+        file: fileUrl,
+        type: "Document",
+        text: value.trim(),
+      });
+
+      setValue("");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
   };
 
   return (
@@ -208,6 +280,8 @@ function Footer() {
             value={value}
             setValue={setValue}
             handleSend={handleSend}
+            documentInputRef={documentInputRef}
+            handleDocumentSelected={handleDocumentSelected}
           />
         </Stack>
 
