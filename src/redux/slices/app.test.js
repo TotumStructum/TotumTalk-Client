@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import axios from "../../utils/axios";
 import appReducer, {
   CreateGroupConversation,
+  FetchGroupConversations,
   ResetConversationSelection,
   SelectConversation,
   ToggleSidebar,
@@ -24,6 +25,10 @@ const createStore = () =>
   });
 
 describe("app slice", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("toggles sidebar open state", async () => {
     const store = createStore();
 
@@ -128,5 +133,51 @@ describe("app slice", () => {
       _id: "group-1",
       title: "Study Group",
     });
+
+    expect(store.getState().app.groups).toEqual([
+      {
+        _id: "group-1",
+        title: "Study Group",
+      },
+    ]);
+  });
+
+  it("fetches group conversations from API with auth token", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+          },
+        ],
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    expect(axios.get).toHaveBeenCalledWith("/conversation/group", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer token-123",
+      },
+    });
+
+    expect(store.getState().app.groups).toEqual([
+      {
+        _id: "group-1",
+        title: "Study Group",
+      },
+    ]);
   });
 });

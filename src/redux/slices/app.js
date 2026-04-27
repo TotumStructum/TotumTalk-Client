@@ -17,6 +17,7 @@ const initialState = {
   friendRequests: [],
   chat_type: null,
   room_id: null,
+  groups: [],
 };
 
 const slice = createSlice({
@@ -44,6 +45,19 @@ const slice = createSlice({
     },
     updateFriends(state, action) {
       state.friends = action.payload.friends;
+    },
+    updateGroupConversations(state, action) {
+      state.groups = action.payload.groups;
+    },
+    addGroupConversation(state, action) {
+      const group = action.payload.group;
+
+      state.groups = [
+        group,
+        ...state.groups.filter(
+          (existingGroup) => existingGroup._id !== group._id,
+        ),
+      ];
     },
     updateFriendRequests(state, action) {
       state.friendRequests = action.payload.request;
@@ -181,6 +195,32 @@ export const CreateGroupConversation = ({ title, members }) => {
       },
     );
 
-    return response.data.data;
+    const group = response.data.data;
+
+    dispatch(slice.actions.addGroupConversation({ group }));
+
+    return group;
+  };
+};
+
+export const FetchGroupConversations = () => {
+  return async (dispatch, getState) => {
+    await axios
+      .get("/conversation/group", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      })
+      .then((response) => {
+        dispatch(
+          slice.actions.updateGroupConversations({
+            groups: response.data.data,
+          }),
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 };

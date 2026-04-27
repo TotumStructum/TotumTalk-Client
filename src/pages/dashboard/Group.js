@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  Avatar,
+  AvatarGroup,
   Box,
   Divider,
   IconButton,
@@ -7,7 +9,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import {
   Search,
@@ -16,10 +18,96 @@ import {
 } from "../../components/Search";
 import { SimpleBarStyle } from "../../components/Scrollbar";
 import CreateGroup from "../../sections/main/CreateGroup";
+import { useDispatch, useSelector } from "react-redux";
+import { FetchGroupConversations } from "../../redux/slices/app";
+
+const getParticipantName = (participant) => {
+  return (
+    `${participant?.firstName || ""} ${participant?.lastName || ""}`.trim() ||
+    participant?.email ||
+    "User"
+  );
+};
+
+const GroupElement = ({ group }) => {
+  const theme = useTheme();
+  const participants = Array.isArray(group.participants)
+    ? group.participants
+    : [];
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        borderRadius: 1,
+        backgroundColor:
+          theme.palette.mode === "light"
+            ? "#fff"
+            : theme.palette.background.paper,
+        border: `1px solid ${
+          theme.palette.mode === "light"
+            ? "transparent"
+            : alpha(theme.palette.common.white, 0.08)
+        }`,
+      }}
+      p={2}
+    >
+      <Stack direction="row" spacing={2} alignItems="center">
+        <AvatarGroup
+          max={3}
+          sx={{
+            "& .MuiAvatar-root": {
+              width: 36,
+              height: 36,
+              fontSize: 14,
+            },
+          }}
+        >
+          {participants.map((participant) => (
+            <Avatar
+              key={participant._id}
+              src={participant.avatar}
+              alt={getParticipantName(participant)}
+            />
+          ))}
+        </AvatarGroup>
+
+        <Stack spacing={0.3} sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle2" noWrap>
+            {group.title}
+          </Typography>
+          <Typography variant="caption" noWrap color="text.secondary">
+            {participants.length} members
+          </Typography>
+        </Stack>
+      </Stack>
+    </Box>
+  );
+};
 
 const Group = () => {
   const theme = useTheme();
+  const dispatch = useDispatch();
+  const { groups } = useSelector((state) => state.app);
+
   const [openDialog, setOpenDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const groupList = Array.isArray(groups) ? groups : [];
+
+  const filteredGroups = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return groupList;
+
+    return groupList.filter((group) =>
+      group.title?.toLowerCase().includes(query),
+    );
+  }, [groupList, searchQuery]);
+
+  useEffect(() => {
+    dispatch(FetchGroupConversations());
+  }, [dispatch]);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -28,7 +116,6 @@ const Group = () => {
   return (
     <>
       <Stack direction={"row"} sx={{ width: "100%" }}>
-        {/* {left} */}
         <Box
           sx={{
             height: "100vh",
@@ -53,6 +140,8 @@ const Group = () => {
                 <StyledInputBase
                   placeholder="Search..."
                   inputProps={{ "aria-label": "search" }}
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </Search>
             </Stack>
@@ -73,22 +162,32 @@ const Group = () => {
                 <Plus style={{ color: theme.palette.primary.main }} />
               </IconButton>
             </Stack>
+
             <Divider />
+
             <SimpleBarStyle
               timeout={500}
               clickOnTrack={false}
               sx={{ flexGrow: 1, minHeight: 0 }}
             >
               <Stack spacing={2.4}>
-                <Typography variant="body2" color="text.secondary">
-                  Group conversations are not connected yet.
-                </Typography>
+                {filteredGroups.length > 0 ? (
+                  filteredGroups.map((group) => (
+                    <GroupElement key={group._id} group={group} />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {searchQuery.trim()
+                      ? "No groups found."
+                      : "No group conversations yet."}
+                  </Typography>
+                )}
               </Stack>
             </SimpleBarStyle>
           </Stack>
         </Box>
-        {/* {right} */}
       </Stack>
+
       {openDialog && (
         <CreateGroup open={openDialog} handleClose={handleCloseDialog} />
       )}
