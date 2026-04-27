@@ -1,5 +1,5 @@
 import { Box, Stack } from "@mui/material";
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useCallback, useLayoutEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 
 import { DocMsg, LinkMsg, MediaMsg, TextMsg } from "./MsgTypes";
@@ -24,12 +24,16 @@ const Body = ({ menu }) => {
     (state) => state.conversation.direct_chat,
   );
 
-  useLayoutEffect(() => {
+  const scrollToBottom = useCallback(() => {
     const node = scrollRef.current;
     if (!node) return;
 
     node.scrollTop = node.scrollHeight;
-  }, [room_id, current_messages.length]);
+  }, []);
+
+  useLayoutEffect(() => {
+    scrollToBottom();
+  }, [room_id, current_messages.length, scrollToBottom]);
 
   return (
     <Box
@@ -60,6 +64,7 @@ const Body = ({ menu }) => {
                 key={message._id}
                 el={{ ...baseProps, file: message.file }}
                 menu={menu}
+                onLoad={scrollToBottom}
               />
             );
           }
