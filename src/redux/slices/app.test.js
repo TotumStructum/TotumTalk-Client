@@ -1,5 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
+import axios from "../../utils/axios";
 import appReducer, {
+  CreateGroupConversation,
   ResetConversationSelection,
   SelectConversation,
   ToggleSidebar,
@@ -10,6 +12,7 @@ jest.mock("../../utils/axios", () => ({
   __esModule: true,
   default: {
     get: jest.fn(),
+    post: jest.fn(),
   },
 }));
 
@@ -78,5 +81,52 @@ describe("app slice", () => {
     state = store.getState().app;
     expect(state.room_id).toBe(null);
     expect(state.chat_type).toBe(null);
+  });
+
+  it("creates group conversation through API with auth token", async () => {
+    axios.post.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          _id: "group-1",
+          title: "Study Group",
+        },
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    const result = await store.dispatch(
+      CreateGroupConversation({
+        title: "Study Group",
+        members: ["user-1", "user-2"],
+      }),
+    );
+
+    expect(axios.post).toHaveBeenCalledWith(
+      "/conversation/group",
+      {
+        title: "Study Group",
+        members: ["user-1", "user-2"],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      _id: "group-1",
+      title: "Study Group",
+    });
   });
 });

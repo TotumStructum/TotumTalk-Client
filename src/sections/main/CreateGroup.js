@@ -7,23 +7,49 @@ import {
   Slide,
   Stack,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import FormProvider from "../../components/hook-form/FormProvider";
 import RHFTextField from "../../components/hook-form/RHFTextField";
 
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import RHFAutocomplete from "../../components/hook-form/RHFAutocomplete";
-
-const MEMBERS = ["Name 1", "Name 2", "Name 3"];
+import { useDispatch, useSelector } from "react-redux";
+import {
+  CreateGroupConversation,
+  FetchFriends,
+  showSnackbar,
+} from "../../redux/slices/app";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
+const getFriendName = (friend) => {
+  return (
+    `${friend?.firstName || ""} ${friend?.lastName || ""}`.trim() ||
+    friend?.email ||
+    "Unknown user"
+  );
+};
+
 const CreateGroupForm = ({ handleClose }) => {
+  const dispatch = useDispatch();
+  const { friends } = useSelector((state) => state.app);
+
+  const friendOptions = Array.isArray(friends)
+    ? friends
+    : (friends?.friends ?? []);
+
+  useEffect(() => {
+    dispatch(FetchFriends());
+  }, [dispatch]);
+
   const NewGroupSchema = Yup.object().shape({
-    title: Yup.string().required("Title is required"),
+    title: Yup.string()
+      .trim()
+      .required("Title is required")
+      .max(80, "Title must be shorter than 80 characters"),
     members: Yup.array().min(2, "Must have at least 2 members"),
   });
 
@@ -39,37 +65,77 @@ const CreateGroupForm = ({ handleClose }) => {
 
   const {
     reset,
-    watch,
-
-    setError,
     handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful, isValid },
+    formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = (data) => {
-    void data;
+  const onSubmit = async (data) => {
+    try {
+      await dispatch(
+        CreateGroupConversation({
+          title: data.title.trim(),
+          members: data.members.map((member) => member._id),
+        }),
+      );
+
+      dispatch(
+        showSnackbar({
+          severity: "success",
+          message: "Group conversation created",
+        }),
+      );
+
+      reset(defaultValues);
+      handleClose();
+    } catch (error) {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to create group conversation",
+        }),
+      );
+    }
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
         <RHFTextField name="title" label="Title" />
+
         <RHFAutocomplete
           name="members"
           label="Members"
           multiple
-          freeSolo
-          options={MEMBERS.map((option) => option)}
+          options={friendOptions}
+          getOptionLabel={(option) =>
+            typeof option === "string" ? option : getFriendName(option)
+          }
+          isOptionEqualToValue={(option, value) => option._id === value._id}
           ChipProps={{ size: "medium" }}
+          helperText={
+            friendOptions.length < 2
+              ? "You need at least 2 friends to create a group"
+              : undefined
+          }
         />
+
         <Stack
           spacing={2}
           direction="row"
-          alignItems={"center"}
+          alignItems="center"
           justifyContent="end"
         >
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit" variant="contained">
+          <Button onClick={handleClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isSubmitting || friendOptions.length < 2}
+          >
             Create
           </Button>
         </Stack>
@@ -86,13 +152,12 @@ const CreateGroup = ({ open, handleClose }) => {
       open={open}
       TransitionComponent={Transition}
       keepMounted
+      onClose={handleClose}
       sx={{ p: 4 }}
     >
-      {/* Title */}
       <DialogTitle sx={{ mb: 3 }}>Create New Group</DialogTitle>
-      {/* COntent */}
+
       <DialogContent>
-        {/* Form */}
         <CreateGroupForm handleClose={handleClose} />
       </DialogContent>
     </Dialog>

@@ -164,3 +164,23 @@ export const ResetConversationSelection = () => {
     dispatch(slice.actions.resetConversationSelection());
   };
 };
+
+export const CreateGroupConversation = ({ title, members }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.post(
+      "/conversation/group",
+      {
+        title,
+        members,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    return response.data.data;
+  };
+};
