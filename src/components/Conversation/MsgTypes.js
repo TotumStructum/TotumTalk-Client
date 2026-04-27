@@ -248,16 +248,29 @@ const MediaMsg = ({ el, menu }) => {
         <Stack spacing={1}>
           {el.file ? (
             <Box
-              component="img"
-              src={el.file}
-              alt="Media message"
+              component="a"
+              href={el.file}
+              target="_blank"
+              rel="noreferrer"
               sx={{
-                maxHeight: 210,
-                maxWidth: 240,
-                borderRadius: "10px",
-                objectFit: "cover",
+                display: "block",
+                lineHeight: 0,
+                cursor: "pointer",
               }}
-            />
+            >
+              <Box
+                component="img"
+                src={el.file}
+                alt="Media message"
+                sx={{
+                  display: "block",
+                  maxHeight: 210,
+                  maxWidth: 240,
+                  borderRadius: "10px",
+                  objectFit: "cover",
+                }}
+              />
+            </Box>
           ) : (
             <Stack
               p={2}
@@ -273,8 +286,21 @@ const MediaMsg = ({ el, menu }) => {
               <Typography variant="caption">Media file</Typography>
             </Stack>
           )}
+
+          {el.text ? (
+            <Typography
+              variant="body2"
+              sx={{
+                color: getTextColor(theme, el.incoming),
+                wordBreak: "break-word",
+              }}
+            >
+              {el.text}
+            </Typography>
+          ) : null}
         </Stack>
       </Box>
+
       {menu && (
         <Box
           sx={{

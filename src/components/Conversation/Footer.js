@@ -75,12 +75,18 @@ const ChatInput = ({
   handleSend,
   documentInputRef,
   handleDocumentSelected,
+  mediaInputRef,
+  handleMediaSelected,
 }) => {
   const [openActions, setOpenActions] = React.useState(false);
 
   const handleActionClick = (title) => {
     if (title === "Document") {
       documentInputRef.current?.click();
+    }
+
+    if (title === "Photo/Video" || title === "Image") {
+      mediaInputRef.current?.click();
     }
 
     setOpenActions(false);
@@ -109,6 +115,13 @@ const ChatInput = ({
               accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
               style={{ display: "none" }}
               onChange={handleDocumentSelected}
+            />
+            <input
+              ref={mediaInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
+              style={{ display: "none" }}
+              onChange={handleMediaSelected}
             />
 
             <Stack
@@ -168,6 +181,7 @@ function Footer() {
   const [openPicker, setOpenPicker] = React.useState(false);
   const [value, setValue] = React.useState("");
   const documentInputRef = React.useRef(null);
+  const mediaInputRef = React.useRef(null);
 
   const { room_id } = useSelector((state) => state.app);
   const { token } = useSelector((state) => state.auth);
@@ -190,9 +204,12 @@ function Footer() {
     setValue("");
   };
 
-  const handleDocumentSelected = async (event) => {
-    const selectedFile = event.target.files?.[0];
-
+  const uploadAndSendFileMessage = async ({
+    selectedFile,
+    uploadPath,
+    messageType,
+    emptyFileError,
+  }) => {
     if (
       !selectedFile ||
       !socket ||
@@ -200,37 +217,64 @@ function Footer() {
       !current_conversation ||
       !token
     ) {
-      if (event.target) {
-        event.target.value = "";
-      }
       return;
     }
 
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    const response = await axios.post(uploadPath, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const fileUrl = response?.data?.data?.fileUrl;
+
+    if (!fileUrl) {
+      throw new Error(emptyFileError);
+    }
+
+    socket.emit("file_message", {
+      to: current_conversation.user_id,
+      conversation_id: room_id,
+      file: fileUrl,
+      type: messageType,
+      text: value.trim(),
+    });
+
+    setValue("");
+  };
+
+  const handleDocumentSelected = async (event) => {
+    const selectedFile = event.target.files?.[0];
+
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      const response = await axios.post("/upload/document", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await uploadAndSendFileMessage({
+        selectedFile,
+        uploadPath: "/upload/document",
+        messageType: "Document",
+        emptyFileError: "Document upload did not return fileUrl",
       });
-
-      const fileUrl = response?.data?.data?.fileUrl;
-
-      if (!fileUrl) {
-        throw new Error("Document upload did not return fileUrl");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (event.target) {
+        event.target.value = "";
       }
+    }
+  };
 
-      socket.emit("file_message", {
-        to: current_conversation.user_id,
-        conversation_id: room_id,
-        file: fileUrl,
-        type: "Document",
-        text: value.trim(),
+  const handleMediaSelected = async (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    try {
+      await uploadAndSendFileMessage({
+        selectedFile,
+        uploadPath: "/upload/media",
+        messageType: "Media",
+        emptyFileError: "Media upload did not return fileUrl",
       });
-
-      setValue("");
     } catch (error) {
       console.error(error);
     } finally {
@@ -282,6 +326,8 @@ function Footer() {
             handleSend={handleSend}
             documentInputRef={documentInputRef}
             handleDocumentSelected={handleDocumentSelected}
+            mediaInputRef={mediaInputRef}
+            handleMediaSelected={handleMediaSelected}
           />
         </Stack>
 
