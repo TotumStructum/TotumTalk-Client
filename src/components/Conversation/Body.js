@@ -62,7 +62,11 @@ const Body = ({ menu }) => {
             return (
               <MediaMsg
                 key={message._id}
-                el={{ ...baseProps, file: message.file }}
+                el={{
+                  ...baseProps,
+                  file: message.file,
+                  text: message.text || "",
+                }}
                 menu={menu}
                 onLoad={scrollToBottom}
               />

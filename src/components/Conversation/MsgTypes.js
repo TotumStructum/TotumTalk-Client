@@ -294,7 +294,7 @@ const MediaMsg = ({ el, menu, onLoad }) => {
                 component="img"
                 src={el.file}
                 alt="Media message"
-                onLoad={"onLoad"}
+                onLoad={onLoad}
                 sx={{
                   display: "block",
                   maxHeight: 260,
