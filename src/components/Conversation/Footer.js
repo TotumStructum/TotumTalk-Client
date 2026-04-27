@@ -115,10 +115,12 @@ const ChatInput = ({
               accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
               style={{ display: "none" }}
               onChange={handleDocumentSelected}
+              aria-label="Document file input"
             />
             <input
               ref={mediaInputRef}
               type="file"
+              aria-label="Media file input"
               accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
               style={{ display: "none" }}
               onChange={handleMediaSelected}
@@ -344,7 +346,7 @@ function Footer() {
             alignItems="center"
             justifyContent="center"
           >
-            <IconButton onClick={handleSend}>
+            <IconButton aria-label="Send message" onClick={handleSend}>
               <PaperPlaneTilt color="#fff" />
             </IconButton>
           </Stack>

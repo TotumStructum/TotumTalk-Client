@@ -1,9 +1,3 @@
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { useSelector } from "react-redux";
-import { socket } from "../../socket";
-import Footer from "./Footer";
-
 jest.mock("react-redux", () => ({
   useSelector: jest.fn(),
 }));
@@ -11,6 +5,13 @@ jest.mock("react-redux", () => ({
 jest.mock("../../socket", () => ({
   socket: {
     emit: jest.fn(),
+  },
+}));
+
+jest.mock("../../utils/axios", () => ({
+  __esModule: true,
+  default: {
+    post: jest.fn(),
   },
 }));
 
@@ -45,10 +46,25 @@ jest.mock("../StyledInput", () => {
   };
 });
 
+const React = require("react");
+const {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} = require("@testing-library/react");
+const { useSelector } = require("react-redux");
+const { socket } = require("../../socket");
+const axios = require("../../utils/axios").default;
+const Footer = require("./Footer").default;
+
 describe("Conversation/Footer", () => {
   const baseState = {
     app: {
       room_id: "conversation-1",
+    },
+    auth: {
+      token: "test-token",
     },
     conversation: {
       direct_chat: {
@@ -63,7 +79,6 @@ describe("Conversation/Footer", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
     useSelector.mockImplementation((selector) => selector(baseState));
   });
 
@@ -73,10 +88,7 @@ describe("Conversation/Footer", () => {
     const input = screen.getByPlaceholderText("Write a message...");
     fireEvent.change(input, { target: { value: "Hello there" } });
 
-    const buttons = screen.getAllByRole("button");
-    const sendButton = buttons[2];
-
-    fireEvent.click(sendButton);
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
 
     expect(socket.emit).toHaveBeenCalledTimes(1);
     expect(socket.emit).toHaveBeenCalledWith("text_message", {
@@ -89,23 +101,20 @@ describe("Conversation/Footer", () => {
     expect(input).toHaveValue("");
   });
 
-  it("sends a message containing a url as Link", () => {
+  it("sends a message containing a bare domain url as Link", () => {
     render(<Footer />);
 
     const input = screen.getByPlaceholderText("Write a message...");
     fireEvent.change(input, {
-      target: { value: "Check this https://example.com" },
+      target: { value: "Check this youtube.com" },
     });
 
-    const buttons = screen.getAllByRole("button");
-    const sendButton = buttons[2];
-
-    fireEvent.click(sendButton);
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
 
     expect(socket.emit).toHaveBeenCalledTimes(1);
     expect(socket.emit).toHaveBeenCalledWith("text_message", {
       to: "user-b",
-      message: "Check this https://example.com",
+      message: "Check this youtube.com",
       conversation_id: "conversation-1",
       type: "Link",
     });
@@ -117,19 +126,19 @@ describe("Conversation/Footer", () => {
     const input = screen.getByPlaceholderText("Write a message...");
     fireEvent.change(input, { target: { value: "   " } });
 
-    const buttons = screen.getAllByRole("button");
-    const sendButton = buttons[2];
-
-    fireEvent.click(sendButton);
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
 
     expect(socket.emit).not.toHaveBeenCalled();
   });
 
-  it("does not send a message when there is no active conversation", () => {
+  it("does not send a text message when there is no active conversation", () => {
     useSelector.mockImplementation((selector) =>
       selector({
         app: {
           room_id: null,
+        },
+        auth: {
+          token: "test-token",
         },
         conversation: {
           direct_chat: {
@@ -144,11 +153,142 @@ describe("Conversation/Footer", () => {
     const input = screen.getByPlaceholderText("Write a message...");
     fireEvent.change(input, { target: { value: "Hello there" } });
 
-    const buttons = screen.getAllByRole("button");
-    const sendButton = buttons[2];
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
 
-    fireEvent.click(sendButton);
+    expect(socket.emit).not.toHaveBeenCalled();
+  });
 
+  it("uploads a document and sends it as a Document file message", async () => {
+    axios.post.mockResolvedValueOnce({
+      data: {
+        data: {
+          fileUrl: "http://localhost:3000/uploads/documents/test-document.pdf",
+        },
+      },
+    });
+
+    render(<Footer />);
+
+    const input = screen.getByPlaceholderText("Write a message...");
+    fireEvent.change(input, { target: { value: "Document caption" } });
+
+    const documentInput = screen.getByLabelText("Document file input");
+
+    const file = new File(["document content"], "test-document.pdf", {
+      type: "application/pdf",
+    });
+
+    fireEvent.change(documentInput, {
+      target: {
+        files: [file],
+      },
+    });
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/upload/document",
+        expect.any(FormData),
+        {
+          headers: {
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+    });
+
+    await waitFor(() => {
+      expect(socket.emit).toHaveBeenCalledWith("file_message", {
+        to: "user-b",
+        conversation_id: "conversation-1",
+        file: "http://localhost:3000/uploads/documents/test-document.pdf",
+        type: "Document",
+        text: "Document caption",
+      });
+    });
+
+    await waitFor(() => {
+      expect(input).toHaveValue("");
+    });
+  });
+
+  it("uploads media and sends it as a Media file message", async () => {
+    axios.post.mockResolvedValueOnce({
+      data: {
+        data: {
+          fileUrl: "http://localhost:3000/uploads/media/test-image.png",
+        },
+      },
+    });
+
+    render(<Footer />);
+
+    const mediaInput = screen.getByLabelText("Media file input");
+
+    const file = new File(["image content"], "test-image.png", {
+      type: "image/png",
+    });
+
+    fireEvent.change(mediaInput, {
+      target: {
+        files: [file],
+      },
+    });
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/upload/media",
+        expect.any(FormData),
+        {
+          headers: {
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+    });
+
+    await waitFor(() => {
+      expect(socket.emit).toHaveBeenCalledWith("file_message", {
+        to: "user-b",
+        conversation_id: "conversation-1",
+        file: "http://localhost:3000/uploads/media/test-image.png",
+        type: "Media",
+        text: "",
+      });
+    });
+  });
+
+  it("does not upload a file when there is no active conversation", async () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: null,
+        },
+        auth: {
+          token: "test-token",
+        },
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+          },
+        },
+      }),
+    );
+
+    render(<Footer />);
+
+    const documentInput = screen.getByLabelText("Document file input");
+
+    const file = new File(["document content"], "test-document.pdf", {
+      type: "application/pdf",
+    });
+
+    fireEvent.change(documentInput, {
+      target: {
+        files: [file],
+      },
+    });
+
+    expect(axios.post).not.toHaveBeenCalled();
     expect(socket.emit).not.toHaveBeenCalled();
   });
 });
