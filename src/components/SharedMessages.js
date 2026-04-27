@@ -14,8 +14,11 @@ import { UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
 import { LinkMsg, DocMsg } from "../components/Conversation/MsgTypes.js";
 
+const URL_PATTERN =
+  /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
+
 const extractFirstUrl = (text = "") => {
-  const match = text.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+  const match = text.match(URL_PATTERN);
 
   if (!match) return null;
 
@@ -107,16 +110,33 @@ const SharedMessages = () => {
                 {mediaMessages.map((message) => (
                   <Grid key={message._id} item xs={4}>
                     <Box
-                      component="img"
-                      src={message.file}
-                      alt="Shared media"
+                      component="a"
+                      href={message.file}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Open shared media"
                       sx={{
-                        width: "100%",
-                        aspectRatio: "1 / 1",
-                        objectFit: "cover",
-                        borderRadius: 1.5,
+                        display: "block",
+                        lineHeight: 0,
+                        cursor: "pointer",
                       }}
-                    />
+                    >
+                      <Box
+                        component="img"
+                        src={message.file}
+                        alt="Shared media"
+                        sx={{
+                          width: "100%",
+                          aspectRatio: "1 / 1",
+                          objectFit: "cover",
+                          borderRadius: 1.5,
+                          transition: "opacity 0.2s ease",
+                          "&:hover": {
+                            opacity: 0.85,
+                          },
+                        }}
+                      />
+                    </Box>
                   </Grid>
                 ))}
               </Grid>
