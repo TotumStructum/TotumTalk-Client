@@ -62,6 +62,7 @@ describe("Conversation/Footer", () => {
   const baseState = {
     app: {
       room_id: "conversation-1",
+      chat_type: "individual",
     },
     auth: {
       token: "test-token",
@@ -73,6 +74,9 @@ describe("Conversation/Footer", () => {
           user_id: "user-b",
           name: "John Doe",
         },
+      },
+      group_chat: {
+        current_conversation: null,
       },
     },
   };
@@ -136,12 +140,16 @@ describe("Conversation/Footer", () => {
       selector({
         app: {
           room_id: null,
+          chat_type: "individual",
         },
         auth: {
           token: "test-token",
         },
         conversation: {
           direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
             current_conversation: null,
           },
         },
@@ -262,12 +270,16 @@ describe("Conversation/Footer", () => {
       selector({
         app: {
           room_id: null,
+          chat_type: "individual",
         },
         auth: {
           token: "test-token",
         },
         conversation: {
           direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
             current_conversation: null,
           },
         },
@@ -290,5 +302,84 @@ describe("Conversation/Footer", () => {
 
     expect(axios.post).not.toHaveBeenCalled();
     expect(socket.emit).not.toHaveBeenCalled();
+  });
+
+  it("sends a group text message when active chat is a group", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "group-1",
+          chat_type: "group",
+        },
+        auth: {
+          token: "test-token",
+        },
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+          },
+        },
+      }),
+    );
+
+    render(<Footer />);
+
+    const input = screen.getByPlaceholderText("Write a message...");
+    fireEvent.change(input, { target: { value: "Hello group" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(socket.emit).toHaveBeenCalledTimes(1);
+    expect(socket.emit).toHaveBeenCalledWith("group_text_message", {
+      group_id: "group-1",
+      message: "Hello group",
+      type: "Text",
+    });
+
+    expect(input).toHaveValue("");
+  });
+
+  it("sends a group link message when group text contains a url", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "group-1",
+          chat_type: "group",
+        },
+        auth: {
+          token: "test-token",
+        },
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+          },
+        },
+      }),
+    );
+
+    render(<Footer />);
+
+    const input = screen.getByPlaceholderText("Write a message...");
+    fireEvent.change(input, { target: { value: "Check youtube.com" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("group_text_message", {
+      group_id: "group-1",
+      message: "Check youtube.com",
+      type: "Link",
+    });
   });
 });

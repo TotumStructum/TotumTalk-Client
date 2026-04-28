@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Header from "./Header";
@@ -106,26 +106,7 @@ const Conversation = () => {
       >
         <Body menu={true} />
       </Box>
-      {chat_type === "individual" ? (
-        <Footer />
-      ) : (
-        <Box
-          p={2}
-          sx={{
-            width: "100%",
-            height: 88,
-            boxSizing: "border-box",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-          }}
-        >
-          <Typography variant="caption" color="text.secondary">
-            Group message sending will be connected next.
-          </Typography>
-        </Box>
-      )}
+      <Footer />
     </Stack>
   );
 };

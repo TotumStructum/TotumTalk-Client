@@ -185,22 +185,46 @@ function Footer() {
   const documentInputRef = React.useRef(null);
   const mediaInputRef = React.useRef(null);
 
-  const { room_id } = useSelector((state) => state.app);
+  const { room_id, chat_type } = useSelector((state) => state.app);
   const { token } = useSelector((state) => state.auth);
-  const { current_conversation } = useSelector(
+
+  const { current_conversation: directConversation } = useSelector(
     (state) => state.conversation.direct_chat,
   );
+
+  const { current_conversation: groupConversation } = useSelector(
+    (state) => state.conversation.group_chat,
+  );
+
+  const isGroupChat = chat_type === "group";
 
   const handleSend = () => {
     const trimmed = value.trim();
 
-    if (!trimmed || !socket || !room_id || !current_conversation) return;
+    if (!trimmed || !socket || !room_id) return;
+
+    const messageType = containsUrl(trimmed) ? "Link" : "Text";
+
+    if (isGroupChat) {
+      if (!groupConversation) return;
+
+      socket.emit("group_text_message", {
+        group_id: room_id,
+        message: trimmed,
+        type: messageType,
+      });
+
+      setValue("");
+      return;
+    }
+
+    if (!directConversation) return;
 
     socket.emit("text_message", {
-      to: current_conversation.user_id,
+      to: directConversation.user_id,
       message: trimmed,
       conversation_id: room_id,
-      type: containsUrl(trimmed) ? "Link" : "Text",
+      type: messageType,
     });
 
     setValue("");
@@ -213,10 +237,11 @@ function Footer() {
     emptyFileError,
   }) => {
     if (
+      isGroupChat ||
       !selectedFile ||
       !socket ||
       !room_id ||
-      !current_conversation ||
+      !directConversation ||
       !token
     ) {
       return;
@@ -238,7 +263,7 @@ function Footer() {
     }
 
     socket.emit("file_message", {
-      to: current_conversation.user_id,
+      to: directConversation.user_id,
       conversation_id: room_id,
       file: fileUrl,
       type: messageType,

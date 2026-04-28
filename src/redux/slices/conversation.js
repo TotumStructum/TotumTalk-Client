@@ -198,6 +198,17 @@ const slice = createSlice({
     setCurrentGroupMessages(state, action) {
       state.group_chat.current_messages = action.payload.messages;
     },
+
+    addGroupMessage(state, action) {
+      const { group_id, message } = action.payload;
+
+      if (
+        state.group_chat.current_conversation &&
+        state.group_chat.current_conversation._id === group_id
+      ) {
+        state.group_chat.current_messages.push(message);
+      }
+    },
   },
 });
 
@@ -260,5 +271,11 @@ export const SetCurrentGroupConversation = ({ conversation }) => {
 export const SetCurrentGroupMessages = ({ messages }) => {
   return async (dispatch) => {
     dispatch(slice.actions.setCurrentGroupMessages({ messages }));
+  };
+};
+
+export const AddGroupMessage = ({ group_id, message }) => {
+  return async (dispatch) => {
+    dispatch(slice.actions.addGroupMessage({ group_id, message }));
   };
 };

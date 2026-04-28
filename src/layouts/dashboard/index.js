@@ -17,6 +17,7 @@ import {
   AddDirectConversation,
   UpdateDirectConversation,
   AddDirectMessage,
+  AddGroupMessage,
   FetchDirectConversations,
 } from "../../redux/slices/conversation";
 
@@ -81,6 +82,15 @@ const DashboardLayout = () => {
       dispatch(
         AddDirectMessage({
           conversation_id: data.conversation_id,
+          message: data.message,
+        }),
+      );
+    };
+
+    const handleNewGroupMessage = (data) => {
+      dispatch(
+        AddGroupMessage({
+          group_id: data.group_id,
           message: data.message,
         }),
       );
@@ -151,6 +161,7 @@ const DashboardLayout = () => {
     currentSocket.on("message_error", handleMessageError);
     currentSocket.on("start_chat", handleStartChat);
     currentSocket.on("new_message", handleNewMessage);
+    currentSocket.on("new_group_message", handleNewGroupMessage);
 
     loadConversations();
     refreshRelationshipData();
@@ -168,6 +179,7 @@ const DashboardLayout = () => {
       currentSocket.off("message_error", handleMessageError);
       currentSocket.off("start_chat", handleStartChat);
       currentSocket.off("new_message", handleNewMessage);
+      currentSocket.off("new_group_message", handleNewGroupMessage);
     };
   }, [isLoggedIn, token, dispatch]);
 
