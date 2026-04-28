@@ -7,6 +7,7 @@ import appReducer, {
   SelectConversation,
   ToggleSidebar,
   UpdateSidebarType,
+  SelectGroupConversation,
 } from "./app";
 
 jest.mock("../../utils/axios", () => ({
@@ -179,5 +180,20 @@ describe("app slice", () => {
         title: "Study Group",
       },
     ]);
+  });
+
+  it("selects a group conversation and stores room_id/chat_type", async () => {
+    const store = createStore();
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-123",
+      }),
+    );
+
+    const state = store.getState().app;
+
+    expect(state.room_id).toBe("group-123");
+    expect(state.chat_type).toBe("group");
   });
 });

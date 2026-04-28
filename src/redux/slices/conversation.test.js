@@ -5,6 +5,8 @@ import conversationReducer, {
   MarkConversationRead,
   SetCurrentConversation,
   SetCurrentMessages,
+  SetCurrentGroupConversation,
+  SetCurrentGroupMessages,
 } from "./conversation";
 
 const currentUserId = "current-user-id";
@@ -255,5 +257,40 @@ describe("conversation slice", () => {
 
     state = store.getState().conversation.direct_chat.conversations;
     expect(state[0].unread).toBe(0);
+  });
+
+  it("stores current group conversation and messages", async () => {
+    const store = createStore();
+
+    await store.dispatch(
+      SetCurrentGroupConversation({
+        conversation: {
+          _id: "group-1",
+          title: "Study Group",
+        },
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentGroupMessages({
+        messages: [
+          {
+            _id: "message-1",
+            from: {
+              _id: "user-b",
+              firstName: "User",
+            },
+            type: "Text",
+            text: "Hello group",
+          },
+        ],
+      }),
+    );
+
+    const state = store.getState().conversation.group_chat;
+
+    expect(state.current_conversation.title).toBe("Study Group");
+    expect(state.current_messages).toHaveLength(1);
+    expect(state.current_messages[0].text).toBe("Hello group");
   });
 });

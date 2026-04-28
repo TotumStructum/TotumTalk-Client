@@ -83,7 +83,10 @@ const initialState = {
     current_conversation: null,
     current_messages: [],
   },
-  group_chat: {},
+  group_chat: {
+    current_conversation: null,
+    current_messages: [],
+  },
 };
 
 const slice = createSlice({
@@ -184,6 +187,16 @@ const slice = createSlice({
     clearCurrentConversation(state) {
       state.direct_chat.current_conversation = null;
       state.direct_chat.current_messages = [];
+      state.group_chat.current_conversation = null;
+      state.group_chat.current_messages = [];
+    },
+
+    setCurrentGroupConversation(state, action) {
+      state.group_chat.current_conversation = action.payload.conversation;
+    },
+
+    setCurrentGroupMessages(state, action) {
+      state.group_chat.current_messages = action.payload.messages;
     },
   },
 });
@@ -235,5 +248,17 @@ export const ClearCurrentConversation = () => {
 export const MarkConversationRead = ({ conversation_id }) => {
   return async (dispatch) => {
     dispatch(slice.actions.markConversationRead({ conversation_id }));
+  };
+};
+
+export const SetCurrentGroupConversation = ({ conversation }) => {
+  return async (dispatch) => {
+    dispatch(slice.actions.setCurrentGroupConversation({ conversation }));
+  };
+};
+
+export const SetCurrentGroupMessages = ({ messages }) => {
+  return async (dispatch) => {
+    dispatch(slice.actions.setCurrentGroupMessages({ messages }));
   };
 };

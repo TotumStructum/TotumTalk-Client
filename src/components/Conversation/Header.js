@@ -6,6 +6,7 @@ import {
   Stack,
   Typography,
   useTheme,
+  AvatarGroup,
 } from "@mui/material";
 import { CaretDown, MagnifyingGlass, Phone, VideoCamera } from "phosphor-react";
 import React from "react";
@@ -17,9 +18,21 @@ const Header = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  const { current_conversation } = useSelector(
+  const { chat_type } = useSelector((state) => state.app);
+
+  const { current_conversation: directConversation } = useSelector(
     (state) => state.conversation.direct_chat,
   );
+
+  const { current_conversation: groupConversation } = useSelector(
+    (state) => state.conversation.group_chat,
+  );
+
+  const isGroupChat = chat_type === "group";
+  const current_conversation = isGroupChat
+    ? groupConversation
+    : directConversation;
+
   const { sidebar } = useSelector((state) => state.app);
 
   if (!current_conversation) return null;
@@ -27,6 +40,8 @@ const Header = () => {
   const isContactSidebarOpen = sidebar.open && sidebar.type === "CONTACT";
 
   const handleContactSidebarToggle = () => {
+    if (isGroupChat) return;
+
     if (isContactSidebarOpen) {
       dispatch(ToggleSidebar());
       return;
@@ -63,11 +78,23 @@ const Header = () => {
           onClick={handleContactSidebarToggle}
           direction={"row"}
           spacing={2}
-          sx={{ cursor: "pointer" }}
+          sx={{ cursor: isGroupChat ? "default" : "pointer" }}
           alignItems="center"
         >
           <Box>
-            {current_conversation.online ? (
+            {isGroupChat ? (
+              <AvatarGroup max={3}>
+                {(current_conversation.participants || []).map(
+                  (participant) => (
+                    <Avatar
+                      key={participant._id}
+                      alt={`${participant.firstName || ""} ${participant.lastName || ""}`.trim()}
+                      src={participant.avatar}
+                    />
+                  ),
+                )}
+              </AvatarGroup>
+            ) : current_conversation.online ? (
               <StyledBadge
                 overlap="circular"
                 anchorOrigin={{
@@ -91,10 +118,16 @@ const Header = () => {
 
           <Stack spacing={0.2}>
             <Typography variant="subtitle2">
-              {current_conversation.name}
+              {isGroupChat
+                ? current_conversation.title
+                : current_conversation.name}
             </Typography>
             <Typography variant="caption">
-              {current_conversation.online ? "Online" : "Offline"}
+              {isGroupChat
+                ? `${current_conversation.participants?.length || 0} members`
+                : current_conversation.online
+                  ? "Online"
+                  : "Offline"}
             </Typography>
           </Stack>
         </Stack>
@@ -105,17 +138,20 @@ const Header = () => {
           spacing={3}
           sx={{ height: "100%" }}
         >
-          <IconButton>
+          <IconButton disabled={isGroupChat}>
             <VideoCamera />
           </IconButton>
-          <IconButton>
+          <IconButton disabled={isGroupChat}>
             <Phone />
           </IconButton>
-          <IconButton>
+          <IconButton disabled={isGroupChat}>
             <MagnifyingGlass />
           </IconButton>
           <Divider orientation="vertical" flexItem />
-          <IconButton onClick={handleContactSidebarToggle}>
+          <IconButton
+            onClick={handleContactSidebarToggle}
+            disabled={isGroupChat}
+          >
             <CaretDown
               style={{
                 transform: isContactSidebarOpen

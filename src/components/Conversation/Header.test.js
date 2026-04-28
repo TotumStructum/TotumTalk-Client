@@ -34,8 +34,12 @@ describe("Conversation/Header", () => {
           img: "",
         },
       },
+      group_chat: {
+        current_conversation: null,
+      },
     },
     app: {
+      chat_type: "individual",
       sidebar: {
         open: false,
         type: "CONTACT",
@@ -71,6 +75,7 @@ describe("Conversation/Header", () => {
       selector({
         ...baseState,
         conversation: {
+          ...baseState.conversation,
           direct_chat: {
             current_conversation: null,
           },
@@ -107,6 +112,7 @@ describe("Conversation/Header", () => {
       selector({
         ...baseState,
         app: {
+          ...baseState.app,
           sidebar: {
             open: true,
             type: "SHARED",
@@ -133,6 +139,7 @@ describe("Conversation/Header", () => {
       selector({
         ...baseState,
         app: {
+          ...baseState.app,
           sidebar: {
             open: true,
             type: "CONTACT",

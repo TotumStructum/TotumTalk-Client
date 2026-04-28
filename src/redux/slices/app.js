@@ -66,6 +66,10 @@ const slice = createSlice({
       state.chat_type = "individual";
       state.room_id = action.payload.room_id;
     },
+    selectGroupConversation(state, action) {
+      state.chat_type = "group";
+      state.room_id = action.payload.room_id;
+    },
     resetConversationSelection(state) {
       state.chat_type = null;
       state.room_id = null;
@@ -170,6 +174,12 @@ export const SelectConversation = ({ room_id }) => {
   return (dispatch) => {
     dispatch(slice.actions.selectConversation({ room_id }));
     dispatch(MarkConversationRead({ conversation_id: room_id }));
+  };
+};
+
+export const SelectGroupConversation = ({ room_id }) => {
+  return (dispatch) => {
+    dispatch(slice.actions.selectGroupConversation({ room_id }));
   };
 };
 

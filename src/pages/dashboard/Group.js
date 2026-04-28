@@ -20,6 +20,9 @@ import { SimpleBarStyle } from "../../components/Scrollbar";
 import CreateGroup from "../../sections/main/CreateGroup";
 import { useDispatch, useSelector } from "react-redux";
 import { FetchGroupConversations } from "../../redux/slices/app";
+import Conversation from "../../components/Conversation";
+import NoChatSVG from "../../assets/Illustration/NoChat";
+import { SelectGroupConversation } from "../../redux/slices/app";
 
 const getParticipantName = (participant) => {
   return (
@@ -29,7 +32,7 @@ const getParticipantName = (participant) => {
   );
 };
 
-const GroupElement = ({ group }) => {
+const GroupElement = ({ group, isSelected, onSelect }) => {
   const theme = useTheme();
   const participants = Array.isArray(group.participants)
     ? group.participants
@@ -37,6 +40,7 @@ const GroupElement = ({ group }) => {
 
   return (
     <Box
+      onClick={onSelect}
       sx={{
         width: "100%",
         borderRadius: 1,
@@ -88,7 +92,7 @@ const GroupElement = ({ group }) => {
 const Group = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { groups } = useSelector((state) => state.app);
+  const { groups, room_id, chat_type } = useSelector((state) => state.app);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -173,7 +177,18 @@ const Group = () => {
               <Stack spacing={2.4}>
                 {filteredGroups.length > 0 ? (
                   filteredGroups.map((group) => (
-                    <GroupElement key={group._id} group={group} />
+                    <GroupElement
+                      key={group._id}
+                      group={group}
+                      isSelected={
+                        chat_type === "group" && room_id === group._id
+                      }
+                      onSelect={() => {
+                        dispatch(
+                          SelectGroupConversation({ room_id: group._id }),
+                        );
+                      }}
+                    />
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary">
@@ -185,6 +200,32 @@ const Group = () => {
               </Stack>
             </SimpleBarStyle>
           </Stack>
+        </Box>
+        <Box
+          sx={{
+            height: "100%",
+            flexGrow: 1,
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "#F8FAFF"
+                : theme.palette.background.default,
+          }}
+        >
+          {room_id !== null && chat_type === "group" ? (
+            <Conversation />
+          ) : (
+            <Stack
+              spacing={2}
+              sx={{ height: "100%", width: "100%" }}
+              alignItems="center"
+              justifyContent="center"
+            >
+              <NoChatSVG />
+              <Typography variant="subtitle2">
+                Select a group conversation
+              </Typography>
+            </Stack>
+          )}
         </Box>
       </Stack>
 

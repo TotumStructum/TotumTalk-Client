@@ -18,11 +18,17 @@ const extractFirstUrl = (text = "") => {
 const Body = ({ menu }) => {
   const currentUserId = window.localStorage.getItem("user_id");
   const scrollRef = useRef(null);
-  const { room_id } = useSelector((state) => state.app);
+  const { room_id, chat_type } = useSelector((state) => state.app);
 
-  const { current_messages } = useSelector(
+  const { current_messages: directMessages } = useSelector(
     (state) => state.conversation.direct_chat,
   );
+
+  const { current_messages: groupMessages } = useSelector(
+    (state) => state.conversation.group_chat,
+  );
+  const current_messages =
+    chat_type === "group" ? groupMessages : directMessages;
 
   const scrollToBottom = useCallback(() => {
     const node = scrollRef.current;
@@ -34,6 +40,16 @@ const Body = ({ menu }) => {
   useLayoutEffect(() => {
     scrollToBottom();
   }, [room_id, current_messages.length, scrollToBottom]);
+
+  const getSenderId = (from) => {
+    if (!from) return "";
+
+    if (typeof from === "object") {
+      return from._id?.toString() || "";
+    }
+
+    return from.toString();
+  };
 
   return (
     <Box
@@ -55,7 +71,7 @@ const Body = ({ menu }) => {
       <Stack spacing={3}>
         {current_messages.map((message) => {
           const baseProps = {
-            incoming: message.from?.toString() !== currentUserId,
+            incoming: getSenderId(message.from) !== currentUserId,
           };
 
           if (message.type === "Media") {
