@@ -51,6 +51,14 @@ const Body = ({ menu }) => {
     return from.toString();
   };
 
+  const getSenderName = (from) => {
+    if (!from || typeof from !== "object") return "";
+
+    const fullName = `${from.firstName || ""} ${from.lastName || ""}`.trim();
+
+    return fullName || from.email || "";
+  };
+
   return (
     <Box
       ref={scrollRef}
@@ -70,8 +78,14 @@ const Body = ({ menu }) => {
     >
       <Stack spacing={3}>
         {current_messages.map((message) => {
+          const incoming = getSenderId(message.from) !== currentUserId;
+
           const baseProps = {
-            incoming: getSenderId(message.from) !== currentUserId,
+            incoming,
+            senderName:
+              chat_type === "group" && incoming
+                ? getSenderName(message.from)
+                : "",
           };
 
           if (message.type === "Media") {

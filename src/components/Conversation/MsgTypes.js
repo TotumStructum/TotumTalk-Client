@@ -33,6 +33,25 @@ const getFileName = (file = "") => {
   return decodeURIComponent(parts[parts.length - 1] || "Document");
 };
 
+const SenderName = ({ name, incoming }) => {
+  const theme = useTheme();
+
+  if (!name) return null;
+
+  return (
+    <Typography
+      variant="caption"
+      sx={{
+        color: incoming ? theme.palette.primary.main : "rgba(255,255,255,0.75)",
+        fontWeight: 600,
+        lineHeight: 1.2,
+      }}
+    >
+      {name}
+    </Typography>
+  );
+};
+
 const URL_PATTERN =
   /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
 
@@ -113,6 +132,7 @@ const DocMsg = ({ el, menu }) => {
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Stack spacing={1}>
+          <SenderName name={el.senderName} incoming={el.incoming} />
           <Box
             component={el.file ? "a" : "div"}
             href={el.file || undefined}
@@ -194,18 +214,22 @@ const LinkMsg = ({ el, menu }) => {
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
-        <Typography
-          component="div"
-          variant="body2"
-          sx={{
-            color: getTextColor(theme, el.incoming),
-            wordBreak: "break-word",
-          }}
-        >
-          {hasUrl
-            ? renderTextWithLinks(el.text || "", theme, el.incoming)
-            : el.text}
-        </Typography>
+        <Stack spacing={0.5}>
+          <SenderName name={el.senderName} incoming={el.incoming} />
+
+          <Typography
+            component="div"
+            variant="body2"
+            sx={{
+              color: getTextColor(theme, el.incoming),
+              wordBreak: "break-word",
+            }}
+          >
+            {hasUrl
+              ? renderTextWithLinks(el.text || "", theme, el.incoming)
+              : el.text}
+          </Typography>
+        </Stack>
       </Box>
       {menu && (
         <Box
@@ -277,7 +301,8 @@ const MediaMsg = ({ el, menu, onLoad }) => {
           overflow: "hidden",
         }}
       >
-        <Stack spacing={hasCaption ? 1 : 0}>
+        <Stack spacing={hasCaption || el.senderName ? 1 : 0}>
+          <SenderName name={el.senderName} incoming={el.incoming} />
           {el.file ? (
             <Box
               component="a"
@@ -348,15 +373,19 @@ const TextMsg = ({ el, menu }) => {
   return (
     <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
-        <Typography
-          variant="body2"
-          sx={{
-            color: getTextColor(theme, el.incoming),
-            wordBreak: "break-word",
-          }}
-        >
-          {el.message}
-        </Typography>
+        <Stack spacing={0.5}>
+          <SenderName name={el.senderName} incoming={el.incoming} />
+
+          <Typography
+            variant="body2"
+            sx={{
+              color: getTextColor(theme, el.incoming),
+              wordBreak: "break-word",
+            }}
+          >
+            {el.message}
+          </Typography>
+        </Stack>
       </Box>
       {menu && (
         <Box
