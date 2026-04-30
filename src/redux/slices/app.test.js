@@ -146,6 +146,8 @@ describe("app slice", () => {
       time: "",
       lastActivity: 0,
     });
+    expect(store.getState().app.room_id).toBe("group-1");
+    expect(store.getState().app.chat_type).toBe("group");
   });
 
   it("fetches group conversations from API with auth token", async () => {

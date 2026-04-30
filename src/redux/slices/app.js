@@ -294,6 +294,7 @@ export const CreateGroupConversation = ({ title, members }) => {
     const group = response.data.data;
 
     dispatch(slice.actions.addGroupConversation({ group }));
+    dispatch(slice.actions.selectGroupConversation({ room_id: group._id }));
 
     return group;
   };
