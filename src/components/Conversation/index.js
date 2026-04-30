@@ -28,12 +28,17 @@ const Conversation = () => {
     if (isGroupChat) {
       const selectedGroup = groups.find((el) => el._id === room_id) || null;
       dispatch(SetCurrentGroupConversation({ conversation: selectedGroup }));
-    } else {
-      const selectedConversation =
-        conversations.find((el) => el.id === room_id) || null;
-
-      dispatch(SetCurrentConversation({ conversation: selectedConversation }));
+      return;
     }
+
+    const selectedConversation =
+      conversations.find((el) => el.id === room_id) || null;
+
+    dispatch(SetCurrentConversation({ conversation: selectedConversation }));
+  }, [room_id, chat_type, conversations, groups, dispatch]);
+
+  useEffect(() => {
+    const isGroupChat = chat_type === "group";
 
     if (!room_id || !token) {
       if (isGroupChat) {
@@ -95,7 +100,7 @@ const Conversation = () => {
     return () => {
       isMounted = false;
     };
-  }, [room_id, token, chat_type, conversations, groups, dispatch]);
+  }, [room_id, token, chat_type, dispatch]);
 
   return (
     <Stack height={"100%"} maxHeight={"100vh"} sx={{ minHeight: 0 }}>
