@@ -2,6 +2,70 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "../../utils/axios";
 import { MarkConversationRead } from "./conversation";
 
+const formatGroupMessageTime = (value) => {
+  if (!value) return "";
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getGroupMessagePreview = (message) => {
+  if (!message) return "";
+
+  switch (message.type) {
+    case "Text":
+      return message.text || "";
+    case "Link":
+      return message.text || "Link";
+    case "Document":
+      return "Document";
+    case "Media":
+      return "Media";
+    default:
+      return "";
+  }
+};
+
+const getGroupLastMessage = (group) => {
+  return group.messages && group.messages.length > 0
+    ? group.messages[group.messages.length - 1]
+    : null;
+};
+
+const getGroupLastActivity = (group) => {
+  const lastMessage = getGroupLastMessage(group);
+
+  return (
+    lastMessage?.created_at ||
+    group.lastActivity ||
+    group.updatedAt ||
+    group.createdAt ||
+    0
+  );
+};
+
+const mapGroupConversation = (group) => {
+  const lastMessage = getGroupLastMessage(group);
+
+  return {
+    ...group,
+    msg: getGroupMessagePreview(lastMessage),
+    time: formatGroupMessageTime(lastMessage?.created_at),
+    lastActivity: getGroupLastActivity(group),
+  };
+};
+
+const sortGroupConversations = (groups) => {
+  return [...groups].sort((a, b) => {
+    const aTime = new Date(a.lastActivity || 0).getTime();
+    const bTime = new Date(b.lastActivity || 0).getTime();
+
+    return bTime - aTime;
+  });
+};
+
 const initialState = {
   sidebar: {
     open: false,
@@ -47,17 +111,39 @@ const slice = createSlice({
       state.friends = action.payload.friends;
     },
     updateGroupConversations(state, action) {
-      state.groups = action.payload.groups;
+      state.groups = sortGroupConversations(
+        action.payload.groups.map((group) => mapGroupConversation(group)),
+      );
     },
     addGroupConversation(state, action) {
-      const group = action.payload.group;
+      const group = mapGroupConversation(action.payload.group);
 
-      state.groups = [
+      state.groups = sortGroupConversations([
         group,
         ...state.groups.filter(
           (existingGroup) => existingGroup._id !== group._id,
         ),
-      ];
+      ]);
+    },
+    updateGroupConversationMessage(state, action) {
+      const { group_id, message } = action.payload;
+
+      state.groups = sortGroupConversations(
+        state.groups.map((group) => {
+          if (group._id !== group_id) return group;
+
+          const messages = Array.isArray(group.messages) ? group.messages : [];
+          const messageExists = messages.some(
+            (existingMessage) => existingMessage._id === message._id,
+          );
+
+          return mapGroupConversation({
+            ...group,
+            messages: messageExists ? messages : [...messages, message],
+            updatedAt: message.created_at || group.updatedAt,
+          });
+        }),
+      );
     },
     updateFriendRequests(state, action) {
       state.friendRequests = action.payload.request;
@@ -232,5 +318,16 @@ export const FetchGroupConversations = () => {
       .catch((error) => {
         console.error(error);
       });
+  };
+};
+
+export const UpdateGroupConversationMessage = ({ group_id, message }) => {
+  return (dispatch) => {
+    dispatch(
+      slice.actions.updateGroupConversationMessage({
+        group_id,
+        message,
+      }),
+    );
   };
 };

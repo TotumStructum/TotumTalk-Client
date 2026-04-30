@@ -12,6 +12,7 @@ import {
   FetchUsers,
   SelectConversation,
   showSnackbar,
+  UpdateGroupConversationMessage,
 } from "../../redux/slices/app";
 import {
   AddDirectConversation,
@@ -90,6 +91,13 @@ const DashboardLayout = () => {
     const handleNewGroupMessage = (data) => {
       dispatch(
         AddGroupMessage({
+          group_id: data.group_id,
+          message: data.message,
+        }),
+      );
+
+      dispatch(
+        UpdateGroupConversationMessage({
           group_id: data.group_id,
           message: data.message,
         }),

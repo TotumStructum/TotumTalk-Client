@@ -80,9 +80,31 @@ const GroupElement = ({ group, isSelected, onSelect }) => {
           <Typography variant="subtitle2" noWrap>
             {group.title}
           </Typography>
-          <Typography variant="caption" noWrap color="text.secondary">
-            {participants.length} members
-          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ minWidth: 0 }}
+          >
+            <Typography
+              variant="caption"
+              noWrap
+              color="text.secondary"
+              sx={{ flex: 1 }}
+            >
+              {group.msg || `${participants.length} members`}
+            </Typography>
+
+            {group.time ? (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ flexShrink: 0 }}
+              >
+                {group.time}
+              </Typography>
+            ) : null}
+          </Stack>
         </Stack>
       </Stack>
     </Box>

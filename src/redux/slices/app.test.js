@@ -8,6 +8,7 @@ import appReducer, {
   ToggleSidebar,
   UpdateSidebarType,
   SelectGroupConversation,
+  UpdateGroupConversationMessage,
 } from "./app";
 
 jest.mock("../../utils/axios", () => ({
@@ -135,12 +136,16 @@ describe("app slice", () => {
       title: "Study Group",
     });
 
-    expect(store.getState().app.groups).toEqual([
-      {
-        _id: "group-1",
-        title: "Study Group",
-      },
-    ]);
+    const groups = store.getState().app.groups;
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      _id: "group-1",
+      title: "Study Group",
+      msg: "",
+      time: "",
+      lastActivity: 0,
+    });
   });
 
   it("fetches group conversations from API with auth token", async () => {
@@ -174,12 +179,16 @@ describe("app slice", () => {
       },
     });
 
-    expect(store.getState().app.groups).toEqual([
-      {
-        _id: "group-1",
-        title: "Study Group",
-      },
-    ]);
+    const groups = store.getState().app.groups;
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      _id: "group-1",
+      title: "Study Group",
+      msg: "",
+      time: "",
+      lastActivity: 0,
+    });
   });
 
   it("selects a group conversation and stores room_id/chat_type", async () => {
@@ -195,5 +204,81 @@ describe("app slice", () => {
 
     expect(state.room_id).toBe("group-123");
     expect(state.chat_type).toBe("group");
+  });
+
+  it("sorts group conversations and updates preview after a new group message", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-old",
+            title: "Old Group",
+            participants: [],
+            messages: [
+              {
+                _id: "old-message",
+                type: "Text",
+                text: "Old message",
+                created_at: "2026-04-20T10:00:00.000Z",
+              },
+            ],
+            updatedAt: "2026-04-20T10:00:00.000Z",
+            createdAt: "2026-04-20T09:00:00.000Z",
+          },
+          {
+            _id: "group-new",
+            title: "New Group",
+            participants: [],
+            messages: [
+              {
+                _id: "new-message",
+                type: "Text",
+                text: "New message",
+                created_at: "2026-04-21T10:00:00.000Z",
+              },
+            ],
+            updatedAt: "2026-04-21T10:00:00.000Z",
+            createdAt: "2026-04-21T09:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    let groups = store.getState().app.groups;
+
+    expect(groups[0]._id).toBe("group-new");
+    expect(groups[0].msg).toBe("New message");
+    expect(groups[1]._id).toBe("group-old");
+
+    await store.dispatch(
+      UpdateGroupConversationMessage({
+        group_id: "group-old",
+        message: {
+          _id: "live-message",
+          type: "Link",
+          text: "youtube.com",
+          created_at: "2026-04-22T10:00:00.000Z",
+        },
+      }),
+    );
+
+    groups = store.getState().app.groups;
+
+    expect(groups[0]._id).toBe("group-old");
+    expect(groups[0].msg).toBe("youtube.com");
+    expect(groups[0].lastActivity).toBe("2026-04-22T10:00:00.000Z");
+    expect(groups[0].messages).toHaveLength(2);
   });
 });
