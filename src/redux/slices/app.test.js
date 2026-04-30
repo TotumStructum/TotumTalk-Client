@@ -344,4 +344,103 @@ describe("app slice", () => {
     expect(store.getState().app.room_id).toBe("group-1");
     expect(store.getState().app.chat_type).toBe("group");
   });
+
+  it("does not increment group unread for current user's own message", async () => {
+    window.localStorage.setItem("user_id", "current-user");
+
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      UpdateGroupConversationMessage({
+        group_id: "group-1",
+        message: {
+          _id: "own-message",
+          type: "Text",
+          text: "My own group message",
+          from: {
+            _id: "current-user",
+          },
+          created_at: "2026-04-22T10:00:00.000Z",
+        },
+      }),
+    );
+
+    expect(store.getState().app.groups[0].unread).toBe(0);
+  });
+
+  it("does not increment group unread for the currently open group", async () => {
+    window.localStorage.setItem("user_id", "current-user");
+
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    await store.dispatch(
+      UpdateGroupConversationMessage({
+        group_id: "group-1",
+        message: {
+          _id: "active-group-message",
+          type: "Text",
+          text: "Message in active group",
+          from: {
+            _id: "other-user",
+          },
+          created_at: "2026-04-22T10:00:00.000Z",
+        },
+      }),
+    );
+
+    expect(store.getState().app.groups[0].unread).toBe(0);
+    expect(store.getState().app.groups[0].msg).toBe("Message in active group");
+  });
 });
