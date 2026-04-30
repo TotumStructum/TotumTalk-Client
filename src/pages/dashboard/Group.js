@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Avatar,
   AvatarGroup,
+  Badge,
   Box,
   Divider,
   IconButton,
@@ -44,67 +45,76 @@ const GroupElement = ({ group, isSelected, onSelect }) => {
       sx={{
         width: "100%",
         borderRadius: 1,
-        backgroundColor:
-          theme.palette.mode === "light"
+        cursor: "pointer",
+        backgroundColor: isSelected
+          ? alpha(
+              theme.palette.primary.main,
+              theme.palette.mode === "light" ? 0.12 : 0.2,
+            )
+          : theme.palette.mode === "light"
             ? "#fff"
             : theme.palette.background.paper,
-        border: `1px solid ${
-          theme.palette.mode === "light"
-            ? "transparent"
-            : alpha(theme.palette.common.white, 0.08)
-        }`,
+        border: isSelected
+          ? `1px solid ${alpha(theme.palette.primary.main, 0.32)}`
+          : `1px solid ${
+              theme.palette.mode === "light"
+                ? "transparent"
+                : alpha(theme.palette.common.white, 0.08)
+            }`,
       }}
       p={2}
     >
-      <Stack direction="row" spacing={2} alignItems="center">
-        <AvatarGroup
-          max={3}
-          sx={{
-            "& .MuiAvatar-root": {
-              width: 36,
-              height: 36,
-              fontSize: 14,
-            },
-          }}
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{ minWidth: 0 }}
         >
-          {participants.map((participant) => (
-            <Avatar
-              key={participant._id}
-              src={participant.avatar}
-              alt={getParticipantName(participant)}
-            />
-          ))}
-        </AvatarGroup>
-
-        <Stack spacing={0.3} sx={{ minWidth: 0 }}>
-          <Typography variant="subtitle2" noWrap>
-            {group.title}
-          </Typography>
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            sx={{ minWidth: 0 }}
+          <AvatarGroup
+            max={3}
+            sx={{
+              "& .MuiAvatar-root": {
+                width: 36,
+                height: 36,
+                fontSize: 14,
+              },
+            }}
           >
-            <Typography
-              variant="caption"
-              noWrap
-              color="text.secondary"
-              sx={{ flex: 1 }}
-            >
+            {participants.map((participant) => (
+              <Avatar
+                key={participant._id}
+                src={participant.avatar}
+                alt={getParticipantName(participant)}
+              />
+            ))}
+          </AvatarGroup>
+
+          <Stack spacing={0.3} sx={{ minWidth: 0 }}>
+            <Typography variant="subtitle2" noWrap>
+              {group.title}
+            </Typography>
+            <Typography variant="caption" noWrap color="text.secondary">
               {group.msg || `${participants.length} members`}
             </Typography>
-
-            {group.time ? (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ flexShrink: 0 }}
-              >
-                {group.time}
-              </Typography>
-            ) : null}
           </Stack>
+        </Stack>
+
+        <Stack spacing={2} alignItems="center" sx={{ flexShrink: 0 }}>
+          {group.time ? (
+            <Typography sx={{ fontWeight: 600 }} variant="caption">
+              {group.time}
+            </Typography>
+          ) : null}
+
+          {group.unread > 0 ? (
+            <Badge color="primary" badgeContent={group.unread} />
+          ) : null}
         </Stack>
       </Stack>
     </Box>

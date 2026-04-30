@@ -2,6 +2,20 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "../../utils/axios";
 import { MarkConversationRead } from "./conversation";
 
+const getStoredUserId = () => window.localStorage.getItem("user_id");
+
+const getGroupMessageSenderId = (message) => {
+  const from = message?.from;
+
+  if (!from) return null;
+
+  if (typeof from === "object") {
+    return from._id?.toString() || null;
+  }
+
+  return from.toString();
+};
+
 const formatGroupMessageTime = (value) => {
   if (!value) return "";
 
@@ -53,6 +67,7 @@ const mapGroupConversation = (group) => {
     ...group,
     msg: getGroupMessagePreview(lastMessage),
     time: formatGroupMessageTime(lastMessage?.created_at),
+    unread: group.unread || 0,
     lastActivity: getGroupLastActivity(group),
   };
 };
@@ -127,6 +142,7 @@ const slice = createSlice({
     },
     updateGroupConversationMessage(state, action) {
       const { group_id, message } = action.payload;
+      const currentUserId = getStoredUserId();
 
       state.groups = sortGroupConversations(
         state.groups.map((group) => {
@@ -137,9 +153,20 @@ const slice = createSlice({
             (existingMessage) => existingMessage._id === message._id,
           );
 
+          const senderId = getGroupMessageSenderId(message);
+          const isIncoming = senderId && senderId !== currentUserId;
+          const isCurrentGroup =
+            state.chat_type === "group" && state.room_id === group_id;
+
           return mapGroupConversation({
             ...group,
             messages: messageExists ? messages : [...messages, message],
+            unread:
+              isCurrentGroup || messageExists
+                ? group.unread || 0
+                : isIncoming
+                  ? (group.unread || 0) + 1
+                  : group.unread || 0,
             updatedAt: message.created_at || group.updatedAt,
           });
         }),
@@ -155,6 +182,15 @@ const slice = createSlice({
     selectGroupConversation(state, action) {
       state.chat_type = "group";
       state.room_id = action.payload.room_id;
+
+      state.groups = state.groups.map((group) =>
+        group._id === action.payload.room_id
+          ? {
+              ...group,
+              unread: 0,
+            }
+          : group,
+      );
     },
     resetConversationSelection(state) {
       state.chat_type = null;

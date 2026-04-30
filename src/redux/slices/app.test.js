@@ -209,6 +209,8 @@ describe("app slice", () => {
   });
 
   it("sorts group conversations and updates preview after a new group message", async () => {
+    window.localStorage.setItem("user_id", "current-user");
+
     axios.get.mockResolvedValueOnce({
       data: {
         status: "success",
@@ -271,6 +273,9 @@ describe("app slice", () => {
           _id: "live-message",
           type: "Link",
           text: "youtube.com",
+          from: {
+            _id: "other-user",
+          },
           created_at: "2026-04-22T10:00:00.000Z",
         },
       }),
@@ -282,5 +287,61 @@ describe("app slice", () => {
     expect(groups[0].msg).toBe("youtube.com");
     expect(groups[0].lastActivity).toBe("2026-04-22T10:00:00.000Z");
     expect(groups[0].messages).toHaveLength(2);
+    expect(groups[0].unread).toBe(1);
+  });
+  it("resets group unread count when selecting a group conversation", async () => {
+    window.localStorage.setItem("user_id", "current-user");
+
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      UpdateGroupConversationMessage({
+        group_id: "group-1",
+        message: {
+          _id: "message-1",
+          type: "Text",
+          text: "Unread group message",
+          from: {
+            _id: "other-user",
+          },
+          created_at: "2026-04-22T10:00:00.000Z",
+        },
+      }),
+    );
+
+    expect(store.getState().app.groups[0].unread).toBe(1);
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    expect(store.getState().app.groups[0].unread).toBe(0);
+    expect(store.getState().app.room_id).toBe("group-1");
+    expect(store.getState().app.chat_type).toBe("group");
   });
 });
