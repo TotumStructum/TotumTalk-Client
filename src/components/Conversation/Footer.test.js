@@ -382,4 +382,145 @@ describe("Conversation/Footer", () => {
       type: "Link",
     });
   });
+
+  it("uploads a document and sends it as a group Document file message", async () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "group-1",
+          chat_type: "group",
+        },
+        auth: {
+          token: "test-token",
+        },
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+          },
+        },
+      }),
+    );
+
+    axios.post.mockResolvedValueOnce({
+      data: {
+        data: {
+          fileUrl: "http://localhost:3000/uploads/documents/group-file.pdf",
+        },
+      },
+    });
+
+    render(<Footer />);
+
+    const input = screen.getByPlaceholderText("Write a message...");
+    fireEvent.change(input, { target: { value: "Group document caption" } });
+
+    const documentInput = screen.getByLabelText("Document file input");
+
+    const file = new File(["document content"], "group-file.pdf", {
+      type: "application/pdf",
+    });
+
+    fireEvent.change(documentInput, {
+      target: {
+        files: [file],
+      },
+    });
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/upload/document",
+        expect.any(FormData),
+        {
+          headers: {
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+    });
+
+    await waitFor(() => {
+      expect(socket.emit).toHaveBeenCalledWith("group_file_message", {
+        group_id: "group-1",
+        file: "http://localhost:3000/uploads/documents/group-file.pdf",
+        type: "Document",
+        text: "Group document caption",
+      });
+    });
+
+    expect(input).toHaveValue("");
+  });
+
+  it("uploads media and sends it as a group Media file message", async () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "group-1",
+          chat_type: "group",
+        },
+        auth: {
+          token: "test-token",
+        },
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+          },
+        },
+      }),
+    );
+
+    axios.post.mockResolvedValueOnce({
+      data: {
+        data: {
+          fileUrl: "http://localhost:3000/uploads/media/group-image.png",
+        },
+      },
+    });
+
+    render(<Footer />);
+
+    const mediaInput = screen.getByLabelText("Media file input");
+
+    const file = new File(["image content"], "group-image.png", {
+      type: "image/png",
+    });
+
+    fireEvent.change(mediaInput, {
+      target: {
+        files: [file],
+      },
+    });
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/upload/media",
+        expect.any(FormData),
+        {
+          headers: {
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+    });
+
+    await waitFor(() => {
+      expect(socket.emit).toHaveBeenCalledWith("group_file_message", {
+        group_id: "group-1",
+        file: "http://localhost:3000/uploads/media/group-image.png",
+        type: "Media",
+        text: "",
+      });
+    });
+  });
 });

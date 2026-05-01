@@ -236,14 +236,15 @@ function Footer() {
     messageType,
     emptyFileError,
   }) => {
-    if (
-      isGroupChat ||
-      !selectedFile ||
-      !socket ||
-      !room_id ||
-      !directConversation ||
-      !token
-    ) {
+    if (!selectedFile || !socket || !room_id || !token) {
+      return;
+    }
+
+    if (isGroupChat && !groupConversation) {
+      return;
+    }
+
+    if (!isGroupChat && !directConversation) {
       return;
     }
 
@@ -262,13 +263,24 @@ function Footer() {
       throw new Error(emptyFileError);
     }
 
-    socket.emit("file_message", {
-      to: directConversation.user_id,
-      conversation_id: room_id,
-      file: fileUrl,
-      type: messageType,
-      text: value.trim(),
-    });
+    const caption = value.trim();
+
+    if (isGroupChat) {
+      socket.emit("group_file_message", {
+        group_id: room_id,
+        file: fileUrl,
+        type: messageType,
+        text: caption,
+      });
+    } else {
+      socket.emit("file_message", {
+        to: directConversation.user_id,
+        conversation_id: room_id,
+        file: fileUrl,
+        type: messageType,
+        text: caption,
+      });
+    }
 
     setValue("");
   };
