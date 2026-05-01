@@ -25,6 +25,16 @@ const extractFirstUrl = (text = "") => {
   return match[0].startsWith("http") ? match[0] : `https://${match[0]}`;
 };
 
+const getSenderId = (from) => {
+  if (!from) return null;
+
+  if (typeof from === "object") {
+    return from._id?.toString() || null;
+  }
+
+  return from.toString();
+};
+
 const SharedMessages = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -32,9 +42,18 @@ const SharedMessages = () => {
 
   const currentUserId = window.localStorage.getItem("user_id");
 
-  const { current_messages } = useSelector(
+  const { chat_type } = useSelector((state) => state.app);
+
+  const { current_messages: directMessages } = useSelector(
     (state) => state.conversation.direct_chat,
   );
+
+  const { current_messages: groupMessages } = useSelector(
+    (state) => state.conversation.group_chat,
+  );
+
+  const current_messages =
+    chat_type === "group" ? groupMessages : directMessages;
 
   const mediaMessages = current_messages.filter(
     (message) => message.type === "Media" && message.file,
@@ -150,7 +169,7 @@ const SharedMessages = () => {
                   <LinkMsg
                     key={message._id}
                     el={{
-                      incoming: message.from?.toString() !== currentUserId,
+                      incoming: getSenderId(message.from) !== currentUserId,
                       text: message.text || "",
                       url: extractFirstUrl(message.text),
                     }}
@@ -164,7 +183,7 @@ const SharedMessages = () => {
                   <DocMsg
                     key={message._id}
                     el={{
-                      incoming: message.from?.toString() !== currentUserId,
+                      incoming: getSenderId(message.from) !== currentUserId,
                       file: message.file,
                       text: message.text || "",
                     }}
