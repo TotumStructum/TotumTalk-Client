@@ -10,7 +10,7 @@ import {
 import React from "react";
 import { CaretLeft } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
-import { UpdateSidebarType } from "../redux/slices/app";
+import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
 import { LinkMsg, DocMsg } from "../components/Conversation/MsgTypes.js";
 
@@ -78,6 +78,15 @@ const SharedMessages = () => {
     </Typography>
   );
 
+  const handleBackClick = () => {
+    if (chat_type === "group") {
+      dispatch(ToggleSidebar());
+      return;
+    }
+
+    dispatch(UpdateSidebarType("CONTACT"));
+  };
+
   return (
     <Box sx={{ width: 320, height: "100vh" }}>
       <Stack sx={{ height: "100%" }}>
@@ -92,11 +101,7 @@ const SharedMessages = () => {
           }}
         >
           <Stack sx={{ p: 2 }} direction="row" alignItems="center" spacing={3}>
-            <IconButton
-              onClick={() => {
-                dispatch(UpdateSidebarType("CONTACT"));
-              }}
-            >
+            <IconButton onClick={handleBackClick}>
               <CaretLeft />
             </IconButton>
             <Typography variant="subtitle2">Shared Messages</Typography>

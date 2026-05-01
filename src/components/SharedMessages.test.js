@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import SharedMessages from "./SharedMessages";
+import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
 
 jest.mock("react-redux", () => ({
   useDispatch: jest.fn(),
@@ -10,10 +11,8 @@ jest.mock("react-redux", () => ({
 }));
 
 jest.mock("../redux/slices/app", () => ({
-  UpdateSidebarType: jest.fn((type) => ({
-    type: "app/updateSidebarType",
-    payload: type,
-  })),
+  ToggleSidebar: jest.fn(),
+  UpdateSidebarType: jest.fn(),
 }));
 
 const renderSharedMessages = () =>
@@ -28,6 +27,15 @@ describe("SharedMessages", () => {
     jest.clearAllMocks();
     window.localStorage.setItem("user_id", "user-a");
     useDispatch.mockReturnValue(jest.fn());
+
+    ToggleSidebar.mockReturnValue({
+      type: "app/toggleSidebar",
+    });
+
+    UpdateSidebarType.mockImplementation((type) => ({
+      type: "app/updateSidebarType",
+      payload: type,
+    }));
   });
 
   afterEach(() => {
@@ -99,5 +107,70 @@ describe("SharedMessages", () => {
 
     expect(screen.getByText("group-file.pdf")).toBeInTheDocument();
     expect(screen.getByText("Group document caption")).toBeInTheDocument();
+  });
+
+  it("closes sidebar when pressing back from shared messages in group chat", () => {
+    const dispatch = jest.fn();
+    useDispatch.mockReturnValue(dispatch);
+
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          chat_type: "group",
+        },
+        conversation: {
+          direct_chat: {
+            current_messages: [],
+          },
+          group_chat: {
+            current_messages: [],
+          },
+        },
+      }),
+    );
+
+    renderSharedMessages();
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
+    expect(UpdateSidebarType).not.toHaveBeenCalled();
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "app/toggleSidebar",
+    });
+  });
+
+  it("returns to contact panel when pressing back from shared messages in direct chat", () => {
+    const dispatch = jest.fn();
+    useDispatch.mockReturnValue(dispatch);
+
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          chat_type: "individual",
+        },
+        conversation: {
+          direct_chat: {
+            current_messages: [],
+          },
+          group_chat: {
+            current_messages: [],
+          },
+        },
+      }),
+    );
+
+    renderSharedMessages();
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(UpdateSidebarType).toHaveBeenCalledWith("CONTACT");
+    expect(ToggleSidebar).not.toHaveBeenCalled();
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "app/updateSidebarType",
+      payload: "CONTACT",
+    });
   });
 });
