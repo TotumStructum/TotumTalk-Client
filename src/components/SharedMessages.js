@@ -10,7 +10,7 @@ import {
 import React from "react";
 import { CaretLeft } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
-import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
+import { UpdateSidebarType } from "../redux/slices/app";
 import { useTheme } from "@emotion/react";
 import { LinkMsg, DocMsg } from "../components/Conversation/MsgTypes.js";
 
@@ -80,7 +80,7 @@ const SharedMessages = () => {
 
   const handleBackClick = () => {
     if (chat_type === "group") {
-      dispatch(ToggleSidebar());
+      dispatch(UpdateSidebarType("GROUP_INFO"));
       return;
     }
 

@@ -163,7 +163,7 @@ describe("Conversation/Header", () => {
     });
   });
 
-  it("opens shared messages sidebar when clicking group conversation info", () => {
+  it("opens group info sidebar when clicking group conversation info", () => {
     useSelector.mockImplementation((selector) =>
       selector({
         conversation: {
@@ -192,7 +192,7 @@ describe("Conversation/Header", () => {
 
     fireEvent.click(screen.getByText("Study Group"));
 
-    expect(UpdateSidebarType).toHaveBeenCalledWith("SHARED");
+    expect(UpdateSidebarType).toHaveBeenCalledWith("GROUP_INFO");
     expect(ToggleSidebar).toHaveBeenCalledTimes(1);
   });
 });

@@ -40,7 +40,7 @@ const Header = () => {
   const isContactSidebarOpen = sidebar.open && sidebar.type === "CONTACT";
 
   const handleContactSidebarToggle = () => {
-    const sidebarType = isGroupChat ? "SHARED" : "CONTACT";
+    const sidebarType = isGroupChat ? "GROUP_INFO" : "CONTACT";
     const isCurrentSidebarOpen = sidebar.open && sidebar.type === sidebarType;
 
     if (isCurrentSidebarOpen) {

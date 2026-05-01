@@ -133,11 +133,12 @@ describe("SharedMessages", () => {
 
     fireEvent.click(screen.getByRole("button"));
 
-    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
-    expect(UpdateSidebarType).not.toHaveBeenCalled();
+    expect(UpdateSidebarType).toHaveBeenCalledWith("GROUP_INFO");
+    expect(ToggleSidebar).not.toHaveBeenCalled();
 
     expect(dispatch).toHaveBeenCalledWith({
-      type: "app/toggleSidebar",
+      type: "app/updateSidebarType",
+      payload: "GROUP_INFO",
     });
   });
 

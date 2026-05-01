@@ -26,6 +26,7 @@ import NoChatSVG from "../../assets/Illustration/NoChat";
 import { SelectGroupConversation } from "../../redux/slices/app";
 import SharedMessages from "../../components/SharedMessages";
 import StarredMessages from "../../components/StarredMessages";
+import GroupInfo from "../../components/GroupInfo";
 
 const getParticipantName = (participant) => {
   return (
@@ -264,7 +265,8 @@ const Group = () => {
           )}
         </Box>
         {sidebar.open &&
-          ((sidebar.type === "SHARED" && <SharedMessages />) ||
+          ((sidebar.type === "GROUP_INFO" && <GroupInfo />) ||
+            (sidebar.type === "SHARED" && <SharedMessages />) ||
             (sidebar.type === "STARRED" && <StarredMessages />) ||
             null)}
       </Stack>
