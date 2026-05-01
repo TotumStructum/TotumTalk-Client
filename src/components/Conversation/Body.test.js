@@ -107,4 +107,60 @@ describe("Conversation/Body", () => {
     expect(screen.getByText("Direct hello")).toBeInTheDocument();
     expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
   });
+
+  it("renders group document and media messages with incoming sender names", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "group-1",
+          chat_type: "group",
+        },
+        conversation: {
+          direct_chat: {
+            current_messages: [],
+          },
+          group_chat: {
+            current_messages: [
+              {
+                _id: "document-message",
+                type: "Document",
+                text: "Document caption",
+                file: "http://localhost:3000/uploads/documents/group-file.pdf",
+                from: {
+                  _id: "user-b",
+                  firstName: "John",
+                  lastName: "Doe",
+                },
+              },
+              {
+                _id: "media-message",
+                type: "Media",
+                text: "Media caption",
+                file: "http://localhost:3000/uploads/media/group-image.png",
+                from: {
+                  _id: "user-c",
+                  firstName: "Jane",
+                  lastName: "Smith",
+                },
+              },
+            ],
+          },
+        },
+      }),
+    );
+
+    renderBody();
+
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+
+    expect(screen.getByText("group-file.pdf")).toBeInTheDocument();
+    expect(screen.getByText("Document caption")).toBeInTheDocument();
+
+    expect(screen.getByAltText("Media message")).toHaveAttribute(
+      "src",
+      "http://localhost:3000/uploads/media/group-image.png",
+    );
+    expect(screen.getByText("Media caption")).toBeInTheDocument();
+  });
 });
