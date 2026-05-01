@@ -162,4 +162,37 @@ describe("Conversation/Header", () => {
       type: "app/toggleSidebar",
     });
   });
+
+  it("opens shared messages sidebar when clicking group conversation info", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+              participants: [],
+            },
+          },
+        },
+        app: {
+          chat_type: "group",
+          sidebar: {
+            open: false,
+            type: "CONTACT",
+          },
+        },
+      }),
+    );
+
+    render(<Header />);
+
+    fireEvent.click(screen.getByText("Study Group"));
+
+    expect(UpdateSidebarType).toHaveBeenCalledWith("SHARED");
+    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
+  });
 });

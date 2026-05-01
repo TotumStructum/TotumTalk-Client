@@ -40,14 +40,15 @@ const Header = () => {
   const isContactSidebarOpen = sidebar.open && sidebar.type === "CONTACT";
 
   const handleContactSidebarToggle = () => {
-    if (isGroupChat) return;
+    const sidebarType = isGroupChat ? "SHARED" : "CONTACT";
+    const isCurrentSidebarOpen = sidebar.open && sidebar.type === sidebarType;
 
-    if (isContactSidebarOpen) {
+    if (isCurrentSidebarOpen) {
       dispatch(ToggleSidebar());
       return;
     }
 
-    dispatch(UpdateSidebarType("CONTACT"));
+    dispatch(UpdateSidebarType(sidebarType));
 
     if (!sidebar.open) {
       dispatch(ToggleSidebar());
@@ -78,7 +79,7 @@ const Header = () => {
           onClick={handleContactSidebarToggle}
           direction={"row"}
           spacing={2}
-          sx={{ cursor: isGroupChat ? "default" : "pointer" }}
+          sx={{ cursor: "pointer" }}
           alignItems="center"
         >
           <Box>
@@ -148,15 +149,10 @@ const Header = () => {
             <MagnifyingGlass />
           </IconButton>
           <Divider orientation="vertical" flexItem />
-          <IconButton
-            onClick={handleContactSidebarToggle}
-            disabled={isGroupChat}
-          >
+          <IconButton onClick={handleContactSidebarToggle}>
             <CaretDown
               style={{
-                transform: isContactSidebarOpen
-                  ? "rotate(-90deg)"
-                  : "rotate(0deg)",
+                transform: sidebar.open ? "rotate(-90deg)" : "rotate(0deg)",
                 transition: "transform 0.2s ease",
               }}
             />

@@ -24,6 +24,8 @@ import { FetchGroupConversations } from "../../redux/slices/app";
 import Conversation from "../../components/Conversation";
 import NoChatSVG from "../../assets/Illustration/NoChat";
 import { SelectGroupConversation } from "../../redux/slices/app";
+import SharedMessages from "../../components/SharedMessages";
+import StarredMessages from "../../components/StarredMessages";
 
 const getParticipantName = (participant) => {
   return (
@@ -124,7 +126,9 @@ const GroupElement = ({ group, isSelected, onSelect }) => {
 const Group = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { groups, room_id, chat_type } = useSelector((state) => state.app);
+  const { groups, room_id, chat_type, sidebar } = useSelector(
+    (state) => state.app,
+  );
 
   const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -236,7 +240,7 @@ const Group = () => {
         <Box
           sx={{
             height: "100%",
-            flexGrow: 1,
+            width: sidebar.open ? "calc(100vw - 740px)" : "calc(100vw - 420px)",
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
@@ -259,6 +263,10 @@ const Group = () => {
             </Stack>
           )}
         </Box>
+        {sidebar.open &&
+          ((sidebar.type === "SHARED" && <SharedMessages />) ||
+            (sidebar.type === "STARRED" && <StarredMessages />) ||
+            null)}
       </Stack>
 
       {openDialog && (
