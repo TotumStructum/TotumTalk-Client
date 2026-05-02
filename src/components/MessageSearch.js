@@ -1,0 +1,129 @@
+import { useMemo, useState } from "react";
+import { useTheme } from "@emotion/react";
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { CaretLeft, MagnifyingGlass } from "phosphor-react";
+import { useDispatch, useSelector } from "react-redux";
+import { UpdateSidebarType } from "../redux/slices/app";
+
+const getMessageText = (message) => {
+  if (!message) return "";
+
+  if (message.text) return message.text;
+
+  if (message.type === "Media") return "Media";
+  if (message.type === "Document") return "Document";
+
+  return "";
+};
+
+const MessageSearch = () => {
+  const theme = useTheme();
+  const dispatch = useDispatch();
+  const [query, setQuery] = useState("");
+
+  const { current_messages } = useSelector(
+    (state) => state.conversation.direct_chat,
+  );
+
+  const results = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) return [];
+
+    return current_messages.filter((message) =>
+      getMessageText(message).toLowerCase().includes(normalizedQuery),
+    );
+  }, [current_messages, query]);
+
+  return (
+    <Box sx={{ width: 320, height: "100vh" }}>
+      <Stack sx={{ height: "100%" }}>
+        <Box
+          sx={{
+            boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
+            width: "100%",
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "#F8FAFF"
+                : theme.palette.background.paper,
+          }}
+        >
+          <Stack
+            sx={{ height: "100%", p: 2 }}
+            direction="row"
+            alignItems="center"
+            spacing={3}
+          >
+            <IconButton
+              onClick={() => {
+                dispatch(UpdateSidebarType("CONTACT"));
+              }}
+            >
+              <CaretLeft />
+            </IconButton>
+            <Typography variant="subtitle2">Search Messages</Typography>
+          </Stack>
+        </Box>
+
+        <Stack p={3} spacing={2} sx={{ flexGrow: 1, minHeight: 0 }}>
+          <TextField
+            autoFocus
+            size="small"
+            placeholder="Search messages..."
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MagnifyingGlass size={18} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Stack spacing={1.5} sx={{ overflowY: "auto", minHeight: 0 }}>
+            {!query.trim() ? (
+              <Typography variant="body2" color="text.secondary">
+                Type to search in this conversation
+              </Typography>
+            ) : results.length > 0 ? (
+              results.map((message) => (
+                <Box
+                  key={message._id}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    backgroundColor:
+                      theme.palette.mode === "light"
+                        ? theme.palette.common.white
+                        : theme.palette.background.paper,
+                    boxShadow: "0px 0px 2px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                    {getMessageText(message)}
+                  </Typography>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No messages found
+              </Typography>
+            )}
+          </Stack>
+        </Stack>
+      </Stack>
+    </Box>
+  );
+};
+
+export default MessageSearch;

@@ -8,6 +8,7 @@ import Contact from "../../components/Contact";
 import { useDispatch, useSelector } from "react-redux";
 import SharedMessages from "../../components/SharedMessages";
 import StarredMessages from "../../components/StarredMessages";
+import MessageSearch from "../../components/MessageSearch";
 
 import NoChatSVG from "../../assets/Illustration/NoChat";
 import {
@@ -93,6 +94,7 @@ const GeneralApp = () => {
         ((sidebar.type === "CONTACT" && <Contact />) ||
           (sidebar.type === "SHARED" && <SharedMessages />) ||
           (sidebar.type === "STARRED" && <StarredMessages />) ||
+          (sidebar.type === "MESSAGE_SEARCH" && <MessageSearch />) ||
           null)}
     </Stack>
   );

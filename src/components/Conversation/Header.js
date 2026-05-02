@@ -55,6 +55,16 @@ const Header = () => {
     }
   };
 
+  const handleMessageSearchOpen = () => {
+    if (isGroupChat) return;
+
+    dispatch(UpdateSidebarType("MESSAGE_SEARCH"));
+
+    if (!sidebar.open) {
+      dispatch(ToggleSidebar());
+    }
+  };
+
   return (
     <Box
       p={2}
@@ -145,7 +155,11 @@ const Header = () => {
           <IconButton disabled={isGroupChat}>
             <Phone />
           </IconButton>
-          <IconButton disabled={isGroupChat}>
+          <IconButton
+            disabled={isGroupChat}
+            aria-label="Search messages"
+            onClick={handleMessageSearchOpen}
+          >
             <MagnifyingGlass />
           </IconButton>
           <Divider orientation="vertical" flexItem />

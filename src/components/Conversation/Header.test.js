@@ -195,4 +195,22 @@ describe("Conversation/Header", () => {
     expect(UpdateSidebarType).toHaveBeenCalledWith("GROUP_INFO");
     expect(ToggleSidebar).toHaveBeenCalledTimes(1);
   });
+
+  it("opens message search sidebar when clicking search button in direct chat", () => {
+    render(<Header />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Search messages" }));
+
+    expect(UpdateSidebarType).toHaveBeenCalledWith("MESSAGE_SEARCH");
+    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "app/updateSidebarType",
+      payload: { type: "MESSAGE_SEARCH" },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "app/toggleSidebar",
+    });
+  });
 });
