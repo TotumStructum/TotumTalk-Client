@@ -114,6 +114,11 @@ const DashboardLayout = () => {
       refreshRelationshipData();
     };
 
+    const handleRequestRejected = (data) => {
+      dispatch(showSnackbar({ severity: "success", message: data.message }));
+      refreshRelationshipData();
+    };
+
     const handleRequestSent = (data) => {
       dispatch(showSnackbar({ severity: "success", message: data.message }));
       refreshRelationshipData();
@@ -163,6 +168,7 @@ const DashboardLayout = () => {
     currentSocket.on("connect", handleConnect);
     currentSocket.on("new_friend_request", handleNewFriendRequest);
     currentSocket.on("request_accepted", handleRequestAccepted);
+    currentSocket.on("request_rejected", handleRequestRejected);
     currentSocket.on("request_sent", handleRequestSent);
     currentSocket.on("request_error", handleRequestError);
     currentSocket.on("conversation_error", handleConversationError);
@@ -181,6 +187,7 @@ const DashboardLayout = () => {
       currentSocket.off("connect", handleConnect);
       currentSocket.off("new_friend_request", handleNewFriendRequest);
       currentSocket.off("request_accepted", handleRequestAccepted);
+      currentSocket.off("request_rejected", handleRequestRejected);
       currentSocket.off("request_sent", handleRequestSent);
       currentSocket.off("request_error", handleRequestError);
       currentSocket.off("conversation_error", handleConversationError);

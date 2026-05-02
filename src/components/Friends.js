@@ -107,13 +107,25 @@ const FriendRequestComponent = ({
             <Typography variant="subtitle2">{name}</Typography>
           </Stack>
         </Stack>
-        <Stack direction={"row"} spacing={2} alignItems={"center"}>
+        <Stack direction={"row"} spacing={1} alignItems={"center"}>
           <Button
+            size="small"
             onClick={() => {
               socket.emit("accept_request", { request_id: id });
             }}
           >
-            Accept Request
+            Accept
+          </Button>
+
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            onClick={() => {
+              socket.emit("reject_request", { request_id: id });
+            }}
+          >
+            Decline
           </Button>
         </Stack>
       </Stack>
