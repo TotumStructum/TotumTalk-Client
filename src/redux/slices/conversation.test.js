@@ -8,9 +8,19 @@ import conversationReducer, {
   SetCurrentGroupConversation,
   SetCurrentGroupMessages,
   AddGroupMessage,
+  ToggleDirectMessageStar,
 } from "./conversation";
 
+import axios from "../../utils/axios";
+
 const currentUserId = "current-user-id";
+
+jest.mock("../../utils/axios", () => ({
+  __esModule: true,
+  default: {
+    patch: jest.fn(),
+  },
+}));
 
 const createConversation = ({
   id,
@@ -60,6 +70,9 @@ const createStore = () =>
   configureStore({
     reducer: {
       conversation: conversationReducer,
+      auth: () => ({
+        token: "token-123",
+      }),
     },
   });
 
@@ -335,5 +348,61 @@ describe("conversation slice", () => {
 
     expect(state.current_messages).toHaveLength(2);
     expect(state.current_messages[1].text).toBe("New group message");
+  });
+
+  it("toggles direct message starred state through API and updates current messages", async () => {
+    axios.patch.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          _id: "message-1",
+          to: "user-b",
+          from: currentUserId,
+          type: "Text",
+          text: "Important message",
+          starredBy: [currentUserId],
+        },
+      },
+    });
+
+    const store = createStore();
+
+    await store.dispatch(
+      SetCurrentMessages({
+        messages: [
+          {
+            _id: "message-1",
+            to: "user-b",
+            from: currentUserId,
+            type: "Text",
+            text: "Important message",
+            starredBy: [],
+          },
+        ],
+      }),
+    );
+
+    await store.dispatch(
+      ToggleDirectMessageStar({
+        conversation_id: "conversation-1",
+        message_id: "message-1",
+        starred: true,
+      }),
+    );
+
+    expect(axios.patch).toHaveBeenCalledWith(
+      "/conversation/conversation-1/messages/message-1/star",
+      { starred: true },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    const state = store.getState().conversation.direct_chat;
+
+    expect(state.current_messages[0].starredBy).toEqual([currentUserId]);
   });
 });

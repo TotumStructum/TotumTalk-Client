@@ -1,6 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
+import axios from "../../utils/axios";
 
 const getStoredUserId = () => window.localStorage.getItem("user_id");
+
+const getSenderId = (from) => {
+  if (!from) return null;
+
+  if (typeof from === "object") {
+    return from._id?.toString() || null;
+  }
+
+  return from.toString();
+};
 
 const formatMessageTime = (value) => {
   if (!value) return "";
@@ -137,6 +148,15 @@ const slice = createSlice({
       state.direct_chat.current_messages = action.payload.messages;
     },
 
+    updateDirectMessageStar(state, action) {
+      const { message } = action.payload;
+
+      state.direct_chat.current_messages =
+        state.direct_chat.current_messages.map((currentMessage) =>
+          currentMessage._id === message._id ? message : currentMessage,
+        );
+    },
+
     addDirectMessage(state, action) {
       const user_id = getStoredUserId();
       const { conversation_id, message } = action.payload;
@@ -235,6 +255,33 @@ export const AddDirectConversation = ({ conversation }) => {
 export const SetCurrentConversation = ({ conversation }) => {
   return async (dispatch) => {
     dispatch(slice.actions.setCurrentConversation({ conversation }));
+  };
+};
+
+export const ToggleDirectMessageStar = ({
+  conversation_id,
+  message_id,
+  starred,
+}) => {
+  return async (dispatch, getState) => {
+    const response = await axios.patch(
+      `/conversation/${conversation_id}/messages/${message_id}/star`,
+      { starred },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    dispatch(
+      slice.actions.updateDirectMessageStar({
+        message: response.data.data,
+      }),
+    );
+
+    return response.data.data;
   };
 };
 
