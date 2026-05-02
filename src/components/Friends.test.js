@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { FriendRequestComponent } from "./Friends";
+import { FriendComponent, FriendRequestComponent } from "./Friends";
 import { socket } from "../socket";
 
 jest.mock("../socket", () => ({
@@ -51,6 +51,73 @@ describe("FriendRequestComponent", () => {
 
     expect(socket.emit).toHaveBeenCalledWith("reject_request", {
       request_id: "request-1",
+    });
+  });
+});
+
+describe("FriendComponent", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("emits start_conversation when starting a chat with a friend", () => {
+    renderWithTheme(
+      <FriendComponent
+        _id="friend-1"
+        firstName="John"
+        lastName="Doe"
+        status="Offline"
+        avatar=""
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Start chat" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("start_conversation", {
+      to: "friend-1",
+    });
+  });
+
+  it("opens confirmation dialog before removing a friend", () => {
+    renderWithTheme(
+      <FriendComponent
+        _id="friend-1"
+        firstName="John"
+        lastName="Doe"
+        status="Offline"
+        avatar=""
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove friend" }));
+
+    expect(
+      screen.getByText(
+        "Are you sure you want to remove John Doe from your friends?",
+      ),
+    ).toBeInTheDocument();
+
+    expect(socket.emit).not.toHaveBeenCalledWith("remove_friend", {
+      friend_id: "friend-1",
+    });
+  });
+
+  it("emits remove_friend after confirming friend removal", () => {
+    renderWithTheme(
+      <FriendComponent
+        _id="friend-1"
+        firstName="John"
+        lastName="Doe"
+        status="Offline"
+        avatar=""
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove friend" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("remove_friend", {
+      friend_id: "friend-1",
     });
   });
 });

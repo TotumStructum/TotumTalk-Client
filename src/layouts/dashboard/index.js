@@ -114,6 +114,11 @@ const DashboardLayout = () => {
       refreshRelationshipData();
     };
 
+    const handleFriendRemoved = (data) => {
+      dispatch(showSnackbar({ severity: "success", message: data.message }));
+      refreshRelationshipData();
+    };
+
     const handleRequestRejected = (data) => {
       dispatch(showSnackbar({ severity: "success", message: data.message }));
       refreshRelationshipData();
@@ -176,6 +181,7 @@ const DashboardLayout = () => {
     currentSocket.on("start_chat", handleStartChat);
     currentSocket.on("new_message", handleNewMessage);
     currentSocket.on("new_group_message", handleNewGroupMessage);
+    currentSocket.on("friend_removed", handleFriendRemoved);
 
     loadConversations();
     refreshRelationshipData();
@@ -195,6 +201,7 @@ const DashboardLayout = () => {
       currentSocket.off("start_chat", handleStartChat);
       currentSocket.off("new_message", handleNewMessage);
       currentSocket.off("new_group_message", handleNewGroupMessage);
+      currentSocket.off("friend_removed", handleFriendRemoved);
     };
   }, [isLoggedIn, token, dispatch]);
 
