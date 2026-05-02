@@ -86,6 +86,10 @@ const Body = ({ menu }) => {
               chat_type === "group" && incoming
                 ? getSenderName(message.from)
                 : "",
+            messageId: message._id,
+            conversationId: room_id,
+            chatType: chat_type,
+            starredBy: message.starredBy || [],
           };
 
           if (message.type === "Media") {

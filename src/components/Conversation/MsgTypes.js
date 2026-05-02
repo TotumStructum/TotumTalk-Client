@@ -9,9 +9,17 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { DotsThreeVertical, DownloadSimple, File, Image } from "phosphor-react";
+import {
+  DotsThreeVertical,
+  DownloadSimple,
+  File,
+  Image,
+  Star,
+} from "phosphor-react";
 import React from "react";
+import { useDispatch } from "react-redux";
 import { Message_options } from "../../data/index";
+import { ToggleDirectMessageStar } from "../../redux/slices/conversation";
 
 const getBubbleStyles = (theme, incoming) => ({
   backgroundColor: incoming
@@ -31,6 +39,22 @@ const getFileName = (file = "") => {
   if (!file) return "Document";
   const parts = file.split("/");
   return decodeURIComponent(parts[parts.length - 1] || "Document");
+};
+
+const isMessageStarredByCurrentUser = (starredBy = []) => {
+  const currentUserId = window.localStorage.getItem("user_id");
+
+  return Array.isArray(starredBy)
+    ? starredBy.some((userId) => {
+        if (!userId) return false;
+
+        if (typeof userId === "object") {
+          return userId._id?.toString() === currentUserId;
+        }
+
+        return userId.toString() === currentUserId;
+      })
+    : false;
 };
 
 const SenderName = ({ name, incoming }) => {
@@ -200,7 +224,7 @@ const DocMsg = ({ el, menu }) => {
             px: 0.5,
           }}
         >
-          <MessageOptions />
+          <MessageOptions el={el} />
         </Box>
       )}
     </Stack>
@@ -239,7 +263,7 @@ const LinkMsg = ({ el, menu }) => {
             px: 0.5,
           }}
         >
-          <MessageOptions />
+          <MessageOptions el={el} />
         </Box>
       )}
     </Stack>
@@ -282,7 +306,7 @@ const ReplyMsg = ({ el }) => {
           px: 0.5,
         }}
       >
-        <MessageOptions />
+        <MessageOptions el={el} />
       </Box>
     </Stack>
   );
@@ -360,7 +384,7 @@ const MediaMsg = ({ el, menu, onLoad }) => {
             px: 0.5,
           }}
         >
-          <MessageOptions />
+          <MessageOptions el={el} />
         </Box>
       )}
     </Stack>
@@ -395,7 +419,7 @@ const TextMsg = ({ el, menu }) => {
             px: 0.5,
           }}
         >
-          <MessageOptions />
+          <MessageOptions el={el} />
         </Box>
       )}
     </Stack>
@@ -416,7 +440,11 @@ const Timeline = ({ el }) => {
   );
 };
 
-const MessageOptions = () => {
+const MessageOptions = ({ el = {} }) => {
+  const dispatch = useDispatch();
+  const isDirectChat = el.chatType === "individual";
+  const isStarred = isMessageStarredByCurrentUser(el.starredBy || []);
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -426,6 +454,23 @@ const MessageOptions = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleStarToggle = () => {
+    if (!isDirectChat || !el.conversationId || !el.messageId) {
+      handleClose();
+      return;
+    }
+
+    dispatch(
+      ToggleDirectMessageStar({
+        conversation_id: el.conversationId,
+        message_id: el.messageId,
+        starred: !isStarred,
+      }),
+    );
+
+    handleClose();
   };
 
   return (
@@ -453,11 +498,28 @@ const MessageOptions = () => {
         }}
       >
         <Stack spacing={1} px={1}>
-          {Message_options.map((el, idx) => (
-            <MenuItem key={`${el.title}-${idx}`} onClick={handleClose}>
-              {el.title}
-            </MenuItem>
-          ))}
+          {Message_options.map((option, idx) => {
+            const isStarOption = option.title === "Star message";
+
+            return (
+              <MenuItem
+                key={`${option.title}-${idx}`}
+                onClick={isStarOption ? handleStarToggle : handleClose}
+                disabled={isStarOption && !isDirectChat}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {isStarOption ? (
+                    <Star size={16} weight={isStarred ? "fill" : "regular"} />
+                  ) : null}
+                  <Typography variant="body2">
+                    {isStarOption && isStarred
+                      ? "Unstar message"
+                      : option.title}
+                  </Typography>
+                </Stack>
+              </MenuItem>
+            );
+          })}
         </Stack>
       </Menu>
     </>
