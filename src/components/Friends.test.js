@@ -1,7 +1,11 @@
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { FriendComponent, FriendRequestComponent } from "./Friends";
+import {
+  FriendComponent,
+  FriendRequestComponent,
+  SentFriendRequestComponent,
+} from "./Friends";
 import { socket } from "../socket";
 
 jest.mock("../socket", () => ({
@@ -118,6 +122,30 @@ describe("FriendComponent", () => {
 
     expect(socket.emit).toHaveBeenCalledWith("remove_friend", {
       friend_id: "friend-1",
+    });
+  });
+});
+
+describe("SentFriendRequestComponent", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("emits cancel_request when cancelling an outgoing friend request", () => {
+    renderWithTheme(
+      <SentFriendRequestComponent
+        id="request-1"
+        firstName="John"
+        lastName="Doe"
+        status="Offline"
+        avatar=""
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("cancel_request", {
+      request_id: "request-1",
     });
   });
 });

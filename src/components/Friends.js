@@ -235,4 +235,70 @@ const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
   );
 };
 
-export { UserComponent, FriendRequestComponent, FriendComponent };
+const SentFriendRequestComponent = ({
+  firstName,
+  lastName,
+  status,
+  avatar,
+  id,
+}) => {
+  const theme = useTheme();
+  const name = `${firstName} ${lastName}`;
+  const isOnline = status === "Online";
+
+  return (
+    <StyledChatBox
+      sx={{
+        width: "100%",
+        borderRadius: 1,
+        backgroundColor: theme.palette.background.paper,
+      }}
+      p={2}
+    >
+      <Stack
+        direction={"row"}
+        alignItems={"center"}
+        justifyContent={"space-between"}
+      >
+        <Stack direction={"row"} alignItems={"center"} spacing={2}>
+          {isOnline ? (
+            <StyledBadge
+              overlap="circular"
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              variant="dot"
+            >
+              <Avatar alt={name} src={avatar} />
+            </StyledBadge>
+          ) : (
+            <Avatar alt={name} src={avatar} />
+          )}
+
+          <Stack spacing={0.3}>
+            <Typography variant="subtitle2">{name}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Pending
+            </Typography>
+          </Stack>
+        </Stack>
+
+        <Button
+          size="small"
+          color="error"
+          variant="outlined"
+          onClick={() => {
+            socket.emit("cancel_request", { request_id: id });
+          }}
+        >
+          Cancel
+        </Button>
+      </Stack>
+    </StyledChatBox>
+  );
+};
+
+export {
+  UserComponent,
+  FriendRequestComponent,
+  FriendComponent,
+  SentFriendRequestComponent,
+};

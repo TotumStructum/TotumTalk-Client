@@ -97,6 +97,7 @@ const initialState = {
   chat_type: null,
   room_id: null,
   groups: [],
+  sentFriendRequests: [],
 };
 
 const slice = createSlice({
@@ -174,6 +175,9 @@ const slice = createSlice({
     },
     updateFriendRequests(state, action) {
       state.friendRequests = action.payload.request;
+    },
+    updateSentFriendRequests(state, action) {
+      state.sentFriendRequests = action.payload.requests;
     },
     selectConversation(state, action) {
       state.chat_type = "individual";
@@ -366,5 +370,27 @@ export const UpdateGroupConversationMessage = ({ group_id, message }) => {
         message,
       }),
     );
+  };
+};
+
+export const FetchSentFriendRequests = () => {
+  return async (dispatch, getState) => {
+    await axios
+      .get("/user/get-sent-friend-requests", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      })
+      .then((response) => {
+        dispatch(
+          slice.actions.updateSentFriendRequests({
+            requests: response.data.data,
+          }),
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 };

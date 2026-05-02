@@ -5,11 +5,13 @@ import {
   FetchFriendRequests,
   FetchFriends,
   FetchUsers,
+  FetchSentFriendRequests,
 } from "../../redux/slices/app";
 import {
   FriendComponent,
   FriendRequestComponent,
   UserComponent,
+  SentFriendRequestComponent,
 } from "../../components/Friends";
 import { socket } from "../../socket";
 
@@ -69,6 +71,28 @@ const FriendRequestList = () => {
   );
 };
 
+const SentFriendRequestList = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(FetchSentFriendRequests());
+  }, [dispatch]);
+
+  const { sentFriendRequests } = useSelector((state) => state.app);
+
+  return (
+    <>
+      {sentFriendRequests.map((el) => (
+        <SentFriendRequestComponent
+          key={el._id}
+          {...el.recipient}
+          id={el._id}
+        />
+      ))}
+    </>
+  );
+};
+
 const Friends = ({ open, handleClose }) => {
   const [value, setValue] = useState(0);
 
@@ -104,6 +128,7 @@ const Friends = ({ open, handleClose }) => {
           <Tab label={"Explore"} />
           <Tab label={"Friends"} />
           <Tab label={"Requests"} />
+          <Tab label={"Sent"} />
         </Tabs>
       </Stack>
       <DialogContent>
@@ -117,6 +142,8 @@ const Friends = ({ open, handleClose }) => {
                   return <FriendsList handleClose={handleClose} />;
                 case 2:
                   return <FriendRequestList />;
+                case 3:
+                  return <SentFriendRequestList />;
                 default:
                   return null;
               }

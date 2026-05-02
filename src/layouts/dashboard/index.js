@@ -13,6 +13,7 @@ import {
   SelectConversation,
   showSnackbar,
   UpdateGroupConversationMessage,
+  FetchSentFriendRequests,
 } from "../../redux/slices/app";
 import {
   AddDirectConversation,
@@ -45,6 +46,7 @@ const DashboardLayout = () => {
       dispatch(FetchUsers());
       dispatch(FetchFriends());
       dispatch(FetchFriendRequests());
+      dispatch(FetchSentFriendRequests());
     };
 
     const loadConversations = async () => {
@@ -138,6 +140,11 @@ const DashboardLayout = () => {
       );
     };
 
+    const handleRequestCancelled = (data) => {
+      dispatch(showSnackbar({ severity: "success", message: data.message }));
+      refreshRelationshipData();
+    };
+
     const handleConversationError = (data) => {
       dispatch(
         showSnackbar({
@@ -182,6 +189,7 @@ const DashboardLayout = () => {
     currentSocket.on("new_message", handleNewMessage);
     currentSocket.on("new_group_message", handleNewGroupMessage);
     currentSocket.on("friend_removed", handleFriendRemoved);
+    currentSocket.on("request_cancelled", handleRequestCancelled);
 
     loadConversations();
     refreshRelationshipData();
@@ -202,6 +210,7 @@ const DashboardLayout = () => {
       currentSocket.off("new_message", handleNewMessage);
       currentSocket.off("new_group_message", handleNewGroupMessage);
       currentSocket.off("friend_removed", handleFriendRemoved);
+      currentSocket.off("request_cancelled", handleRequestCancelled);
     };
   }, [isLoggedIn, token, dispatch]);
 

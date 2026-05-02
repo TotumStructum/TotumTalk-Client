@@ -9,6 +9,7 @@ import appReducer, {
   UpdateSidebarType,
   SelectGroupConversation,
   UpdateGroupConversationMessage,
+  FetchSentFriendRequests,
 } from "./app";
 
 jest.mock("../../utils/axios", () => ({
@@ -442,5 +443,55 @@ describe("app slice", () => {
 
     expect(store.getState().app.groups[0].unread).toBe(0);
     expect(store.getState().app.groups[0].msg).toBe("Message in active group");
+  });
+  it("fetches sent friend requests from API with auth token", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "request-1",
+            recipient: {
+              _id: "user-1",
+              firstName: "John",
+              lastName: "Doe",
+              avatar: "",
+              status: "Offline",
+            },
+          },
+        ],
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+    });
+
+    await store.dispatch(FetchSentFriendRequests());
+
+    expect(axios.get).toHaveBeenCalledWith("/user/get-sent-friend-requests", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer token-123",
+      },
+    });
+
+    expect(store.getState().app.sentFriendRequests).toEqual([
+      {
+        _id: "request-1",
+        recipient: {
+          _id: "user-1",
+          firstName: "John",
+          lastName: "Doe",
+          avatar: "",
+          status: "Offline",
+        },
+      },
+    ]);
   });
 });
