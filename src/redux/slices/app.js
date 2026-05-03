@@ -214,6 +214,18 @@ const slice = createSlice({
         state.room_id = null;
       }
     },
+
+    deleteGroupConversation(state, action) {
+      const { group_id } = action.payload;
+
+      state.groups = state.groups.filter((group) => group._id !== group_id);
+
+      if (state.chat_type === "group" && state.room_id === group_id) {
+        state.chat_type = null;
+        state.room_id = null;
+      }
+    },
+
     updateGroupConversation(state, action) {
       const group = mapGroupConversation(action.payload.group);
 
@@ -417,6 +429,33 @@ export const LeaveGroupConversation = ({ group_id }) => {
 
     dispatch(
       slice.actions.leaveGroupConversation({
+        group_id,
+      }),
+    );
+
+    if (isActiveGroup) {
+      dispatch(ClearCurrentGroupConversation());
+    }
+
+    return response.data;
+  };
+};
+
+export const DeleteGroupConversation = ({ group_id }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.delete(`/conversation/group/${group_id}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getState().auth.token}`,
+      },
+    });
+
+    const isActiveGroup =
+      getState().app.chat_type === "group" &&
+      getState().app.room_id === group_id;
+
+    dispatch(
+      slice.actions.deleteGroupConversation({
         group_id,
       }),
     );

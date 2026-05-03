@@ -17,10 +17,18 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { CaretRight, PencilSimple, SignOut, UserPlus, X } from "phosphor-react";
+import {
+  CaretRight,
+  PencilSimple,
+  SignOut,
+  Trash,
+  UserPlus,
+  X,
+} from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AddGroupParticipants,
+  DeleteGroupConversation,
   FetchFriends,
   LeaveGroupConversation,
   RemoveGroupParticipants,
@@ -63,6 +71,8 @@ const GroupInfo = () => {
   const dispatch = useDispatch();
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+
+  const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
 
   const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] =
     useState(false);
@@ -138,6 +148,39 @@ const GroupInfo = () => {
       );
     } finally {
       setLeaveDialogOpen(false);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!current_conversation?._id) return;
+
+    try {
+      await dispatch(
+        DeleteGroupConversation({
+          group_id: current_conversation._id,
+        }),
+      );
+
+      dispatch(ToggleSidebar());
+
+      dispatch(
+        showSnackbar({
+          severity: "success",
+          message: "Group deleted",
+        }),
+      );
+    } catch (error) {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to delete group",
+        }),
+      );
+    } finally {
+      setDeleteGroupDialogOpen(false);
     }
   };
 
@@ -475,16 +518,31 @@ const GroupInfo = () => {
           </Stack>
           <Divider />
 
-          <Button
-            color="error"
-            variant="outlined"
-            startIcon={<SignOut size={18} />}
-            onClick={() => {
-              setLeaveDialogOpen(true);
-            }}
-          >
-            Leave group
-          </Button>
+          <Stack spacing={1.5} sx={{ p: 2 }}>
+            <Button
+              color="error"
+              variant="outlined"
+              startIcon={<SignOut size={18} />}
+              onClick={() => {
+                setLeaveDialogOpen(true);
+              }}
+            >
+              Leave group
+            </Button>
+
+            {isCurrentUserCreator ? (
+              <Button
+                color="error"
+                variant="contained"
+                startIcon={<Trash size={18} />}
+                onClick={() => {
+                  setDeleteGroupDialogOpen(true);
+                }}
+              >
+                Delete group
+              </Button>
+            ) : null}
+          </Stack>
         </Stack>
       </Box>
       <Dialog
@@ -652,6 +710,32 @@ const GroupInfo = () => {
             onClick={handleUpdateGroupTitle}
           >
             Save changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={deleteGroupDialogOpen}
+        onClose={() => {
+          setDeleteGroupDialogOpen(false);
+        }}
+      >
+        <DialogTitle>Delete group?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will permanently delete the group and all messages for every
+            participant. This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDeleteGroupDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button color="error" variant="contained" onClick={handleDeleteGroup}>
+            Delete group
           </Button>
         </DialogActions>
       </Dialog>

@@ -5,6 +5,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import GroupInfo from "./GroupInfo";
 import {
   AddGroupParticipants,
+  DeleteGroupConversation,
   FetchFriends,
   LeaveGroupConversation,
   RemoveGroupParticipants,
@@ -21,6 +22,7 @@ jest.mock("react-redux", () => ({
 
 jest.mock("../redux/slices/app", () => ({
   AddGroupParticipants: jest.fn(),
+  DeleteGroupConversation: jest.fn(),
   FetchFriends: jest.fn(),
   LeaveGroupConversation: jest.fn(),
   RemoveGroupParticipants: jest.fn(),
@@ -50,6 +52,11 @@ describe("GroupInfo", () => {
     ToggleSidebar.mockReturnValue({
       type: "app/toggleSidebar",
     });
+
+    DeleteGroupConversation.mockImplementation(({ group_id }) => ({
+      type: "app/deleteGroupConversation",
+      payload: { group_id },
+    }));
 
     UpdateSidebarType.mockImplementation((type) => ({
       type: "app/updateSidebarType",
@@ -348,5 +355,30 @@ describe("GroupInfo", () => {
         name: /save changes/i,
       }),
     ).toBeDisabled();
+  });
+
+  it("confirms and deletes the current group", async () => {
+    renderGroupInfo();
+
+    fireEvent.click(screen.getByRole("button", { name: /delete group/i }));
+
+    expect(
+      screen.getByRole("heading", { name: "Delete group?" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^delete group$/i }));
+
+    await waitFor(() => {
+      expect(showSnackbar).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Group deleted",
+      });
+    });
+
+    expect(DeleteGroupConversation).toHaveBeenCalledWith({
+      group_id: "group-1",
+    });
+
+    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
   });
 });

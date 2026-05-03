@@ -14,6 +14,7 @@ import appReducer, {
   AddGroupParticipants,
   RemoveGroupParticipants,
   UpdateGroupConversation,
+  DeleteGroupConversation,
 } from "./app";
 import conversationReducer from "./conversation";
 
@@ -887,5 +888,79 @@ describe("app slice", () => {
     expect(
       store.getState().conversation.group_chat.current_conversation.title,
     ).toBe("New Group Title");
+  });
+
+  it("deletes a group conversation through API and removes it from state", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [],
+            messages: [],
+          },
+          {
+            _id: "group-2",
+            title: "Other Group",
+            participants: [],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    axios.delete.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          groupId: "group-1",
+        },
+        message: "Group deleted",
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+        conversation: conversationReducer,
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    const result = await store.dispatch(
+      DeleteGroupConversation({
+        group_id: "group-1",
+      }),
+    );
+
+    expect(axios.delete).toHaveBeenCalledWith("/conversation/group/group-1", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer token-123",
+      },
+    });
+
+    expect(result.message).toBe("Group deleted");
+
+    const state = store.getState();
+
+    expect(state.app.groups).toHaveLength(1);
+    expect(state.app.groups[0]._id).toBe("group-2");
+    expect(state.app.room_id).toBe(null);
+    expect(state.app.chat_type).toBe(null);
+    expect(state.conversation.group_chat.current_conversation).toBeNull();
+    expect(state.conversation.group_chat.current_messages).toHaveLength(0);
   });
 });
