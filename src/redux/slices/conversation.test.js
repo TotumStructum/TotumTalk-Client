@@ -9,6 +9,7 @@ import conversationReducer, {
   SetCurrentGroupMessages,
   AddGroupMessage,
   ToggleDirectMessageStar,
+  DeleteDirectConversation,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -19,6 +20,7 @@ jest.mock("../../utils/axios", () => ({
   __esModule: true,
   default: {
     patch: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
@@ -404,5 +406,72 @@ describe("conversation slice", () => {
     const state = store.getState().conversation.direct_chat;
 
     expect(state.current_messages[0].starredBy).toEqual([currentUserId]);
+  });
+  it("deletes a direct conversation through API and clears active conversation", async () => {
+    axios.delete.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        message: "Conversation deleted for you",
+      },
+    });
+
+    const store = createStore();
+
+    const conversation = createConversation({
+      id: "conversation-1",
+      otherUserId: "user-b",
+      otherFirstName: "John",
+      otherLastName: "Doe",
+      messageText: "Message to delete",
+      createdAt: "2026-04-22T10:00:00.000Z",
+    });
+
+    await store.dispatch(
+      FetchDirectConversations({
+        conversations: [conversation],
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentConversation({
+        conversation: {
+          id: "conversation-1",
+        },
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentMessages({
+        messages: [
+          {
+            _id: "message-1",
+            text: "Message to delete",
+          },
+        ],
+      }),
+    );
+
+    await store.dispatch(
+      DeleteDirectConversation({
+        conversation_id: "conversation-1",
+        scope: "me",
+      }),
+    );
+
+    expect(axios.delete).toHaveBeenCalledWith("/conversation/conversation-1", {
+      data: {
+        scope: "me",
+      },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer token-123",
+      },
+    });
+
+    const state = store.getState().conversation.direct_chat;
+
+    expect(state.conversations).toHaveLength(0);
+    expect(state.current_conversation).toBeNull();
+    expect(state.current_messages).toHaveLength(0);
   });
 });

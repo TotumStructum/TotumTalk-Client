@@ -130,6 +130,19 @@ const slice = createSlice({
       );
     },
 
+    deleteDirectConversation(state, action) {
+      const { conversation_id } = action.payload;
+
+      state.direct_chat.conversations = state.direct_chat.conversations.filter(
+        (conversation) => conversation.id !== conversation_id,
+      );
+
+      if (state.direct_chat.current_conversation?.id === conversation_id) {
+        state.direct_chat.current_conversation = null;
+        state.direct_chat.current_messages = [];
+      }
+    },
+
     addDirectConversation(state, action) {
       const user_id = getStoredUserId();
       const this_conversation = action.payload.conversation;
@@ -324,5 +337,25 @@ export const SetCurrentGroupMessages = ({ messages }) => {
 export const AddGroupMessage = ({ group_id, message }) => {
   return async (dispatch) => {
     dispatch(slice.actions.addGroupMessage({ group_id, message }));
+  };
+};
+
+export const DeleteDirectConversation = ({ conversation_id, scope }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.delete(`/conversation/${conversation_id}`, {
+      data: { scope },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getState().auth.token}`,
+      },
+    });
+
+    dispatch(
+      slice.actions.deleteDirectConversation({
+        conversation_id,
+      }),
+    );
+
+    return response.data;
   };
 };
