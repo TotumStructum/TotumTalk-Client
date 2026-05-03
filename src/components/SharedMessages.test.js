@@ -15,6 +15,12 @@ jest.mock("../redux/slices/app", () => ({
   UpdateSidebarType: jest.fn(),
 }));
 
+jest.mock("../redux/slices/conversation", () => ({
+  DeleteDirectMessageForMe: jest.fn(),
+  SelectDirectReplyMessage: jest.fn(),
+  ToggleDirectMessageStar: jest.fn(),
+}));
+
 const renderSharedMessages = () =>
   render(
     <ThemeProvider theme={createTheme()}>

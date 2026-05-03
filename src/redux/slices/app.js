@@ -1,6 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "../../utils/axios";
-import { MarkConversationRead } from "./conversation";
+import {
+  ClearCurrentGroupConversation,
+  MarkConversationRead,
+} from "./conversation";
 
 const getStoredUserId = () => window.localStorage.getItem("user_id");
 
@@ -200,6 +203,16 @@ const slice = createSlice({
       state.chat_type = null;
       state.room_id = null;
     },
+    leaveGroupConversation(state, action) {
+      const { group_id } = action.payload;
+
+      state.groups = state.groups.filter((group) => group._id !== group_id);
+
+      if (state.chat_type === "group" && state.room_id === group_id) {
+        state.chat_type = null;
+        state.room_id = null;
+      }
+    },
   },
 });
 
@@ -359,6 +372,36 @@ export const FetchGroupConversations = () => {
       .catch((error) => {
         console.error(error);
       });
+  };
+};
+
+export const LeaveGroupConversation = ({ group_id }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.delete(
+      `/conversation/group/${group_id}/leave`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    const isActiveGroup =
+      getState().app.chat_type === "group" &&
+      getState().app.room_id === group_id;
+
+    dispatch(
+      slice.actions.leaveGroupConversation({
+        group_id,
+      }),
+    );
+
+    if (isActiveGroup) {
+      dispatch(ClearCurrentGroupConversation());
+    }
+
+    return response.data;
   };
 };
 

@@ -10,6 +10,7 @@ import appReducer, {
   SelectGroupConversation,
   UpdateGroupConversationMessage,
   FetchSentFriendRequests,
+  LeaveGroupConversation,
 } from "./app";
 
 jest.mock("../../utils/axios", () => ({
@@ -17,6 +18,7 @@ jest.mock("../../utils/axios", () => ({
   default: {
     get: jest.fn(),
     post: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
@@ -493,5 +495,91 @@ describe("app slice", () => {
         },
       },
     ]);
+  });
+  it("leaves a group conversation through API and removes it from state", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [],
+            messages: [],
+          },
+          {
+            _id: "group-2",
+            title: "Other Group",
+            participants: [],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    axios.delete.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          groupId: "group-1",
+        },
+        message: "You left the group",
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+        conversation: (
+          state = {
+            group_chat: {
+              current_conversation: {
+                _id: "group-1",
+              },
+              current_messages: [
+                {
+                  _id: "message-1",
+                  text: "Hello",
+                },
+              ],
+            },
+          },
+        ) => state,
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    await store.dispatch(
+      LeaveGroupConversation({
+        group_id: "group-1",
+      }),
+    );
+
+    expect(axios.delete).toHaveBeenCalledWith(
+      "/conversation/group/group-1/leave",
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    const state = store.getState().app;
+
+    expect(state.groups).toHaveLength(1);
+    expect(state.groups[0]._id).toBe("group-2");
+    expect(state.room_id).toBe(null);
+    expect(state.chat_type).toBe(null);
   });
 });

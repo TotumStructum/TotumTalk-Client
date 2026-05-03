@@ -280,6 +280,11 @@ const slice = createSlice({
       state.group_chat.current_messages = [];
     },
 
+    clearCurrentGroupConversation(state) {
+      state.group_chat.current_conversation = null;
+      state.group_chat.current_messages = [];
+    },
+
     setCurrentGroupConversation(state, action) {
       state.group_chat.current_conversation = action.payload.conversation;
     },
@@ -369,6 +374,12 @@ export const AddDirectMessage = ({ conversation_id, message }) => {
 export const ClearCurrentConversation = () => {
   return async (dispatch) => {
     dispatch(slice.actions.clearCurrentConversation());
+  };
+};
+
+export const ClearCurrentGroupConversation = () => {
+  return async (dispatch) => {
+    dispatch(slice.actions.clearCurrentGroupConversation());
   };
 };
 

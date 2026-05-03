@@ -13,6 +13,7 @@ import conversationReducer, {
   DeleteDirectMessageForMe,
   SelectDirectReplyMessage,
   ClearDirectReplyMessage,
+  ClearCurrentGroupConversation,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -578,5 +579,60 @@ describe("conversation slice", () => {
     await store.dispatch(ClearDirectReplyMessage());
 
     expect(store.getState().conversation.direct_chat.current_reply).toBeNull();
+  });
+
+  it("clears current group conversation without touching direct chat", async () => {
+    const store = createStore();
+
+    await store.dispatch(
+      SetCurrentConversation({
+        conversation: {
+          id: "conversation-1",
+        },
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentMessages({
+        messages: [
+          {
+            _id: "direct-message-1",
+            text: "Direct message",
+          },
+        ],
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentGroupConversation({
+        conversation: {
+          _id: "group-1",
+          title: "Study Group",
+        },
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentGroupMessages({
+        messages: [
+          {
+            _id: "group-message-1",
+            text: "Group message",
+          },
+        ],
+      }),
+    );
+
+    await store.dispatch(ClearCurrentGroupConversation());
+
+    const state = store.getState().conversation;
+
+    expect(state.group_chat.current_conversation).toBeNull();
+    expect(state.group_chat.current_messages).toHaveLength(0);
+
+    expect(state.direct_chat.current_conversation).toEqual({
+      id: "conversation-1",
+    });
+    expect(state.direct_chat.current_messages).toHaveLength(1);
   });
 });

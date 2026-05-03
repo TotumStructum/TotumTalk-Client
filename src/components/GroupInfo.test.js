@@ -1,9 +1,14 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import GroupInfo from "./GroupInfo";
-import { ToggleSidebar, UpdateSidebarType } from "../redux/slices/app";
+import {
+  LeaveGroupConversation,
+  ToggleSidebar,
+  UpdateSidebarType,
+  showSnackbar,
+} from "../redux/slices/app";
 
 jest.mock("react-redux", () => ({
   useDispatch: jest.fn(),
@@ -11,8 +16,10 @@ jest.mock("react-redux", () => ({
 }));
 
 jest.mock("../redux/slices/app", () => ({
+  LeaveGroupConversation: jest.fn(),
   ToggleSidebar: jest.fn(),
   UpdateSidebarType: jest.fn(),
+  showSnackbar: jest.fn(),
 }));
 
 const renderGroupInfo = () =>
@@ -84,6 +91,16 @@ describe("GroupInfo", () => {
         },
       }),
     );
+
+    LeaveGroupConversation.mockImplementation(({ group_id }) => ({
+      type: "app/leaveGroupConversation",
+      payload: { group_id },
+    }));
+
+    showSnackbar.mockImplementation((payload) => ({
+      type: "app/openSnackbar",
+      payload,
+    }));
   });
 
   it("renders group title, members and shared message count", () => {
@@ -117,5 +134,28 @@ describe("GroupInfo", () => {
     expect(dispatch).toHaveBeenCalledWith({
       type: "app/toggleSidebar",
     });
+  });
+
+  it("confirms and leaves the current group", async () => {
+    renderGroupInfo();
+
+    fireEvent.click(screen.getByRole("button", { name: /leave group/i }));
+
+    expect(screen.getByText("Leave group?")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^leave group$/i }));
+
+    await waitFor(() => {
+      expect(showSnackbar).toHaveBeenCalledWith({
+        severity: "success",
+        message: "You left the group",
+      });
+    });
+
+    expect(LeaveGroupConversation).toHaveBeenCalledWith({
+      group_id: "group-1",
+    });
+
+    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
   });
 });
