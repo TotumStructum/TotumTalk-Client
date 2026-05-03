@@ -13,6 +13,7 @@ import appReducer, {
   LeaveGroupConversation,
   AddGroupParticipants,
   RemoveGroupParticipants,
+  UpdateGroupConversation,
 } from "./app";
 import conversationReducer from "./conversation";
 
@@ -796,5 +797,95 @@ describe("app slice", () => {
       store.getState().conversation.group_chat.current_conversation
         .participants,
     ).toHaveLength(1);
+  });
+
+  it("updates group conversation title through API and updates active group state", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Old Group Title",
+            participants: [
+              {
+                _id: "user-a",
+                firstName: "John",
+                lastName: "Doe",
+              },
+            ],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    axios.patch.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          _id: "group-1",
+          title: "New Group Title",
+          participants: [
+            {
+              _id: "user-a",
+              firstName: "John",
+              lastName: "Doe",
+            },
+          ],
+          messages: [],
+        },
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+        conversation: conversationReducer,
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    const result = await store.dispatch(
+      UpdateGroupConversation({
+        group_id: "group-1",
+        title: "New Group Title",
+      }),
+    );
+
+    expect(axios.patch).toHaveBeenCalledWith(
+      "/conversation/group/group-1",
+      {
+        title: "New Group Title",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    expect(result.title).toBe("New Group Title");
+
+    const group = store
+      .getState()
+      .app.groups.find((currentGroup) => currentGroup._id === "group-1");
+
+    expect(group.title).toBe("New Group Title");
+
+    expect(
+      store.getState().conversation.group_chat.current_conversation.title,
+    ).toBe("New Group Title");
   });
 });

@@ -507,6 +507,45 @@ export const RemoveGroupParticipants = ({ group_id, members }) => {
   };
 };
 
+export const UpdateGroupConversation = ({ group_id, title }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.patch(
+      `/conversation/group/${group_id}`,
+      {
+        title,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    const group = response.data.data;
+
+    const isActiveGroup =
+      getState().app.chat_type === "group" &&
+      getState().app.room_id === group_id;
+
+    dispatch(
+      slice.actions.updateGroupConversation({
+        group,
+      }),
+    );
+
+    if (isActiveGroup) {
+      dispatch(
+        SetCurrentGroupConversation({
+          conversation: group,
+        }),
+      );
+    }
+
+    return group;
+  };
+};
+
 export const UpdateGroupConversationMessage = ({ group_id, message }) => {
   return (dispatch) => {
     dispatch(

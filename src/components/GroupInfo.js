@@ -17,7 +17,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { CaretRight, SignOut, UserPlus, X } from "phosphor-react";
+import { CaretRight, PencilSimple, SignOut, UserPlus, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AddGroupParticipants,
@@ -25,6 +25,7 @@ import {
   LeaveGroupConversation,
   RemoveGroupParticipants,
   ToggleSidebar,
+  UpdateGroupConversation,
   UpdateSidebarType,
   showSnackbar,
 } from "../redux/slices/app";
@@ -71,6 +72,9 @@ const GroupInfo = () => {
     useState(false);
   const [participantToRemove, setParticipantToRemove] = useState(null);
 
+  const [editTitleDialogOpen, setEditTitleDialogOpen] = useState(false);
+  const [groupTitle, setGroupTitle] = useState("");
+
   const { current_conversation, current_messages } = useSelector(
     (state) => state.conversation.group_chat,
   );
@@ -99,6 +103,10 @@ const GroupInfo = () => {
       friendId && friendId !== currentUserId && !participantIds.has(friendId)
     );
   });
+
+  const trimmedGroupTitle = groupTitle.trim();
+  const isGroupTitleInvalid =
+    !trimmedGroupTitle || trimmedGroupTitle.length > 80;
 
   const handleLeaveGroup = async () => {
     if (!current_conversation?._id) return;
@@ -210,6 +218,43 @@ const GroupInfo = () => {
     }
   };
 
+  const handleOpenEditTitleDialog = () => {
+    setGroupTitle(current_conversation.title || "");
+    setEditTitleDialogOpen(true);
+  };
+
+  const handleUpdateGroupTitle = async () => {
+    if (!current_conversation?._id || isGroupTitleInvalid) return;
+
+    try {
+      await dispatch(
+        UpdateGroupConversation({
+          group_id: current_conversation._id,
+          title: trimmedGroupTitle,
+        }),
+      );
+
+      dispatch(
+        showSnackbar({
+          severity: "success",
+          message: "Group title updated",
+        }),
+      );
+
+      setEditTitleDialogOpen(false);
+    } catch (error) {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to update group title",
+        }),
+      );
+    }
+  };
+
   const sharedMedia = current_messages.filter(
     (message) => message.type === "Media" && message.file,
   );
@@ -281,13 +326,26 @@ const GroupInfo = () => {
               </AvatarGroup>
 
               <Stack spacing={0.5} alignItems="center">
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={600}
-                  textAlign="center"
-                >
-                  {current_conversation.title}
-                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={600}
+                    textAlign="center"
+                    sx={{ wordBreak: "break-word" }}
+                  >
+                    {current_conversation.title}
+                  </Typography>
+
+                  {isCurrentUserCreator ? (
+                    <IconButton
+                      size="small"
+                      aria-label="Edit group title"
+                      onClick={handleOpenEditTitleDialog}
+                    >
+                      <PencilSimple size={18} />
+                    </IconButton>
+                  ) : null}
+                </Stack>
                 <Typography variant="body2" color="text.secondary">
                   {participants.length} members
                 </Typography>
@@ -543,6 +601,57 @@ const GroupInfo = () => {
             onClick={handleRemoveParticipant}
           >
             Remove participant
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        fullWidth
+        maxWidth="xs"
+        open={editTitleDialogOpen}
+        onClose={() => {
+          setEditTitleDialogOpen(false);
+        }}
+      >
+        <DialogTitle>Edit group title</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <DialogContentText>
+              Update the group name visible to all participants.
+            </DialogContentText>
+
+            <TextField
+              autoFocus
+              label="Group title"
+              value={groupTitle}
+              onChange={(event) => {
+                setGroupTitle(event.target.value);
+              }}
+              error={groupTitle.length > 0 && isGroupTitleInvalid}
+              helperText={
+                groupTitle.length > 80
+                  ? "Group title must be shorter than 80 characters"
+                  : "Maximum 80 characters"
+              }
+              inputProps={{
+                maxLength: 80,
+              }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setEditTitleDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={isGroupTitleInvalid}
+            onClick={handleUpdateGroupTitle}
+          >
+            Save changes
           </Button>
         </DialogActions>
       </Dialog>

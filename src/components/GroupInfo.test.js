@@ -9,6 +9,7 @@ import {
   LeaveGroupConversation,
   RemoveGroupParticipants,
   ToggleSidebar,
+  UpdateGroupConversation,
   UpdateSidebarType,
   showSnackbar,
 } from "../redux/slices/app";
@@ -24,6 +25,7 @@ jest.mock("../redux/slices/app", () => ({
   LeaveGroupConversation: jest.fn(),
   RemoveGroupParticipants: jest.fn(),
   ToggleSidebar: jest.fn(),
+  UpdateGroupConversation: jest.fn(),
   UpdateSidebarType: jest.fn(),
   showSnackbar: jest.fn(),
 }));
@@ -52,6 +54,11 @@ describe("GroupInfo", () => {
     UpdateSidebarType.mockImplementation((type) => ({
       type: "app/updateSidebarType",
       payload: type,
+    }));
+
+    UpdateGroupConversation.mockImplementation(({ group_id, title }) => ({
+      type: "app/updateGroupConversation",
+      payload: { group_id, title },
     }));
 
     useSelector.mockImplementation((selector) =>
@@ -269,5 +276,77 @@ describe("GroupInfo", () => {
       group_id: "group-1",
       members: ["user-b"],
     });
+  });
+
+  it("opens edit title dialog for group creator", () => {
+    renderGroupInfo();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /edit group title/i,
+      }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Edit group title" }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByLabelText("Group title")).toHaveValue("Study Group");
+  });
+
+  it("updates the current group title", async () => {
+    renderGroupInfo();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /edit group title/i,
+      }),
+    );
+
+    fireEvent.change(screen.getByLabelText("Group title"), {
+      target: {
+        value: "Updated Study Group",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /save changes/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(showSnackbar).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Group title updated",
+      });
+    });
+
+    expect(UpdateGroupConversation).toHaveBeenCalledWith({
+      group_id: "group-1",
+      title: "Updated Study Group",
+    });
+  });
+
+  it("does not allow saving an empty group title", () => {
+    renderGroupInfo();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /edit group title/i,
+      }),
+    );
+
+    fireEvent.change(screen.getByLabelText("Group title"), {
+      target: {
+        value: "   ",
+      },
+    });
+
+    expect(
+      screen.getByRole("button", {
+        name: /save changes/i,
+      }),
+    ).toBeDisabled();
   });
 });
