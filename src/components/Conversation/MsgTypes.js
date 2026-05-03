@@ -521,6 +521,9 @@ const MessageOptions = ({ el = {} }) => {
             const isStarOption = option.title === "Star message";
             const isDeleteOption = option.title === "Delete Message";
 
+            const isImplementedOption = isStarOption || isDeleteOption;
+            const isDisabled = !isImplementedOption || !isDirectChat;
+
             return (
               <MenuItem
                 key={`${option.title}-${idx}`}
@@ -531,7 +534,7 @@ const MessageOptions = ({ el = {} }) => {
                       ? handleDeleteMessage
                       : handleClose
                 }
-                disabled={(isStarOption || isDeleteOption) && !isDirectChat}
+                disabled={isDisabled}
               >
                 <Stack direction="row" spacing={1} alignItems="center">
                   {isStarOption ? (
