@@ -19,7 +19,10 @@ import {
 import React from "react";
 import { useDispatch } from "react-redux";
 import { Message_options } from "../../data/index";
-import { ToggleDirectMessageStar } from "../../redux/slices/conversation";
+import {
+  DeleteDirectMessageForMe,
+  ToggleDirectMessageStar,
+} from "../../redux/slices/conversation";
 
 const getBubbleStyles = (theme, incoming) => ({
   backgroundColor: incoming
@@ -456,6 +459,22 @@ const MessageOptions = ({ el = {} }) => {
     setAnchorEl(null);
   };
 
+  const handleDeleteMessage = () => {
+    if (!isDirectChat || !el.conversationId || !el.messageId) {
+      handleClose();
+      return;
+    }
+
+    dispatch(
+      DeleteDirectMessageForMe({
+        conversation_id: el.conversationId,
+        message_id: el.messageId,
+      }),
+    );
+
+    handleClose();
+  };
+
   const handleStarToggle = () => {
     if (!isDirectChat || !el.conversationId || !el.messageId) {
       handleClose();
@@ -500,12 +519,19 @@ const MessageOptions = ({ el = {} }) => {
         <Stack spacing={1} px={1}>
           {Message_options.map((option, idx) => {
             const isStarOption = option.title === "Star message";
+            const isDeleteOption = option.title === "Delete Message";
 
             return (
               <MenuItem
                 key={`${option.title}-${idx}`}
-                onClick={isStarOption ? handleStarToggle : handleClose}
-                disabled={isStarOption && !isDirectChat}
+                onClick={
+                  isStarOption
+                    ? handleStarToggle
+                    : isDeleteOption
+                      ? handleDeleteMessage
+                      : handleClose
+                }
+                disabled={(isStarOption || isDeleteOption) && !isDirectChat}
               >
                 <Stack direction="row" spacing={1} alignItems="center">
                   {isStarOption ? (

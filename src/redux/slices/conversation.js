@@ -170,6 +170,46 @@ const slice = createSlice({
         );
     },
 
+    deleteDirectMessage(state, action) {
+      const { conversation_id, message_id } = action.payload;
+
+      if (state.direct_chat.current_conversation?.id === conversation_id) {
+        state.direct_chat.current_messages =
+          state.direct_chat.current_messages.filter(
+            (message) => message._id !== message_id,
+          );
+      }
+
+      const lastVisibleMessage =
+        state.direct_chat.current_conversation?.id === conversation_id
+          ? state.direct_chat.current_messages[
+              state.direct_chat.current_messages.length - 1
+            ]
+          : null;
+
+      state.direct_chat.conversations = state.direct_chat.conversations.map(
+        (conversation) => {
+          if (conversation.id !== conversation_id) return conversation;
+
+          if (!lastVisibleMessage) {
+            return {
+              ...conversation,
+              msg: "",
+              time: "",
+            };
+          }
+
+          return {
+            ...conversation,
+            msg: getMessagePreview(lastVisibleMessage),
+            time: formatMessageTime(lastVisibleMessage.created_at),
+            lastActivity:
+              lastVisibleMessage.created_at || conversation.lastActivity,
+          };
+        },
+      );
+    },
+
     addDirectMessage(state, action) {
       const user_id = getStoredUserId();
       const { conversation_id, message } = action.payload;
@@ -353,6 +393,29 @@ export const DeleteDirectConversation = ({ conversation_id, scope }) => {
     dispatch(
       slice.actions.deleteDirectConversation({
         conversation_id,
+      }),
+    );
+
+    return response.data;
+  };
+};
+
+export const DeleteDirectMessageForMe = ({ conversation_id, message_id }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.delete(
+      `/conversation/${conversation_id}/messages/${message_id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    dispatch(
+      slice.actions.deleteDirectMessage({
+        conversation_id,
+        message_id,
       }),
     );
 

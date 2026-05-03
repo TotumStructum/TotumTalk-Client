@@ -3,13 +3,17 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useDispatch } from "react-redux";
 import { TextMsg } from "./MsgTypes";
-import { ToggleDirectMessageStar } from "../../redux/slices/conversation";
+import {
+  DeleteDirectMessageForMe,
+  ToggleDirectMessageStar,
+} from "../../redux/slices/conversation";
 
 jest.mock("react-redux", () => ({
   useDispatch: jest.fn(),
 }));
 
 jest.mock("../../redux/slices/conversation", () => ({
+  DeleteDirectMessageForMe: jest.fn(),
   ToggleDirectMessageStar: jest.fn(),
 }));
 
@@ -30,6 +34,11 @@ describe("MessageOptions", () => {
 
     ToggleDirectMessageStar.mockImplementation((payload) => ({
       type: "conversation/toggleDirectMessageStar",
+      payload,
+    }));
+
+    DeleteDirectMessageForMe.mockImplementation((payload) => ({
+      type: "conversation/deleteDirectMessageForMe",
       payload,
     }));
   });
@@ -107,5 +116,33 @@ describe("MessageOptions", () => {
     });
 
     expect(starMenuItem).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("deletes a direct message from the message menu", async () => {
+    renderTextMsg({
+      incoming: true,
+      message: "Message to delete",
+      messageId: "message-1",
+      conversationId: "conversation-1",
+      chatType: "individual",
+      starredBy: [],
+    });
+
+    fireEvent.click(screen.getByRole("button"));
+
+    fireEvent.click(await screen.findByText("Delete Message"));
+
+    expect(DeleteDirectMessageForMe).toHaveBeenCalledWith({
+      conversation_id: "conversation-1",
+      message_id: "message-1",
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/deleteDirectMessageForMe",
+      payload: {
+        conversation_id: "conversation-1",
+        message_id: "message-1",
+      },
+    });
   });
 });

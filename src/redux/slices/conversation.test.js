@@ -10,6 +10,7 @@ import conversationReducer, {
   AddGroupMessage,
   ToggleDirectMessageStar,
   DeleteDirectConversation,
+  DeleteDirectMessageForMe,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -473,5 +474,83 @@ describe("conversation slice", () => {
     expect(state.conversations).toHaveLength(0);
     expect(state.current_conversation).toBeNull();
     expect(state.current_messages).toHaveLength(0);
+  });
+  it("deletes a direct message through API and updates current messages", async () => {
+    axios.delete.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        message: "Message deleted for you",
+        data: {
+          messageId: "message-2",
+        },
+      },
+    });
+
+    const store = createStore();
+
+    const conversation = createConversation({
+      id: "conversation-1",
+      otherUserId: "user-b",
+      otherFirstName: "John",
+      otherLastName: "Doe",
+      messageText: "First message",
+      createdAt: "2026-04-22T10:00:00.000Z",
+    });
+
+    await store.dispatch(
+      FetchDirectConversations({
+        conversations: [conversation],
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentConversation({
+        conversation: {
+          id: "conversation-1",
+        },
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentMessages({
+        messages: [
+          {
+            _id: "message-1",
+            type: "Text",
+            text: "First message",
+            created_at: "2026-04-22T10:00:00.000Z",
+          },
+          {
+            _id: "message-2",
+            type: "Text",
+            text: "Second message",
+            created_at: "2026-04-22T11:00:00.000Z",
+          },
+        ],
+      }),
+    );
+
+    await store.dispatch(
+      DeleteDirectMessageForMe({
+        conversation_id: "conversation-1",
+        message_id: "message-2",
+      }),
+    );
+
+    expect(axios.delete).toHaveBeenCalledWith(
+      "/conversation/conversation-1/messages/message-2",
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    const state = store.getState().conversation.direct_chat;
+
+    expect(state.current_messages).toHaveLength(1);
+    expect(state.current_messages[0]._id).toBe("message-1");
+    expect(state.conversations[0].msg).toBe("First message");
   });
 });
