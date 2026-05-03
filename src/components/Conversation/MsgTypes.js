@@ -1,6 +1,12 @@
 import { useTheme } from "@emotion/react";
 import {
+  Avatar,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
   Link as MuiLink,
@@ -17,13 +23,14 @@ import {
   Star,
 } from "phosphor-react";
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Message_options } from "../../data/index";
 import {
   DeleteDirectMessageForMe,
   SelectDirectReplyMessage,
   ToggleDirectMessageStar,
 } from "../../redux/slices/conversation";
+import { socket } from "../../socket";
 
 const getBubbleStyles = (theme, incoming) => ({
   backgroundColor: incoming
@@ -124,6 +131,27 @@ const ReplyPreview = ({ replyTo, incoming }) => {
         {getReplyPreviewText(replyTo)}
       </Typography>
     </Box>
+  );
+};
+
+const ForwardedLabel = ({ forwardedFrom, incoming }) => {
+  const theme = useTheme();
+
+  if (!forwardedFrom) return null;
+
+  return (
+    <Typography
+      variant="caption"
+      sx={{
+        color: incoming
+          ? theme.palette.text.secondary
+          : "rgba(255,255,255,0.75)",
+        fontStyle: "italic",
+        lineHeight: 1.2,
+      }}
+    >
+      Forwarded
+    </Typography>
   );
 };
 
@@ -228,6 +256,11 @@ const DocMsg = ({ el, menu }) => {
         <Stack spacing={1}>
           <SenderName name={el.senderName} incoming={el.incoming} />
           <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
+          <ForwardedLabel
+            forwardedFrom={el.forwardedFrom}
+            incoming={el.incoming}
+          />
+
           <Box
             component={el.file ? "a" : "div"}
             href={el.file || undefined}
@@ -312,6 +345,10 @@ const LinkMsg = ({ el, menu }) => {
         <Stack spacing={0.5}>
           <SenderName name={el.senderName} incoming={el.incoming} />
           <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
+          <ForwardedLabel
+            forwardedFrom={el.forwardedFrom}
+            incoming={el.incoming}
+          />
 
           <Typography
             component="div"
@@ -400,6 +437,11 @@ const MediaMsg = ({ el, menu, onLoad }) => {
         <Stack spacing={hasCaption || el.senderName ? 1 : 0}>
           <SenderName name={el.senderName} incoming={el.incoming} />
           <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
+          <ForwardedLabel
+            forwardedFrom={el.forwardedFrom}
+            incoming={el.incoming}
+          />
+
           {el.file ? (
             <Box
               component="a"
@@ -473,6 +515,10 @@ const TextMsg = ({ el, menu }) => {
         <Stack spacing={0.5}>
           <SenderName name={el.senderName} incoming={el.incoming} />
           <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
+          <ForwardedLabel
+            forwardedFrom={el.forwardedFrom}
+            incoming={el.incoming}
+          />
 
           <Typography
             variant="body2"
@@ -519,7 +565,18 @@ const MessageOptions = ({ el = {} }) => {
   const isDirectChat = el.chatType === "individual";
   const isStarred = isMessageStarredByCurrentUser(el.starredBy || []);
 
+  const directConversations = useSelector(
+    (state) => state.conversation.direct_chat.conversations,
+  );
+
+  const forwardTargets = directConversations.filter(
+    (conversation) => conversation.id !== el.conversationId,
+  );
+
   const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const [forwardDialogOpen, setForwardDialogOpen] = React.useState(false);
+
   const open = Boolean(anchorEl);
 
   const handleClick = (e) => {
@@ -550,6 +607,26 @@ const MessageOptions = ({ el = {} }) => {
     );
 
     handleClose();
+  };
+
+  const handleForwardOpen = () => {
+    if (!isDirectChat || !el.conversationId || !el.messageId) {
+      handleClose();
+      return;
+    }
+
+    setForwardDialogOpen(true);
+    handleClose();
+  };
+
+  const handleForwardMessage = (targetConversationId) => {
+    socket?.emit("forward_message", {
+      source_conversation_id: el.conversationId,
+      message_id: el.messageId,
+      target_conversation_id: targetConversationId,
+    });
+
+    setForwardDialogOpen(false);
   };
 
   const handleDeleteMessage = () => {
@@ -611,12 +688,16 @@ const MessageOptions = ({ el = {} }) => {
       >
         <Stack spacing={1} px={1}>
           {Message_options.map((option, idx) => {
+            const isReplyOption = option.title === "Reply";
+            const isForwardOption = option.title === "Forward message";
             const isStarOption = option.title === "Star message";
             const isDeleteOption = option.title === "Delete Message";
-            const isReplyOption = option.title === "Reply";
 
             const isImplementedOption =
-              isReplyOption || isStarOption || isDeleteOption;
+              isReplyOption ||
+              isForwardOption ||
+              isStarOption ||
+              isDeleteOption;
             const isDisabled = !isImplementedOption || !isDirectChat;
 
             return (
@@ -625,11 +706,13 @@ const MessageOptions = ({ el = {} }) => {
                 onClick={
                   isReplyOption
                     ? handleReply
-                    : isStarOption
-                      ? handleStarToggle
-                      : isDeleteOption
-                        ? handleDeleteMessage
-                        : handleClose
+                    : isForwardOption
+                      ? handleForwardOpen
+                      : isStarOption
+                        ? handleStarToggle
+                        : isDeleteOption
+                          ? handleDeleteMessage
+                          : handleClose
                 }
                 disabled={isDisabled}
               >
@@ -648,6 +731,70 @@ const MessageOptions = ({ el = {} }) => {
           })}
         </Stack>
       </Menu>
+      <Dialog
+        open={forwardDialogOpen}
+        onClose={() => {
+          setForwardDialogOpen(false);
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Forward message</DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ pt: 1 }}>
+            {forwardTargets.length > 0 ? (
+              forwardTargets.map((conversation) => (
+                <Button
+                  key={conversation.id}
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => {
+                    handleForwardMessage(conversation.id);
+                  }}
+                  sx={{ justifyContent: "flex-start" }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Avatar
+                      src={conversation.img}
+                      alt={conversation.name}
+                      sx={{ width: 32, height: 32 }}
+                    />
+                    <Stack alignItems="flex-start" sx={{ minWidth: 0 }}>
+                      <Typography variant="subtitle2" noWrap>
+                        {conversation.name}
+                      </Typography>
+                      {conversation.msg ? (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          noWrap
+                        >
+                          {conversation.msg}
+                        </Typography>
+                      ) : null}
+                    </Stack>
+                  </Stack>
+                </Button>
+              ))
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No other conversations to forward to
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setForwardDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

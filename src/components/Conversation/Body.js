@@ -91,6 +91,7 @@ const Body = ({ menu }) => {
             chatType: chat_type,
             starredBy: message.starredBy || [],
             messageType: message.type,
+            forwardedFrom: message.forwardedFrom || null,
             replyTo: message.replyTo || null,
           };
 

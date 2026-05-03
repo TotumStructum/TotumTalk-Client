@@ -1,22 +1,30 @@
 import React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { TextMsg } from "./MsgTypes";
 import {
   DeleteDirectMessageForMe,
   SelectDirectReplyMessage,
   ToggleDirectMessageStar,
 } from "../../redux/slices/conversation";
+import { socket } from "../../socket";
 
 jest.mock("react-redux", () => ({
   useDispatch: jest.fn(),
+  useSelector: jest.fn(),
 }));
 
 jest.mock("../../redux/slices/conversation", () => ({
   DeleteDirectMessageForMe: jest.fn(),
   SelectDirectReplyMessage: jest.fn(),
   ToggleDirectMessageStar: jest.fn(),
+}));
+
+jest.mock("../../socket", () => ({
+  socket: {
+    emit: jest.fn(),
+  },
 }));
 
 const renderTextMsg = (el) =>
@@ -33,6 +41,28 @@ describe("MessageOptions", () => {
     jest.clearAllMocks();
     window.localStorage.setItem("user_id", "user-a");
     useDispatch.mockReturnValue(dispatch);
+    useSelector.mockImplementation((selector) =>
+      selector({
+        conversation: {
+          direct_chat: {
+            conversations: [
+              {
+                id: "conversation-1",
+                name: "Current Chat",
+                img: "",
+                msg: "Current message",
+              },
+              {
+                id: "conversation-2",
+                name: "Jane Smith",
+                img: "",
+                msg: "Target chat",
+              },
+            ],
+          },
+        },
+      }),
+    );
 
     ToggleDirectMessageStar.mockImplementation((payload) => ({
       type: "conversation/toggleDirectMessageStar",
@@ -193,5 +223,55 @@ describe("MessageOptions", () => {
         },
       },
     });
+  });
+
+  it("forwards a direct message to another direct conversation", async () => {
+    renderTextMsg({
+      incoming: true,
+      message: "Message to forward",
+      messageId: "message-1",
+      conversationId: "conversation-1",
+      chatType: "individual",
+      messageType: "Text",
+      starredBy: [],
+    });
+
+    fireEvent.click(screen.getByRole("button"));
+
+    fireEvent.click(await screen.findByText("Forward message"));
+
+    expect(
+      screen.getByRole("heading", { name: "Forward message" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+    expect(screen.queryByText("Current Chat")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /jane smith/i }));
+
+    expect(socket.emit).toHaveBeenCalledWith("forward_message", {
+      source_conversation_id: "conversation-1",
+      message_id: "message-1",
+      target_conversation_id: "conversation-2",
+    });
+  });
+
+  it("renders forwarded label for forwarded direct messages", () => {
+    renderTextMsg({
+      incoming: true,
+      message: "Forwarded text",
+      messageId: "message-1",
+      conversationId: "conversation-1",
+      chatType: "individual",
+      messageType: "Text",
+      forwardedFrom: {
+        messageId: "original-message",
+        type: "Text",
+        text: "Original text",
+      },
+      starredBy: [],
+    });
+
+    expect(screen.getByText("Forwarded")).toBeInTheDocument();
+    expect(screen.getByText("Forwarded text")).toBeInTheDocument();
   });
 });
