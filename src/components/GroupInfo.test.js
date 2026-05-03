@@ -7,6 +7,7 @@ import {
   AddGroupParticipants,
   FetchFriends,
   LeaveGroupConversation,
+  RemoveGroupParticipants,
   ToggleSidebar,
   UpdateSidebarType,
   showSnackbar,
@@ -21,6 +22,7 @@ jest.mock("../redux/slices/app", () => ({
   AddGroupParticipants: jest.fn(),
   FetchFriends: jest.fn(),
   LeaveGroupConversation: jest.fn(),
+  RemoveGroupParticipants: jest.fn(),
   ToggleSidebar: jest.fn(),
   UpdateSidebarType: jest.fn(),
   showSnackbar: jest.fn(),
@@ -132,6 +134,11 @@ describe("GroupInfo", () => {
     }));
   });
 
+  RemoveGroupParticipants.mockImplementation(({ group_id, members }) => ({
+    type: "app/removeGroupParticipants",
+    payload: { group_id, members },
+  }));
+
   it("renders group title, members and shared message count", () => {
     renderGroupInfo();
 
@@ -229,6 +236,38 @@ describe("GroupInfo", () => {
     expect(AddGroupParticipants).toHaveBeenCalledWith({
       group_id: "group-1",
       members: ["user-c"],
+    });
+  });
+
+  it("confirms and removes a group participant", async () => {
+    renderGroupInfo();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /remove jane smith/i,
+      }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Remove participant?" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /^remove participant$/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(showSnackbar).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Participant removed",
+      });
+    });
+
+    expect(RemoveGroupParticipants).toHaveBeenCalledWith({
+      group_id: "group-1",
+      members: ["user-b"],
     });
   });
 });

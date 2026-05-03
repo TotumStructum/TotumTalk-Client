@@ -23,6 +23,7 @@ import {
   AddGroupParticipants,
   FetchFriends,
   LeaveGroupConversation,
+  RemoveGroupParticipants,
   ToggleSidebar,
   UpdateSidebarType,
   showSnackbar,
@@ -65,6 +66,10 @@ const GroupInfo = () => {
   const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] =
     useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
+
+  const [removeParticipantDialogOpen, setRemoveParticipantDialogOpen] =
+    useState(false);
+  const [participantToRemove, setParticipantToRemove] = useState(null);
 
   const { current_conversation, current_messages } = useSelector(
     (state) => state.conversation.group_chat,
@@ -162,6 +167,44 @@ const GroupInfo = () => {
             error?.response?.data?.message ||
             error?.message ||
             "Failed to add participants",
+        }),
+      );
+    }
+  };
+
+  const handleOpenRemoveParticipantDialog = (participant) => {
+    setParticipantToRemove(participant);
+    setRemoveParticipantDialogOpen(true);
+  };
+
+  const handleRemoveParticipant = async () => {
+    if (!current_conversation?._id || !participantToRemove?._id) return;
+
+    try {
+      await dispatch(
+        RemoveGroupParticipants({
+          group_id: current_conversation._id,
+          members: [participantToRemove._id],
+        }),
+      );
+
+      dispatch(
+        showSnackbar({
+          severity: "success",
+          message: "Participant removed",
+        }),
+      );
+
+      setParticipantToRemove(null);
+      setRemoveParticipantDialogOpen(false);
+    } catch (error) {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to remove participant",
         }),
       );
     }
@@ -313,34 +356,63 @@ const GroupInfo = () => {
                 ) : null}
               </Stack>
 
-              {participants.map((participant) => (
-                <Stack
-                  key={participant._id}
-                  direction="row"
-                  spacing={1.5}
-                  alignItems="center"
-                >
-                  <Avatar
-                    src={participant.avatar}
-                    alt={getParticipantName(participant)}
-                    sx={{ width: 36, height: 36 }}
-                  />
-                  <Stack sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" noWrap>
-                      {getParticipantName(participant)}
-                    </Typography>
-                    {participant.email ? (
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
+              {participants.map((participant) => {
+                const participantId = getUserId(participant);
+                const canRemoveParticipant =
+                  isCurrentUserCreator &&
+                  participantId &&
+                  participantId !== creatorId;
+
+                return (
+                  <Stack
+                    key={participant._id}
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1.5}
+                      alignItems="center"
+                      sx={{ minWidth: 0 }}
+                    >
+                      <Avatar
+                        src={participant.avatar}
+                        alt={getParticipantName(participant)}
+                        sx={{ width: 36, height: 36 }}
+                      />
+                      <Stack sx={{ minWidth: 0 }}>
+                        <Typography variant="body2" noWrap>
+                          {getParticipantName(participant)}
+                        </Typography>
+                        {participant.email ? (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            noWrap
+                          >
+                            {participant.email}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </Stack>
+
+                    {canRemoveParticipant ? (
+                      <Button
+                        size="small"
+                        color="error"
+                        aria-label={`Remove ${getParticipantName(participant)}`}
+                        onClick={() => {
+                          handleOpenRemoveParticipantDialog(participant);
+                        }}
                       >
-                        {participant.email}
-                      </Typography>
+                        Remove
+                      </Button>
                     ) : null}
                   </Stack>
-                </Stack>
-              ))}
+                );
+              })}
             </Stack>
           </Stack>
           <Divider />
@@ -436,6 +508,41 @@ const GroupInfo = () => {
             onClick={handleAddParticipants}
           >
             Add participants
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={removeParticipantDialogOpen}
+        onClose={() => {
+          setRemoveParticipantDialogOpen(false);
+          setParticipantToRemove(null);
+        }}
+      >
+        <DialogTitle>Remove participant?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {participantToRemove
+              ? `${getParticipantName(
+                  participantToRemove,
+                )} will no longer have access to this group. Existing messages will stay in the chat.`
+              : "This participant will no longer have access to this group."}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setRemoveParticipantDialogOpen(false);
+              setParticipantToRemove(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleRemoveParticipant}
+          >
+            Remove participant
           </Button>
         </DialogActions>
       </Dialog>

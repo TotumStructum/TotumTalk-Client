@@ -12,6 +12,7 @@ import appReducer, {
   FetchSentFriendRequests,
   LeaveGroupConversation,
   AddGroupParticipants,
+  RemoveGroupParticipants,
 } from "./app";
 import conversationReducer from "./conversation";
 
@@ -694,5 +695,106 @@ describe("app slice", () => {
       firstName: "Jane",
       lastName: "Smith",
     });
+  });
+
+  it("removes participants from a group conversation through API and updates state", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [
+              {
+                _id: "user-a",
+                firstName: "John",
+                lastName: "Doe",
+              },
+              {
+                _id: "user-b",
+                firstName: "Jane",
+                lastName: "Smith",
+              },
+            ],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    axios.delete.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          _id: "group-1",
+          title: "Study Group",
+          participants: [
+            {
+              _id: "user-a",
+              firstName: "John",
+              lastName: "Doe",
+            },
+          ],
+          messages: [],
+        },
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+        conversation: conversationReducer,
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    const result = await store.dispatch(
+      RemoveGroupParticipants({
+        group_id: "group-1",
+        members: ["user-b"],
+      }),
+    );
+
+    expect(axios.delete).toHaveBeenCalledWith(
+      "/conversation/group/group-1/participants",
+      {
+        data: {
+          members: ["user-b"],
+        },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    expect(result.participants).toHaveLength(1);
+
+    const group = store
+      .getState()
+      .app.groups.find((currentGroup) => currentGroup._id === "group-1");
+
+    expect(group.participants).toHaveLength(1);
+    expect(group.participants[0]).toMatchObject({
+      _id: "user-a",
+      firstName: "John",
+      lastName: "Doe",
+    });
+
+    expect(
+      store.getState().conversation.group_chat.current_conversation
+        .participants,
+    ).toHaveLength(1);
   });
 });
