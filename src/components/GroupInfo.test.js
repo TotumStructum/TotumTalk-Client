@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import GroupInfo from "./GroupInfo";
 import {
+  AddGroupParticipants,
+  FetchFriends,
   LeaveGroupConversation,
   ToggleSidebar,
   UpdateSidebarType,
@@ -16,6 +18,8 @@ jest.mock("react-redux", () => ({
 }));
 
 jest.mock("../redux/slices/app", () => ({
+  AddGroupParticipants: jest.fn(),
+  FetchFriends: jest.fn(),
   LeaveGroupConversation: jest.fn(),
   ToggleSidebar: jest.fn(),
   UpdateSidebarType: jest.fn(),
@@ -35,6 +39,8 @@ describe("GroupInfo", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    window.localStorage.setItem("user_id", "user-a");
+
     useDispatch.mockReturnValue(dispatch);
 
     ToggleSidebar.mockReturnValue({
@@ -48,11 +54,25 @@ describe("GroupInfo", () => {
 
     useSelector.mockImplementation((selector) =>
       selector({
+        app: {
+          friends: [
+            {
+              _id: "user-c",
+              firstName: "Alice",
+              lastName: "Cooper",
+              email: "alice@example.com",
+              avatar: "",
+            },
+          ],
+        },
         conversation: {
           group_chat: {
             current_conversation: {
               _id: "group-1",
               title: "Study Group",
+              creator: {
+                _id: "user-a",
+              },
               participants: [
                 {
                   _id: "user-a",
@@ -100,6 +120,15 @@ describe("GroupInfo", () => {
     showSnackbar.mockImplementation((payload) => ({
       type: "app/openSnackbar",
       payload,
+    }));
+
+    FetchFriends.mockReturnValue({
+      type: "app/fetchFriends",
+    });
+
+    AddGroupParticipants.mockImplementation(({ group_id, members }) => ({
+      type: "app/addGroupParticipants",
+      payload: { group_id, members },
     }));
   });
 
@@ -157,5 +186,49 @@ describe("GroupInfo", () => {
     });
 
     expect(ToggleSidebar).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens add participants dialog for group creator", () => {
+    renderGroupInfo();
+
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+
+    expect(FetchFriends).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole("heading", { name: "Add participants" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Friends")).toBeInTheDocument();
+  });
+
+  it("adds selected participants to the current group", async () => {
+    renderGroupInfo();
+
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+
+    fireEvent.change(screen.getByLabelText("Friends"), {
+      target: {
+        value: "Alice",
+      },
+    });
+
+    fireEvent.click(await screen.findByText("Alice Cooper"));
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /^add participants$/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(showSnackbar).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Participants added",
+      });
+    });
+
+    expect(AddGroupParticipants).toHaveBeenCalledWith({
+      group_id: "group-1",
+      members: ["user-c"],
+    });
   });
 });

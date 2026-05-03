@@ -13,16 +13,30 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { CaretRight, SignOut, X } from "phosphor-react";
+import { CaretRight, SignOut, UserPlus, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  AddGroupParticipants,
+  FetchFriends,
   LeaveGroupConversation,
   ToggleSidebar,
   UpdateSidebarType,
   showSnackbar,
 } from "../redux/slices/app";
+
+const getUserId = (user) => {
+  if (!user) return "";
+
+  if (typeof user === "object") {
+    return user._id?.toString() || "";
+  }
+
+  return user.toString();
+};
 
 const getParticipantName = (participant) => {
   return (
@@ -48,13 +62,38 @@ const GroupInfo = () => {
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
+  const [addParticipantsDialogOpen, setAddParticipantsDialogOpen] =
+    useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+
   const { current_conversation, current_messages } = useSelector(
     (state) => state.conversation.group_chat,
   );
 
+  const { friends } = useSelector((state) => state.app);
+
   if (!current_conversation) return null;
 
   const participants = current_conversation.participants || [];
+
+  const currentUserId = window.localStorage.getItem("user_id");
+  const creatorId = getUserId(current_conversation.creator);
+  const isCurrentUserCreator = creatorId === currentUserId;
+
+  const friendOptions = Array.isArray(friends)
+    ? friends
+    : friends?.friends || [];
+  const participantIds = new Set(
+    participants.map((participant) => getUserId(participant)),
+  );
+
+  const availableFriendOptions = friendOptions.filter((friend) => {
+    const friendId = getUserId(friend);
+
+    return (
+      friendId && friendId !== currentUserId && !participantIds.has(friendId)
+    );
+  });
 
   const handleLeaveGroup = async () => {
     if (!current_conversation?._id) return;
@@ -86,6 +125,45 @@ const GroupInfo = () => {
       );
     } finally {
       setLeaveDialogOpen(false);
+    }
+  };
+
+  const handleOpenAddParticipantsDialog = () => {
+    dispatch(FetchFriends());
+    setSelectedMembers([]);
+    setAddParticipantsDialogOpen(true);
+  };
+
+  const handleAddParticipants = async () => {
+    if (!current_conversation?._id || selectedMembers.length === 0) return;
+
+    try {
+      await dispatch(
+        AddGroupParticipants({
+          group_id: current_conversation._id,
+          members: selectedMembers.map((member) => member._id),
+        }),
+      );
+
+      dispatch(
+        showSnackbar({
+          severity: "success",
+          message: "Participants added",
+        }),
+      );
+
+      setSelectedMembers([]);
+      setAddParticipantsDialogOpen(false);
+    } catch (error) {
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to add participants",
+        }),
+      );
     }
   };
 
@@ -217,7 +295,23 @@ const GroupInfo = () => {
             <Divider />
 
             <Stack spacing={1.5}>
-              <Typography variant="subtitle2">Participants</Typography>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography variant="subtitle2">Participants</Typography>
+
+                {isCurrentUserCreator ? (
+                  <Button
+                    size="small"
+                    startIcon={<UserPlus size={16} />}
+                    onClick={handleOpenAddParticipantsDialog}
+                  >
+                    Add
+                  </Button>
+                ) : null}
+              </Stack>
 
               {participants.map((participant) => (
                 <Stack
@@ -286,6 +380,62 @@ const GroupInfo = () => {
           </Button>
           <Button color="error" variant="contained" onClick={handleLeaveGroup}>
             Leave group
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        fullWidth
+        maxWidth="xs"
+        open={addParticipantsDialogOpen}
+        onClose={() => {
+          setAddParticipantsDialogOpen(false);
+        }}
+      >
+        <DialogTitle>Add participants</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <DialogContentText>
+              Select friends to add to this group.
+            </DialogContentText>
+
+            <Autocomplete
+              multiple
+              options={availableFriendOptions}
+              value={selectedMembers}
+              onChange={(event, newValue) => {
+                setSelectedMembers(newValue);
+              }}
+              getOptionLabel={(option) => getParticipantName(option)}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Friends"
+                  helperText={
+                    availableFriendOptions.length === 0
+                      ? "No friends available to add"
+                      : undefined
+                  }
+                />
+              )}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setAddParticipantsDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={selectedMembers.length === 0}
+            onClick={handleAddParticipants}
+          >
+            Add participants
           </Button>
         </DialogActions>
       </Dialog>

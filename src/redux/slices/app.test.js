@@ -11,7 +11,9 @@ import appReducer, {
   UpdateGroupConversationMessage,
   FetchSentFriendRequests,
   LeaveGroupConversation,
+  AddGroupParticipants,
 } from "./app";
+import conversationReducer from "./conversation";
 
 jest.mock("../../utils/axios", () => ({
   __esModule: true,
@@ -19,6 +21,7 @@ jest.mock("../../utils/axios", () => ({
     get: jest.fn(),
     post: jest.fn(),
     delete: jest.fn(),
+    patch: jest.fn(),
   },
 }));
 
@@ -581,5 +584,115 @@ describe("app slice", () => {
     expect(state.groups[0]._id).toBe("group-2");
     expect(state.room_id).toBe(null);
     expect(state.chat_type).toBe(null);
+  });
+
+  it("adds participants to a group conversation through API and updates state", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: [
+          {
+            _id: "group-1",
+            title: "Study Group",
+            participants: [
+              {
+                _id: "user-a",
+                firstName: "John",
+                lastName: "Doe",
+              },
+            ],
+            messages: [],
+          },
+        ],
+      },
+    });
+
+    axios.patch.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          _id: "group-1",
+          title: "Study Group",
+          participants: [
+            {
+              _id: "user-a",
+              firstName: "John",
+              lastName: "Doe",
+            },
+            {
+              _id: "user-b",
+              firstName: "Jane",
+              lastName: "Smith",
+            },
+          ],
+          messages: [],
+        },
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+        conversation: conversationReducer,
+      },
+    });
+
+    await store.dispatch(FetchGroupConversations());
+
+    await store.dispatch(
+      SelectGroupConversation({
+        room_id: "group-1",
+      }),
+    );
+
+    const result = await store.dispatch(
+      AddGroupParticipants({
+        group_id: "group-1",
+        members: ["user-b"],
+      }),
+    );
+
+    expect(axios.patch).toHaveBeenCalledWith(
+      "/conversation/group/group-1/participants",
+      {
+        members: ["user-b"],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    expect(result.participants).toHaveLength(2);
+
+    const group = store
+      .getState()
+      .app.groups.find((currentGroup) => currentGroup._id === "group-1");
+
+    expect(group.participants).toHaveLength(2);
+    expect(group.participants[1]).toMatchObject({
+      _id: "user-b",
+      firstName: "Jane",
+      lastName: "Smith",
+    });
+
+    expect(
+      store.getState().conversation.group_chat.current_conversation
+        .participants,
+    ).toHaveLength(2);
+
+    expect(
+      store.getState().conversation.group_chat.current_conversation
+        .participants[1],
+    ).toMatchObject({
+      _id: "user-b",
+      firstName: "Jane",
+      lastName: "Smith",
+    });
   });
 });

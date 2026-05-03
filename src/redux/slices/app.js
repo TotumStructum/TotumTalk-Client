@@ -3,6 +3,7 @@ import axios from "../../utils/axios";
 import {
   ClearCurrentGroupConversation,
   MarkConversationRead,
+  SetCurrentGroupConversation,
 } from "./conversation";
 
 const getStoredUserId = () => window.localStorage.getItem("user_id");
@@ -213,6 +214,29 @@ const slice = createSlice({
         state.room_id = null;
       }
     },
+    updateGroupConversation(state, action) {
+      const group = mapGroupConversation(action.payload.group);
+
+      const existingGroup = state.groups.find(
+        (currentGroup) => currentGroup._id === group._id,
+      );
+
+      if (!existingGroup) {
+        state.groups = sortGroupConversations([group, ...state.groups]);
+        return;
+      }
+
+      state.groups = sortGroupConversations(
+        state.groups.map((currentGroup) =>
+          currentGroup._id === group._id
+            ? {
+                ...group,
+                unread: currentGroup.unread || group.unread || 0,
+              }
+            : currentGroup,
+        ),
+      );
+    },
   },
 });
 
@@ -402,6 +426,45 @@ export const LeaveGroupConversation = ({ group_id }) => {
     }
 
     return response.data;
+  };
+};
+
+export const AddGroupParticipants = ({ group_id, members }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.patch(
+      `/conversation/group/${group_id}/participants`,
+      {
+        members,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    const group = response.data.data;
+
+    const isActiveGroup =
+      getState().app.chat_type === "group" &&
+      getState().app.room_id === group_id;
+
+    dispatch(
+      slice.actions.updateGroupConversation({
+        group,
+      }),
+    );
+
+    if (isActiveGroup) {
+      dispatch(
+        SetCurrentGroupConversation({
+          conversation: group,
+        }),
+      );
+    }
+
+    return group;
   };
 };
 
