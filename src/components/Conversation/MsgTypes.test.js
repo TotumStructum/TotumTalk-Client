@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { TextMsg } from "./MsgTypes";
 import {
   DeleteDirectMessageForMe,
+  SelectDirectReplyMessage,
   ToggleDirectMessageStar,
 } from "../../redux/slices/conversation";
 
@@ -14,6 +15,7 @@ jest.mock("react-redux", () => ({
 
 jest.mock("../../redux/slices/conversation", () => ({
   DeleteDirectMessageForMe: jest.fn(),
+  SelectDirectReplyMessage: jest.fn(),
   ToggleDirectMessageStar: jest.fn(),
 }));
 
@@ -39,6 +41,11 @@ describe("MessageOptions", () => {
 
     DeleteDirectMessageForMe.mockImplementation((payload) => ({
       type: "conversation/deleteDirectMessageForMe",
+      payload,
+    }));
+
+    SelectDirectReplyMessage.mockImplementation((payload) => ({
+      type: "conversation/selectDirectReplyMessage",
       payload,
     }));
   });
@@ -142,6 +149,48 @@ describe("MessageOptions", () => {
       payload: {
         conversation_id: "conversation-1",
         message_id: "message-1",
+      },
+    });
+  });
+
+  it("selects a direct message for reply from the message menu", async () => {
+    renderTextMsg({
+      incoming: true,
+      senderName: "John Doe",
+      message: "Original message",
+      messageId: "message-1",
+      conversationId: "conversation-1",
+      chatType: "individual",
+      messageType: "Text",
+      starredBy: [],
+    });
+
+    fireEvent.click(screen.getByRole("button"));
+
+    fireEvent.click(await screen.findByText("Reply"));
+
+    expect(SelectDirectReplyMessage).toHaveBeenCalledWith({
+      message: {
+        messageId: "message-1",
+        type: "Text",
+        text: "Original message",
+        file: "",
+        incoming: true,
+        senderName: "John Doe",
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/selectDirectReplyMessage",
+      payload: {
+        message: {
+          messageId: "message-1",
+          type: "Text",
+          text: "Original message",
+          file: "",
+          incoming: true,
+          senderName: "John Doe",
+        },
       },
     });
   });

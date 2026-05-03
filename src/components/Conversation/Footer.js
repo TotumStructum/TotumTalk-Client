@@ -5,6 +5,7 @@ import {
   InputAdornment,
   Stack,
   Tooltip,
+  Typography,
   useTheme,
 } from "@mui/material";
 import {
@@ -16,6 +17,7 @@ import {
   File,
   Sticker,
   Image,
+  X,
 } from "phosphor-react";
 import React from "react";
 
@@ -24,8 +26,9 @@ import Picker from "@emoji-mart/react";
 
 import StyledInput from "../StyledInput";
 import { socket } from "../../socket";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "../../utils/axios";
+import { ClearDirectReplyMessage } from "../../redux/slices/conversation";
 
 const Actions = [
   {
@@ -180,6 +183,7 @@ const ChatInput = ({
 
 function Footer() {
   const theme = useTheme();
+  const dispatch = useDispatch();
   const [openPicker, setOpenPicker] = React.useState(false);
   const [value, setValue] = React.useState("");
   const documentInputRef = React.useRef(null);
@@ -188,15 +192,31 @@ function Footer() {
   const { room_id, chat_type } = useSelector((state) => state.app);
   const { token } = useSelector((state) => state.auth);
 
-  const { current_conversation: directConversation } = useSelector(
-    (state) => state.conversation.direct_chat,
-  );
+  const {
+    current_conversation: directConversation,
+    current_reply: currentReply,
+  } = useSelector((state) => state.conversation.direct_chat);
 
   const { current_conversation: groupConversation } = useSelector(
     (state) => state.conversation.group_chat,
   );
 
   const isGroupChat = chat_type === "group";
+
+  const getReplyPreviewText = (reply) => {
+    if (!reply) return "";
+
+    if (reply.text) return reply.text;
+
+    if (reply.type === "Document") return "Document";
+    if (reply.type === "Media") return "Media";
+
+    return "Message";
+  };
+
+  const clearReply = () => {
+    dispatch(ClearDirectReplyMessage());
+  };
 
   const handleSend = () => {
     const trimmed = value.trim();
@@ -220,14 +240,21 @@ function Footer() {
 
     if (!directConversation) return;
 
-    socket.emit("text_message", {
+    const payload = {
       to: directConversation.user_id,
       message: trimmed,
       conversation_id: room_id,
       type: messageType,
-    });
+    };
+
+    if (currentReply?.messageId) {
+      payload.reply_to = currentReply.messageId;
+    }
+
+    socket.emit("text_message", payload);
 
     setValue("");
+    clearReply();
   };
 
   const uploadAndSendFileMessage = async ({
@@ -273,16 +300,23 @@ function Footer() {
         text: caption,
       });
     } else {
-      socket.emit("file_message", {
+      const payload = {
         to: directConversation.user_id,
         conversation_id: room_id,
         file: fileUrl,
         type: messageType,
         text: caption,
-      });
+      };
+
+      if (currentReply?.messageId) {
+        payload.reply_to = currentReply.messageId;
+      }
+
+      socket.emit("file_message", payload);
     }
 
     setValue("");
+    clearReply();
   };
 
   const handleDocumentSelected = async (event) => {
@@ -356,6 +390,50 @@ function Footer() {
               }}
             />
           </Box>
+
+          {!isGroupChat && currentReply ? (
+            <Box
+              sx={{
+                mb: 1,
+                px: 1.5,
+                py: 1,
+                borderRadius: 1.5,
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? theme.palette.common.white
+                    : "rgba(255,255,255,0.06)",
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
+                boxShadow: "0px 0px 2px rgba(0,0,0,0.12)",
+              }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Stack sx={{ minWidth: 0 }}>
+                  <Typography
+                    variant="caption"
+                    color="primary"
+                    fontWeight={600}
+                  >
+                    Replying to message
+                  </Typography>
+                  <Typography variant="body2" noWrap color="text.secondary">
+                    {getReplyPreviewText(currentReply)}
+                  </Typography>
+                </Stack>
+
+                <IconButton
+                  aria-label="Cancel reply"
+                  size="small"
+                  onClick={clearReply}
+                >
+                  <X size={16} />
+                </IconButton>
+              </Stack>
+            </Box>
+          ) : null}
 
           <ChatInput
             openPicker={openPicker}

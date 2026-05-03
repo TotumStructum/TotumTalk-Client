@@ -21,6 +21,7 @@ import { useDispatch } from "react-redux";
 import { Message_options } from "../../data/index";
 import {
   DeleteDirectMessageForMe,
+  SelectDirectReplyMessage,
   ToggleDirectMessageStar,
 } from "../../redux/slices/conversation";
 
@@ -58,6 +59,72 @@ const isMessageStarredByCurrentUser = (starredBy = []) => {
         return userId.toString() === currentUserId;
       })
     : false;
+};
+
+const getReplyPreviewText = (replyTo) => {
+  if (!replyTo) return "";
+
+  if (replyTo.text) return replyTo.text;
+
+  if (replyTo.type === "Document") {
+    return getFileName(replyTo.file);
+  }
+
+  if (replyTo.type === "Media") {
+    return "Media";
+  }
+
+  return "Message";
+};
+
+const getMessageContentForReply = (el) => {
+  return el.message || el.text || "";
+};
+
+const ReplyPreview = ({ replyTo, incoming }) => {
+  const theme = useTheme();
+
+  if (!replyTo) return null;
+
+  return (
+    <Box
+      sx={{
+        p: 1,
+        borderRadius: 1,
+        borderLeft: `3px solid ${
+          incoming ? theme.palette.primary.main : "rgba(255,255,255,0.75)"
+        }`,
+        backgroundColor: incoming
+          ? theme.palette.mode === "light"
+            ? "#F4F6F8"
+            : "rgba(255,255,255,0.06)"
+          : "rgba(255,255,255,0.16)",
+      }}
+    >
+      <Typography
+        variant="caption"
+        sx={{
+          color: incoming
+            ? theme.palette.primary.main
+            : "rgba(255,255,255,0.8)",
+          fontWeight: 600,
+        }}
+      >
+        Reply
+      </Typography>
+
+      <Typography
+        variant="body2"
+        noWrap
+        sx={{
+          color: getTextColor(theme, incoming),
+          maxWidth: 240,
+        }}
+      >
+        {getReplyPreviewText(replyTo)}
+      </Typography>
+    </Box>
+  );
 };
 
 const SenderName = ({ name, incoming }) => {
@@ -160,6 +227,7 @@ const DocMsg = ({ el, menu }) => {
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Stack spacing={1}>
           <SenderName name={el.senderName} incoming={el.incoming} />
+          <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
           <Box
             component={el.file ? "a" : "div"}
             href={el.file || undefined}
@@ -243,6 +311,7 @@ const LinkMsg = ({ el, menu }) => {
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Stack spacing={0.5}>
           <SenderName name={el.senderName} incoming={el.incoming} />
+          <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
 
           <Typography
             component="div"
@@ -330,6 +399,7 @@ const MediaMsg = ({ el, menu, onLoad }) => {
       >
         <Stack spacing={hasCaption || el.senderName ? 1 : 0}>
           <SenderName name={el.senderName} incoming={el.incoming} />
+          <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
           {el.file ? (
             <Box
               component="a"
@@ -402,6 +472,7 @@ const TextMsg = ({ el, menu }) => {
       <Box p={1.5} sx={getBubbleStyles(theme, el.incoming)}>
         <Stack spacing={0.5}>
           <SenderName name={el.senderName} incoming={el.incoming} />
+          <ReplyPreview replyTo={el.replyTo} incoming={el.incoming} />
 
           <Typography
             variant="body2"
@@ -457,6 +528,28 @@ const MessageOptions = ({ el = {} }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleReply = () => {
+    if (!isDirectChat || !el.conversationId || !el.messageId) {
+      handleClose();
+      return;
+    }
+
+    dispatch(
+      SelectDirectReplyMessage({
+        message: {
+          messageId: el.messageId,
+          type: el.messageType,
+          text: getMessageContentForReply(el),
+          file: el.file || "",
+          incoming: el.incoming,
+          senderName: el.senderName || "",
+        },
+      }),
+    );
+
+    handleClose();
   };
 
   const handleDeleteMessage = () => {
@@ -520,19 +613,23 @@ const MessageOptions = ({ el = {} }) => {
           {Message_options.map((option, idx) => {
             const isStarOption = option.title === "Star message";
             const isDeleteOption = option.title === "Delete Message";
+            const isReplyOption = option.title === "Reply";
 
-            const isImplementedOption = isStarOption || isDeleteOption;
+            const isImplementedOption =
+              isReplyOption || isStarOption || isDeleteOption;
             const isDisabled = !isImplementedOption || !isDirectChat;
 
             return (
               <MenuItem
                 key={`${option.title}-${idx}`}
                 onClick={
-                  isStarOption
-                    ? handleStarToggle
-                    : isDeleteOption
-                      ? handleDeleteMessage
-                      : handleClose
+                  isReplyOption
+                    ? handleReply
+                    : isStarOption
+                      ? handleStarToggle
+                      : isDeleteOption
+                        ? handleDeleteMessage
+                        : handleClose
                 }
                 disabled={isDisabled}
               >

@@ -93,6 +93,7 @@ const initialState = {
     conversations: [],
     current_conversation: null,
     current_messages: [],
+    current_reply: null,
   },
   group_chat: {
     current_conversation: null,
@@ -140,6 +141,7 @@ const slice = createSlice({
       if (state.direct_chat.current_conversation?.id === conversation_id) {
         state.direct_chat.current_conversation = null;
         state.direct_chat.current_messages = [];
+        state.direct_chat.current_reply = null;
       }
     },
 
@@ -155,10 +157,19 @@ const slice = createSlice({
 
     setCurrentConversation(state, action) {
       state.direct_chat.current_conversation = action.payload.conversation;
+      state.direct_chat.current_reply = null;
     },
 
     setCurrentMessages(state, action) {
       state.direct_chat.current_messages = action.payload.messages;
+    },
+
+    setDirectReplyMessage(state, action) {
+      state.direct_chat.current_reply = action.payload.message;
+    },
+
+    clearDirectReplyMessage(state) {
+      state.direct_chat.current_reply = null;
     },
 
     updateDirectMessageStar(state, action) {
@@ -178,6 +189,10 @@ const slice = createSlice({
           state.direct_chat.current_messages.filter(
             (message) => message._id !== message_id,
           );
+      }
+
+      if (state.direct_chat.current_reply?.messageId === message_id) {
+        state.direct_chat.current_reply = null;
       }
 
       const lastVisibleMessage =
@@ -260,6 +275,7 @@ const slice = createSlice({
     clearCurrentConversation(state) {
       state.direct_chat.current_conversation = null;
       state.direct_chat.current_messages = [];
+      state.direct_chat.current_reply = null;
       state.group_chat.current_conversation = null;
       state.group_chat.current_messages = [];
     },
@@ -420,5 +436,17 @@ export const DeleteDirectMessageForMe = ({ conversation_id, message_id }) => {
     );
 
     return response.data;
+  };
+};
+
+export const SelectDirectReplyMessage = ({ message }) => {
+  return async (dispatch) => {
+    dispatch(slice.actions.setDirectReplyMessage({ message }));
+  };
+};
+
+export const ClearDirectReplyMessage = () => {
+  return async (dispatch) => {
+    dispatch(slice.actions.clearDirectReplyMessage());
   };
 };

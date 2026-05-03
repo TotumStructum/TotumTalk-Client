@@ -8,6 +8,12 @@ jest.mock("react-redux", () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock("../../redux/slices/conversation", () => ({
+  DeleteDirectMessageForMe: jest.fn(),
+  SelectDirectReplyMessage: jest.fn(),
+  ToggleDirectMessageStar: jest.fn(),
+}));
+
 const renderBody = () =>
   render(
     <ThemeProvider theme={createTheme()}>
@@ -162,5 +168,43 @@ describe("Conversation/Body", () => {
       "http://localhost:3000/uploads/media/group-image.png",
     );
     expect(screen.getByText("Media caption")).toBeInTheDocument();
+  });
+
+  it("renders reply preview for direct messages", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "conversation-1",
+          chat_type: "individual",
+        },
+        conversation: {
+          direct_chat: {
+            current_messages: [
+              {
+                _id: "reply-message",
+                type: "Text",
+                text: "This is a reply",
+                from: "user-b",
+                replyTo: {
+                  messageId: "original-message",
+                  type: "Text",
+                  text: "Original direct message",
+                  file: "",
+                },
+              },
+            ],
+          },
+          group_chat: {
+            current_messages: [],
+          },
+        },
+      }),
+    );
+
+    renderBody();
+
+    expect(screen.getByText("Reply")).toBeInTheDocument();
+    expect(screen.getByText("Original direct message")).toBeInTheDocument();
+    expect(screen.getByText("This is a reply")).toBeInTheDocument();
   });
 });

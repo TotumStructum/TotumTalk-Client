@@ -1,5 +1,10 @@
 jest.mock("react-redux", () => ({
+  useDispatch: jest.fn(),
   useSelector: jest.fn(),
+}));
+
+jest.mock("../../redux/slices/conversation", () => ({
+  ClearDirectReplyMessage: jest.fn(),
 }));
 
 jest.mock("../../socket", () => ({
@@ -53,10 +58,12 @@ const {
   fireEvent,
   waitFor,
 } = require("@testing-library/react");
-const { useSelector } = require("react-redux");
+const { useDispatch, useSelector } = require("react-redux");
 const { socket } = require("../../socket");
 const axios = require("../../utils/axios").default;
 const Footer = require("./Footer").default;
+
+const { ClearDirectReplyMessage } = require("../../redux/slices/conversation");
 
 describe("Conversation/Footer", () => {
   const baseState = {
@@ -74,6 +81,7 @@ describe("Conversation/Footer", () => {
           user_id: "user-b",
           name: "John Doe",
         },
+        current_reply: null,
       },
       group_chat: {
         current_conversation: null,
@@ -81,9 +89,16 @@ describe("Conversation/Footer", () => {
     },
   };
 
+  const dispatch = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    useDispatch.mockReturnValue(dispatch);
     useSelector.mockImplementation((selector) => selector(baseState));
+
+    ClearDirectReplyMessage.mockReturnValue({
+      type: "conversation/clearDirectReplyMessage",
+    });
   });
 
   it("sends a plain text message as Text and clears the input", () => {
@@ -521,6 +536,82 @@ describe("Conversation/Footer", () => {
         type: "Media",
         text: "",
       });
+    });
+  });
+
+  it("sends a direct reply text message with reply_to and clears reply state", () => {
+    const dispatch = jest.fn();
+    useDispatch.mockReturnValue(dispatch);
+
+    useSelector.mockImplementation((selector) =>
+      selector({
+        ...baseState,
+        conversation: {
+          ...baseState.conversation,
+          direct_chat: {
+            ...baseState.conversation.direct_chat,
+            current_reply: {
+              messageId: "original-message-1",
+              type: "Text",
+              text: "Original message",
+            },
+          },
+        },
+      }),
+    );
+
+    render(<Footer />);
+
+    expect(screen.getByText("Replying to message")).toBeInTheDocument();
+    expect(screen.getByText("Original message")).toBeInTheDocument();
+
+    const input = screen.getByPlaceholderText("Write a message...");
+    fireEvent.change(input, { target: { value: "Reply message" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("text_message", {
+      to: "user-b",
+      message: "Reply message",
+      conversation_id: "conversation-1",
+      type: "Text",
+      reply_to: "original-message-1",
+    });
+
+    expect(ClearDirectReplyMessage).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/clearDirectReplyMessage",
+    });
+  });
+
+  it("clears selected reply when cancelling reply preview", () => {
+    const dispatch = jest.fn();
+    useDispatch.mockReturnValue(dispatch);
+
+    useSelector.mockImplementation((selector) =>
+      selector({
+        ...baseState,
+        conversation: {
+          ...baseState.conversation,
+          direct_chat: {
+            ...baseState.conversation.direct_chat,
+            current_reply: {
+              messageId: "original-message-1",
+              type: "Text",
+              text: "Original message",
+            },
+          },
+        },
+      }),
+    );
+
+    render(<Footer />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel reply" }));
+
+    expect(ClearDirectReplyMessage).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/clearDirectReplyMessage",
     });
   });
 });

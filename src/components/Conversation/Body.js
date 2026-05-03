@@ -90,6 +90,8 @@ const Body = ({ menu }) => {
             conversationId: room_id,
             chatType: chat_type,
             starredBy: message.starredBy || [],
+            messageType: message.type,
+            replyTo: message.replyTo || null,
           };
 
           if (message.type === "Media") {

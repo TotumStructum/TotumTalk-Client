@@ -11,6 +11,8 @@ import conversationReducer, {
   ToggleDirectMessageStar,
   DeleteDirectConversation,
   DeleteDirectMessageForMe,
+  SelectDirectReplyMessage,
+  ClearDirectReplyMessage,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -552,5 +554,29 @@ describe("conversation slice", () => {
     expect(state.current_messages).toHaveLength(1);
     expect(state.current_messages[0]._id).toBe("message-1");
     expect(state.conversations[0].msg).toBe("First message");
+  });
+
+  it("selects and clears a direct reply message", async () => {
+    const store = createStore();
+
+    await store.dispatch(
+      SelectDirectReplyMessage({
+        message: {
+          messageId: "message-1",
+          type: "Text",
+          text: "Original message",
+        },
+      }),
+    );
+
+    expect(store.getState().conversation.direct_chat.current_reply).toEqual({
+      messageId: "message-1",
+      type: "Text",
+      text: "Original message",
+    });
+
+    await store.dispatch(ClearDirectReplyMessage());
+
+    expect(store.getState().conversation.direct_chat.current_reply).toBeNull();
   });
 });
