@@ -23,14 +23,43 @@ const getMessageText = (message) => {
   return "";
 };
 
+const getSenderName = (message) => {
+  const from = message?.from;
+
+  if (!from || typeof from !== "object") return "";
+
+  const fullName = `${from.firstName || ""} ${from.lastName || ""}`.trim();
+
+  return fullName || from.email || "";
+};
+
+const getSearchableMessageText = (message, includeSenderName) => {
+  return [
+    includeSenderName ? getSenderName(message) : "",
+    getMessageText(message),
+  ]
+    .filter(Boolean)
+    .join(" ");
+};
+
 const MessageSearch = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const [query, setQuery] = useState("");
 
-  const { current_messages } = useSelector(
+  const { chat_type } = useSelector((state) => state.app);
+
+  const { current_messages: directMessages } = useSelector(
     (state) => state.conversation.direct_chat,
   );
+
+  const { current_messages: groupMessages } = useSelector(
+    (state) => state.conversation.group_chat,
+  );
+
+  const isGroupChat = chat_type === "group";
+  const current_messages = isGroupChat ? groupMessages : directMessages;
+  const backSidebarType = isGroupChat ? "GROUP_INFO" : "CONTACT";
 
   const results = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -38,9 +67,11 @@ const MessageSearch = () => {
     if (!normalizedQuery) return [];
 
     return current_messages.filter((message) =>
-      getMessageText(message).toLowerCase().includes(normalizedQuery),
+      getSearchableMessageText(message, isGroupChat)
+        .toLowerCase()
+        .includes(normalizedQuery),
     );
-  }, [current_messages, query]);
+  }, [current_messages, isGroupChat, query]);
 
   return (
     <Box sx={{ width: 320, height: "100vh" }}>
@@ -63,7 +94,7 @@ const MessageSearch = () => {
           >
             <IconButton
               onClick={() => {
-                dispatch(UpdateSidebarType("CONTACT"));
+                dispatch(UpdateSidebarType(backSidebarType));
               }}
             >
               <CaretLeft />
@@ -96,24 +127,41 @@ const MessageSearch = () => {
                 Type to search in this conversation
               </Typography>
             ) : results.length > 0 ? (
-              results.map((message) => (
-                <Box
-                  key={message._id}
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 1.5,
-                    backgroundColor:
-                      theme.palette.mode === "light"
-                        ? theme.palette.common.white
-                        : theme.palette.background.paper,
-                    boxShadow: "0px 0px 2px rgba(0,0,0,0.18)",
-                  }}
-                >
-                  <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
-                    {getMessageText(message)}
-                  </Typography>
-                </Box>
-              ))
+              results.map((message) => {
+                const senderName = isGroupChat ? getSenderName(message) : "";
+
+                return (
+                  <Box
+                    key={message._id}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 1.5,
+                      backgroundColor:
+                        theme.palette.mode === "light"
+                          ? theme.palette.common.white
+                          : theme.palette.background.paper,
+                      boxShadow: "0px 0px 2px rgba(0,0,0,0.18)",
+                    }}
+                  >
+                    {senderName ? (
+                      <Typography
+                        variant="caption"
+                        color="primary"
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {senderName}
+                      </Typography>
+                    ) : null}
+
+                    <Typography
+                      variant="body2"
+                      sx={{ wordBreak: "break-word" }}
+                    >
+                      {getMessageText(message)}
+                    </Typography>
+                  </Box>
+                );
+              })
             ) : (
               <Typography variant="body2" color="text.secondary">
                 No messages found

@@ -27,6 +27,7 @@ import { SelectGroupConversation } from "../../redux/slices/app";
 import SharedMessages from "../../components/SharedMessages";
 import StarredMessages from "../../components/StarredMessages";
 import GroupInfo from "../../components/GroupInfo";
+import MessageSearch from "../../components/MessageSearch";
 
 const getParticipantName = (participant) => {
   return (
@@ -268,6 +269,7 @@ const Group = () => {
           ((sidebar.type === "GROUP_INFO" && <GroupInfo />) ||
             (sidebar.type === "SHARED" && <SharedMessages />) ||
             (sidebar.type === "STARRED" && <StarredMessages />) ||
+            (sidebar.type === "MESSAGE_SEARCH" && <MessageSearch />) ||
             null)}
       </Stack>
 

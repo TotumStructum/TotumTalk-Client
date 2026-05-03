@@ -56,8 +56,6 @@ const Header = () => {
   };
 
   const handleMessageSearchOpen = () => {
-    if (isGroupChat) return;
-
     dispatch(UpdateSidebarType("MESSAGE_SEARCH"));
 
     if (!sidebar.open) {
@@ -156,7 +154,6 @@ const Header = () => {
             <Phone />
           </IconButton>
           <IconButton
-            disabled={isGroupChat}
             aria-label="Search messages"
             onClick={handleMessageSearchOpen}
           >
