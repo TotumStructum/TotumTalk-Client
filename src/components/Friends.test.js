@@ -148,4 +148,29 @@ describe("SentFriendRequestComponent", () => {
       request_id: "request-1",
     });
   });
+
+  it("does not allow removing TotumAI system contact", () => {
+    renderWithTheme(
+      <FriendComponent
+        _id="totum-ai"
+        firstName="TotumAI"
+        lastName="Assistant"
+        status="Online"
+        avatar=""
+        isAI
+        isSystem
+      />,
+    );
+
+    expect(screen.getByText("AI assistant")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Remove friend" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start chat" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("start_conversation", {
+      to: "totum-ai",
+    });
+  });
 });

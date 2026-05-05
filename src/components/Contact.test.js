@@ -141,4 +141,37 @@ describe("Contact", () => {
       });
     });
   });
+
+  it("shows AI assistant label and hides delete actions for TotumAI contact", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        conversation: {
+          direct_chat: {
+            current_conversation: {
+              id: "conversation-ai",
+              name: "TotumAI Assistant",
+              email: "totumai@system.local",
+              online: true,
+              img: "",
+              about: "",
+              isAI: true,
+              isSystem: true,
+            },
+            current_messages: [],
+          },
+        },
+      }),
+    );
+
+    renderContact();
+
+    expect(screen.getByText("AI assistant")).toBeInTheDocument();
+    expect(
+      screen.getByText("Virtual AI interlocutor in TotumTalk."),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("button", { name: /delete/i }),
+    ).not.toBeInTheDocument();
+  });
 });

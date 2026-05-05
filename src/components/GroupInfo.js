@@ -110,7 +110,11 @@ const GroupInfo = () => {
     const friendId = getUserId(friend);
 
     return (
-      friendId && friendId !== currentUserId && !participantIds.has(friendId)
+      friendId &&
+      friendId !== currentUserId &&
+      !participantIds.has(friendId) &&
+      !friend.isSystem &&
+      !friend.isAI
     );
   });
 

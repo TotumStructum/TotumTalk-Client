@@ -79,6 +79,15 @@ describe("GroupInfo", () => {
               email: "alice@example.com",
               avatar: "",
             },
+            {
+              _id: "totum-ai",
+              firstName: "TotumAI",
+              lastName: "Assistant",
+              email: "totumai@system.local",
+              avatar: "",
+              isAI: true,
+              isSystem: true,
+            },
           ],
         },
         conversation: {
@@ -380,5 +389,14 @@ describe("GroupInfo", () => {
     });
 
     expect(ToggleSidebar).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not show TotumAI system contact in add participants options", () => {
+    renderGroupInfo();
+
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+
+    expect(screen.getByLabelText("Friends")).toBeInTheDocument();
+    expect(screen.queryByText("TotumAI Assistant")).not.toBeInTheDocument();
   });
 });

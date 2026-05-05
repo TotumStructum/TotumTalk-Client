@@ -139,12 +139,21 @@ const FriendRequestComponent = ({
   );
 };
 
-const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
+const FriendComponent = ({
+  firstName,
+  lastName,
+  _id,
+  status,
+  avatar,
+  isAI,
+  isSystem,
+}) => {
   const theme = useTheme();
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
 
   const name = `${firstName} ${lastName}`;
   const isOnline = status === "Online";
+  const isProtectedSystemContact = Boolean(isAI || isSystem);
 
   const handleRemoveFriend = () => {
     socket.emit("remove_friend", { friend_id: _id });
@@ -180,6 +189,11 @@ const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
             )}
             <Stack spacing={0.3}>
               <Typography variant="subtitle2">{name}</Typography>
+              {isProtectedSystemContact ? (
+                <Typography variant="caption" color="primary">
+                  AI assistant
+                </Typography>
+              ) : null}
             </Stack>
           </Stack>
 
@@ -193,15 +207,17 @@ const FriendComponent = ({ firstName, lastName, _id, status, avatar }) => {
               <Chat />
             </IconButton>
 
-            <IconButton
-              aria-label="Remove friend"
-              color="error"
-              onClick={() => {
-                setRemoveDialogOpen(true);
-              }}
-            >
-              <UserMinus />
-            </IconButton>
+            {!isProtectedSystemContact ? (
+              <IconButton
+                aria-label="Remove friend"
+                color="error"
+                onClick={() => {
+                  setRemoveDialogOpen(true);
+                }}
+              >
+                <UserMinus />
+              </IconButton>
+            ) : null}
           </Stack>
         </Stack>
       </StyledChatBox>

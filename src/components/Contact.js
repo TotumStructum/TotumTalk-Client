@@ -79,6 +79,10 @@ const Contact = () => {
 
   if (!current_conversation) return null;
 
+  const isProtectedSystemContact = Boolean(
+    current_conversation.isAI || current_conversation.isSystem,
+  );
+
   const sharedMedia = current_messages.filter(
     (message) => message.type === "Media" && message.file,
   );
@@ -152,7 +156,11 @@ const Contact = () => {
                   {current_conversation.email || "No e-mail available"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {current_conversation.online ? "Online" : "Offline"}
+                  {isProtectedSystemContact
+                    ? "AI assistant"
+                    : current_conversation.online
+                      ? "Online"
+                      : "Offline"}
                 </Typography>
               </Stack>
             </Stack>
@@ -182,7 +190,10 @@ const Contact = () => {
             <Stack spacing={0.5}>
               <Typography variant="subtitle2">About</Typography>
               <Typography variant="body2" color="text.secondary">
-                {current_conversation.about || "No description provided yet"}
+                {current_conversation.about ||
+                  (isProtectedSystemContact
+                    ? "Virtual AI interlocutor in TotumTalk."
+                    : "No description provided yet")}
               </Typography>
             </Stack>
 
@@ -270,44 +281,46 @@ const Contact = () => {
             </Stack>
           </Stack>
 
-          <Box
-            sx={{
-              height: 88,
-              flexShrink: 0,
-              boxSizing: "border-box",
-              boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-              backgroundColor:
-                theme.palette.mode === "light"
-                  ? "#f8faff"
-                  : theme.palette.background.paper,
-              display: "flex",
-              alignItems: "center",
-              px: 2,
-            }}
-          >
-            <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                disabled
-                startIcon={<Star size={18} />}
-              >
-                Block
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="error"
-                startIcon={<Trash size={18} />}
-                onClick={() => {
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                Delete
-              </Button>
-            </Stack>
-          </Box>
+          {!isProtectedSystemContact ? (
+            <Box
+              sx={{
+                height: 88,
+                flexShrink: 0,
+                boxSizing: "border-box",
+                boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? "#f8faff"
+                    : theme.palette.background.paper,
+                display: "flex",
+                alignItems: "center",
+                px: 2,
+              }}
+            >
+              <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  disabled
+                  startIcon={<Star size={18} />}
+                >
+                  Block
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="error"
+                  startIcon={<Trash size={18} />}
+                  onClick={() => {
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Stack>
+            </Box>
+          ) : null}
         </Stack>
       </Box>
       <Dialog

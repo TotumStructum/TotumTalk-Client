@@ -80,6 +80,8 @@ const mapConversation = (conversation, user_id) => {
     img: this_user.avatar || "",
     email: this_user.email || "",
     about: this_user.about || "",
+    isAI: Boolean(this_user.isAI),
+    isSystem: Boolean(this_user.isSystem),
     msg: getMessagePreview(lastMessage),
     time: formatMessageTime(lastMessage?.created_at),
     unread: 0,

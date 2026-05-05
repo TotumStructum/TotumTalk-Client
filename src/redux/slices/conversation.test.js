@@ -635,4 +635,44 @@ describe("conversation slice", () => {
     });
     expect(state.direct_chat.current_messages).toHaveLength(1);
   });
+
+  it("preserves AI system flags when mapping direct conversations", async () => {
+    const store = createStore();
+
+    window.localStorage.setItem("user_id", "user-1");
+
+    await store.dispatch(
+      FetchDirectConversations({
+        conversations: [
+          {
+            _id: "conversation-1",
+            participants: [
+              {
+                _id: "user-1",
+                firstName: "Current",
+                lastName: "User",
+                status: "Online",
+              },
+              {
+                _id: "totum-ai",
+                firstName: "TotumAI",
+                lastName: "Assistant",
+                status: "Online",
+                isAI: true,
+                isSystem: true,
+              },
+            ],
+            messages: [],
+          },
+        ],
+      }),
+    );
+
+    const conversation =
+      store.getState().conversation.direct_chat.conversations[0];
+
+    expect(conversation.isAI).toBe(true);
+    expect(conversation.isSystem).toBe(true);
+    expect(conversation.name).toBe("TotumAI Assistant");
+  });
 });
