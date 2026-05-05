@@ -37,6 +37,11 @@ const Header = () => {
 
   if (!current_conversation) return null;
 
+  const isAIConversation = Boolean(
+    !isGroupChat &&
+    (current_conversation.isAI || current_conversation.isSystem),
+  );
+
   const isContactSidebarOpen = sidebar.open && sidebar.type === "CONTACT";
 
   const handleContactSidebarToggle = () => {
@@ -134,9 +139,11 @@ const Header = () => {
             <Typography variant="caption">
               {isGroupChat
                 ? `${current_conversation.participants?.length || 0} members`
-                : current_conversation.online
-                  ? "Online"
-                  : "Offline"}
+                : isAIConversation
+                  ? "AI assistant"
+                  : current_conversation.online
+                    ? "Online"
+                    : "Offline"}
             </Typography>
           </Stack>
         </Stack>
@@ -147,10 +154,16 @@ const Header = () => {
           spacing={3}
           sx={{ height: "100%" }}
         >
-          <IconButton disabled={isGroupChat}>
+          <IconButton
+            aria-label="Start video call"
+            disabled={isGroupChat || isAIConversation}
+          >
             <VideoCamera />
           </IconButton>
-          <IconButton disabled={isGroupChat}>
+          <IconButton
+            aria-label="Start voice call"
+            disabled={isGroupChat || isAIConversation}
+          >
             <Phone />
           </IconButton>
           <IconButton

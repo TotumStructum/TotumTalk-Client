@@ -213,4 +213,37 @@ describe("Conversation/Header", () => {
       type: "app/toggleSidebar",
     });
   });
+
+  it("renders AI assistant status and disables call buttons for TotumAI conversation", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        ...baseState,
+        conversation: {
+          ...baseState.conversation,
+          direct_chat: {
+            current_conversation: {
+              id: "conversation-ai",
+              user_id: "totum-ai",
+              name: "TotumAI Assistant",
+              online: false,
+              img: "",
+              isAI: true,
+              isSystem: true,
+            },
+          },
+        },
+      }),
+    );
+
+    render(<Header />);
+
+    expect(screen.getByText("TotumAI Assistant")).toBeInTheDocument();
+    expect(screen.getByText("AI assistant")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Start video call" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Start voice call" }),
+    ).toBeDisabled();
+  });
 });

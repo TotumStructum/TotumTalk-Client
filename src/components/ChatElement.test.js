@@ -108,4 +108,24 @@ describe("ChatElement", () => {
       payload: { room_id: "conversation-42" },
     });
   });
+
+  it("shows AI badge and fallback preview for TotumAI conversation", () => {
+    render(
+      <ChatElement
+        id="conversation-ai"
+        name="TotumAI Assistant"
+        img=""
+        msg=""
+        time=""
+        unread={0}
+        online={false}
+        isAI
+        isSystem
+      />,
+    );
+
+    expect(screen.getByText("TotumAI Assistant")).toBeInTheDocument();
+    expect(screen.getByText("AI")).toBeInTheDocument();
+    expect(screen.getByText("Virtual AI assistant")).toBeInTheDocument();
+  });
 });

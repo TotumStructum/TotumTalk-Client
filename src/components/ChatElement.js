@@ -1,5 +1,5 @@
 import { alpha, useTheme, styled } from "@mui/material/styles";
-import { Avatar, Badge, Box, Typography, Stack } from "@mui/material";
+import { Avatar, Badge, Box, Chip, Typography, Stack } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectConversation } from "../redux/slices/app";
 
@@ -21,12 +21,25 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-const ChatElement = ({ id, name, img, msg, time, unread, online }) => {
+const ChatElement = ({
+  id,
+  name,
+  img,
+  msg,
+  time,
+  unread,
+  online,
+  isAI,
+  isSystem,
+}) => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const room_id = useSelector((state) => state.app.room_id);
 
   const isSelected = room_id === id;
+  const isAIConversation = Boolean(isAI || isSystem);
+  const previewMessage =
+    isAIConversation && !msg ? "Virtual AI assistant" : msg;
 
   return (
     <Box
@@ -74,11 +87,31 @@ const ChatElement = ({ id, name, img, msg, time, unread, online }) => {
           )}
 
           <Stack spacing={0.3} sx={{ minWidth: 0 }}>
-            <Typography variant="subtitle2" noWrap>
-              {name}
-            </Typography>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{ minWidth: 0 }}
+            >
+              <Typography variant="subtitle2" noWrap>
+                {name}
+              </Typography>
+              {isAIConversation ? (
+                <Chip
+                  label="AI"
+                  color="primary"
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                />
+              ) : null}
+            </Stack>
             <Typography variant="caption" noWrap color="text.secondary">
-              {msg}
+              {previewMessage}
             </Typography>
           </Stack>
         </Stack>
