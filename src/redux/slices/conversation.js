@@ -101,6 +101,7 @@ const initialState = {
   group_chat: {
     current_conversation: null,
     current_messages: [],
+    current_reply: null,
   },
 };
 
@@ -303,15 +304,18 @@ const slice = createSlice({
       state.direct_chat.current_reply = null;
       state.group_chat.current_conversation = null;
       state.group_chat.current_messages = [];
+      state.group_chat.current_reply = null;
     },
 
     clearCurrentGroupConversation(state) {
       state.group_chat.current_conversation = null;
       state.group_chat.current_messages = [];
+      state.group_chat.current_reply = null;
     },
 
     setCurrentGroupConversation(state, action) {
       state.group_chat.current_conversation = action.payload.conversation;
+      state.group_chat.current_reply = null;
     },
 
     setCurrentGroupMessages(state, action) {
@@ -327,6 +331,14 @@ const slice = createSlice({
       ) {
         state.group_chat.current_messages.push(message);
       }
+    },
+
+    setGroupReplyMessage(state, action) {
+      state.group_chat.current_reply = action.payload.message;
+    },
+
+    clearGroupReplyMessage(state) {
+      state.group_chat.current_reply = null;
     },
   },
 });
@@ -498,5 +510,17 @@ export const UpdateDirectConversationBlockState = ({
         blockedByMe,
       }),
     );
+  };
+};
+
+export const SelectGroupReplyMessage = ({ message }) => {
+  return async (dispatch) => {
+    dispatch(slice.actions.setGroupReplyMessage({ message }));
+  };
+};
+
+export const ClearGroupReplyMessage = () => {
+  return async (dispatch) => {
+    dispatch(slice.actions.clearGroupReplyMessage());
   };
 };

@@ -5,6 +5,7 @@ jest.mock("react-redux", () => ({
 
 jest.mock("../../redux/slices/conversation", () => ({
   ClearDirectReplyMessage: jest.fn(),
+  ClearGroupReplyMessage: jest.fn(),
 }));
 
 jest.mock("../../socket", () => ({
@@ -63,7 +64,10 @@ const { socket } = require("../../socket");
 const axios = require("../../utils/axios").default;
 const Footer = require("./Footer").default;
 
-const { ClearDirectReplyMessage } = require("../../redux/slices/conversation");
+const {
+  ClearDirectReplyMessage,
+  ClearGroupReplyMessage,
+} = require("../../redux/slices/conversation");
 
 describe("Conversation/Footer", () => {
   const baseState = {
@@ -98,6 +102,10 @@ describe("Conversation/Footer", () => {
 
     ClearDirectReplyMessage.mockReturnValue({
       type: "conversation/clearDirectReplyMessage",
+    });
+
+    ClearGroupReplyMessage.mockReturnValue({
+      type: "conversation/clearGroupReplyMessage",
     });
   });
 
@@ -612,6 +620,62 @@ describe("Conversation/Footer", () => {
     expect(ClearDirectReplyMessage).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledWith({
       type: "conversation/clearDirectReplyMessage",
+    });
+  });
+
+  it("sends a group reply text message with reply_to and clears group reply state", () => {
+    const dispatch = jest.fn();
+    useDispatch.mockReturnValue(dispatch);
+
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          room_id: "group-1",
+          chat_type: "group",
+        },
+        auth: {
+          token: "test-token",
+        },
+        conversation: {
+          direct_chat: {
+            current_conversation: null,
+            current_reply: null,
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+            current_reply: {
+              messageId: "group-original-message-1",
+              type: "Text",
+              text: "Original group message",
+            },
+          },
+        },
+      }),
+    );
+
+    render(<Footer />);
+
+    expect(screen.getByText("Replying to message")).toBeInTheDocument();
+    expect(screen.getByText("Original group message")).toBeInTheDocument();
+
+    const input = screen.getByPlaceholderText("Write a message...");
+    fireEvent.change(input, { target: { value: "Group reply message" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(socket.emit).toHaveBeenCalledWith("group_text_message", {
+      group_id: "group-1",
+      message: "Group reply message",
+      type: "Text",
+      reply_to: "group-original-message-1",
+    });
+
+    expect(ClearGroupReplyMessage).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/clearGroupReplyMessage",
     });
   });
 });

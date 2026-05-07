@@ -7,6 +7,7 @@ import {
   DeleteDirectMessageForMe,
   SelectDirectReplyMessage,
   ToggleDirectMessageStar,
+  SelectGroupReplyMessage,
 } from "../../redux/slices/conversation";
 import { socket } from "../../socket";
 
@@ -19,6 +20,7 @@ jest.mock("../../redux/slices/conversation", () => ({
   DeleteDirectMessageForMe: jest.fn(),
   SelectDirectReplyMessage: jest.fn(),
   ToggleDirectMessageStar: jest.fn(),
+  SelectGroupReplyMessage: jest.fn(),
 }));
 
 jest.mock("../../socket", () => ({
@@ -76,6 +78,11 @@ describe("MessageOptions", () => {
 
     SelectDirectReplyMessage.mockImplementation((payload) => ({
       type: "conversation/selectDirectReplyMessage",
+      payload,
+    }));
+
+    SelectGroupReplyMessage.mockImplementation((payload) => ({
+      type: "conversation/selectGroupReplyMessage",
       payload,
     }));
   });
@@ -273,5 +280,47 @@ describe("MessageOptions", () => {
 
     expect(screen.getByText("Forwarded")).toBeInTheDocument();
     expect(screen.getByText("Forwarded text")).toBeInTheDocument();
+  });
+
+  it("selects a group message for reply from the message menu", async () => {
+    renderTextMsg({
+      incoming: true,
+      senderName: "Jane Group",
+      message: "Original group message",
+      messageId: "group-message-1",
+      conversationId: "group-1",
+      chatType: "group",
+      messageType: "Text",
+      starredBy: [],
+    });
+
+    fireEvent.click(screen.getByRole("button"));
+
+    fireEvent.click(await screen.findByText("Reply"));
+
+    expect(SelectGroupReplyMessage).toHaveBeenCalledWith({
+      message: {
+        messageId: "group-message-1",
+        type: "Text",
+        text: "Original group message",
+        file: "",
+        incoming: true,
+        senderName: "Jane Group",
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/selectGroupReplyMessage",
+      payload: {
+        message: {
+          messageId: "group-message-1",
+          type: "Text",
+          text: "Original group message",
+          file: "",
+          incoming: true,
+          senderName: "Jane Group",
+        },
+      },
+    });
   });
 });

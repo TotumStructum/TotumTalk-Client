@@ -28,7 +28,10 @@ import StyledInput from "../StyledInput";
 import { socket } from "../../socket";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "../../utils/axios";
-import { ClearDirectReplyMessage } from "../../redux/slices/conversation";
+import {
+  ClearDirectReplyMessage,
+  ClearGroupReplyMessage,
+} from "../../redux/slices/conversation";
 
 const Actions = [
   {
@@ -194,14 +197,15 @@ function Footer() {
 
   const {
     current_conversation: directConversation,
-    current_reply: currentReply,
+    current_reply: directReply,
   } = useSelector((state) => state.conversation.direct_chat);
 
-  const { current_conversation: groupConversation } = useSelector(
-    (state) => state.conversation.group_chat,
-  );
+  const { current_conversation: groupConversation, current_reply: groupReply } =
+    useSelector((state) => state.conversation.group_chat);
 
   const isGroupChat = chat_type === "group";
+
+  const currentReply = isGroupChat ? groupReply : directReply;
 
   const getReplyPreviewText = (reply) => {
     if (!reply) return "";
@@ -215,7 +219,9 @@ function Footer() {
   };
 
   const clearReply = () => {
-    dispatch(ClearDirectReplyMessage());
+    dispatch(
+      isGroupChat ? ClearGroupReplyMessage() : ClearDirectReplyMessage(),
+    );
   };
 
   const handleSend = () => {
@@ -228,13 +234,22 @@ function Footer() {
     if (isGroupChat) {
       if (!groupConversation) return;
 
-      socket.emit("group_text_message", {
+      const payload = {
         group_id: room_id,
         message: trimmed,
         type: messageType,
-      });
+      };
+
+      if (currentReply?.messageId) {
+        payload.reply_to = currentReply.messageId;
+      }
+
+      socket.emit("group_text_message", payload);
 
       setValue("");
+
+      clearReply();
+
       return;
     }
 
@@ -293,12 +308,18 @@ function Footer() {
     const caption = value.trim();
 
     if (isGroupChat) {
-      socket.emit("group_file_message", {
+      const payload = {
         group_id: room_id,
         file: fileUrl,
         type: messageType,
         text: caption,
-      });
+      };
+
+      if (currentReply?.messageId) {
+        payload.reply_to = currentReply.messageId;
+      }
+
+      socket.emit("group_file_message", payload);
     } else {
       const payload = {
         to: directConversation.user_id,
@@ -391,7 +412,7 @@ function Footer() {
             />
           </Box>
 
-          {!isGroupChat && currentReply ? (
+          {currentReply ? (
             <Box
               sx={{
                 mb: 1,

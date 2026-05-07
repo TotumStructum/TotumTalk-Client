@@ -15,6 +15,8 @@ import conversationReducer, {
   ClearDirectReplyMessage,
   ClearCurrentGroupConversation,
   UpdateDirectConversationBlockState,
+  SelectGroupReplyMessage,
+  ClearGroupReplyMessage,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -716,5 +718,29 @@ describe("conversation slice", () => {
 
     expect(state.conversations[0].blockedByMe).toBe(true);
     expect(state.current_conversation.blockedByMe).toBe(true);
+  });
+
+  it("selects and clears a group reply message", async () => {
+    const store = createStore();
+
+    await store.dispatch(
+      SelectGroupReplyMessage({
+        message: {
+          messageId: "group-message-1",
+          type: "Text",
+          text: "Original group message",
+        },
+      }),
+    );
+
+    expect(store.getState().conversation.group_chat.current_reply).toEqual({
+      messageId: "group-message-1",
+      type: "Text",
+      text: "Original group message",
+    });
+
+    await store.dispatch(ClearGroupReplyMessage());
+
+    expect(store.getState().conversation.group_chat.current_reply).toBeNull();
   });
 });
