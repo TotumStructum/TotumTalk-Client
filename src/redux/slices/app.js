@@ -4,6 +4,7 @@ import {
   ClearCurrentGroupConversation,
   MarkConversationRead,
   SetCurrentGroupConversation,
+  UpdateDirectConversationBlockState,
 } from "./conversation";
 
 const getStoredUserId = () => window.localStorage.getItem("user_id");
@@ -641,6 +642,33 @@ export const BlockUser = ({ user_id }) => {
     dispatch(
       slice.actions.removeFriendById({
         user_id,
+      }),
+    );
+
+    dispatch(
+      UpdateDirectConversationBlockState({
+        user_id,
+        blockedByMe: true,
+      }),
+    );
+
+    return response.data;
+  };
+};
+
+export const UnblockUser = ({ user_id }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.delete(`/user/block/${user_id}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getState().auth.token}`,
+      },
+    });
+
+    dispatch(
+      UpdateDirectConversationBlockState({
+        user_id,
+        blockedByMe: false,
       }),
     );
 

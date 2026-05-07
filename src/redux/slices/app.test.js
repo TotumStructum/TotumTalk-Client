@@ -16,6 +16,7 @@ import appReducer, {
   UpdateGroupConversation,
   DeleteGroupConversation,
   BlockUser,
+  UnblockUser,
 } from "./app";
 import conversationReducer from "./conversation";
 
@@ -1038,5 +1039,43 @@ describe("app slice", () => {
         firstName: "John",
       },
     ]);
+  });
+
+  it("unblocks a user through API", async () => {
+    axios.delete.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          blockedUserId: "user-2",
+          blockedByMe: false,
+        },
+        message: "User unblocked successfully",
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+        conversation: conversationReducer,
+      },
+    });
+
+    const result = await store.dispatch(
+      UnblockUser({
+        user_id: "user-2",
+      }),
+    );
+
+    expect(axios.delete).toHaveBeenCalledWith("/user/block/user-2", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer token-123",
+      },
+    });
+
+    expect(result.message).toBe("User unblocked successfully");
   });
 });

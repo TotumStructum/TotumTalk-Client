@@ -82,6 +82,7 @@ const mapConversation = (conversation, user_id) => {
     about: this_user.about || "",
     isAI: Boolean(this_user.isAI),
     isSystem: Boolean(this_user.isSystem),
+    blockedByMe: Boolean(conversation.blockedByMe),
     msg: getMessagePreview(lastMessage),
     time: formatMessageTime(lastMessage?.created_at),
     unread: 0,
@@ -113,6 +114,28 @@ const slice = createSlice({
       state.direct_chat.conversations = sortConversationList(
         action.payload.conversations.map((el) => mapConversation(el, user_id)),
       );
+    },
+
+    updateDirectConversationBlockState(state, action) {
+      const { user_id, blockedByMe } = action.payload;
+      const targetUserId = user_id?.toString();
+
+      state.direct_chat.conversations = state.direct_chat.conversations.map(
+        (conversation) =>
+          conversation.user_id?.toString() === targetUserId
+            ? {
+                ...conversation,
+                blockedByMe,
+              }
+            : conversation,
+      );
+
+      if (
+        state.direct_chat.current_conversation?.user_id?.toString() ===
+        targetUserId
+      ) {
+        state.direct_chat.current_conversation.blockedByMe = blockedByMe;
+      }
     },
 
     updateDirectConversation(state, action) {
@@ -461,5 +484,19 @@ export const SelectDirectReplyMessage = ({ message }) => {
 export const ClearDirectReplyMessage = () => {
   return async (dispatch) => {
     dispatch(slice.actions.clearDirectReplyMessage());
+  };
+};
+
+export const UpdateDirectConversationBlockState = ({
+  user_id,
+  blockedByMe,
+}) => {
+  return async (dispatch) => {
+    dispatch(
+      slice.actions.updateDirectConversationBlockState({
+        user_id,
+        blockedByMe,
+      }),
+    );
   };
 };

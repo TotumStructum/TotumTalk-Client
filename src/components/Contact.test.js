@@ -8,6 +8,7 @@ import {
   ToggleSidebar,
   showSnackbar,
   BlockUser,
+  UnblockUser,
 } from "../redux/slices/app";
 import {
   ClearCurrentConversation,
@@ -25,6 +26,7 @@ jest.mock("../redux/slices/app", () => ({
   UpdateSidebarType: jest.fn(),
   showSnackbar: jest.fn(),
   BlockUser: jest.fn(),
+  UnblockUser: jest.fn(),
 }));
 
 jest.mock("../redux/slices/conversation", () => ({
@@ -71,6 +73,11 @@ describe("Contact", () => {
 
     BlockUser.mockImplementation((payload) => ({
       type: "app/blockUser",
+      payload,
+    }));
+
+    UnblockUser.mockImplementation((payload) => ({
+      type: "app/unblockUser",
       payload,
     }));
 
@@ -206,12 +213,58 @@ describe("Contact", () => {
       });
     });
 
-    expect(ResetConversationSelection).toHaveBeenCalledTimes(1);
-    expect(ClearCurrentConversation).toHaveBeenCalledTimes(1);
-    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
     expect(showSnackbar).toHaveBeenCalledWith({
       severity: "success",
       message: "User blocked successfully",
+    });
+  });
+
+  it("unblocks current contact after confirmation", async () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        conversation: {
+          direct_chat: {
+            current_conversation: {
+              id: "conversation-1",
+              user_id: "user-1",
+              name: "John Doe",
+              email: "john@example.com",
+              online: false,
+              img: "",
+              about: "Test user",
+              blockedByMe: true,
+            },
+            current_messages: [],
+          },
+        },
+      }),
+    );
+
+    renderContact();
+
+    fireEvent.click(screen.getByRole("button", { name: /unblock/i }));
+
+    expect(
+      screen.getByText(
+        "Unblock John Doe? They will be able to message you again.",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /^unblock$/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(UnblockUser).toHaveBeenCalledWith({
+        user_id: "user-1",
+      });
+    });
+
+    expect(showSnackbar).toHaveBeenCalledWith({
+      severity: "success",
+      message: "User unblocked successfully",
     });
   });
 });

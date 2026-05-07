@@ -14,6 +14,7 @@ import conversationReducer, {
   SelectDirectReplyMessage,
   ClearDirectReplyMessage,
   ClearCurrentGroupConversation,
+  UpdateDirectConversationBlockState,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -674,5 +675,46 @@ describe("conversation slice", () => {
     expect(conversation.isAI).toBe(true);
     expect(conversation.isSystem).toBe(true);
     expect(conversation.name).toBe("TotumAI Assistant");
+  });
+
+  it("updates direct conversation blockedByMe state", async () => {
+    const store = createStore();
+
+    const conversation = {
+      ...createConversation({
+        id: "conversation-1",
+        otherUserId: "user-b",
+        otherFirstName: "Blocked",
+        otherLastName: "User",
+        messageText: "Old message",
+        createdAt: "2026-04-20T10:00:00.000Z",
+      }),
+      blockedByMe: false,
+    };
+
+    await store.dispatch(
+      FetchDirectConversations({
+        conversations: [conversation],
+      }),
+    );
+
+    await store.dispatch(
+      SetCurrentConversation({
+        conversation:
+          store.getState().conversation.direct_chat.conversations[0],
+      }),
+    );
+
+    await store.dispatch(
+      UpdateDirectConversationBlockState({
+        user_id: "user-b",
+        blockedByMe: true,
+      }),
+    );
+
+    const state = store.getState().conversation.direct_chat;
+
+    expect(state.conversations[0].blockedByMe).toBe(true);
+    expect(state.current_conversation.blockedByMe).toBe(true);
   });
 });

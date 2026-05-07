@@ -24,6 +24,7 @@ import {
   UpdateSidebarType,
   showSnackbar,
   BlockUser,
+  UnblockUser,
 } from "../redux/slices/app";
 import {
   ClearCurrentConversation,
@@ -80,23 +81,27 @@ const Contact = () => {
     setDeleteEveryoneDialogOpen(false);
   };
 
-  const handleBlockUser = async () => {
+  const handleBlockToggle = async () => {
     if (!current_conversation?.user_id) return;
 
-    await dispatch(
-      BlockUser({
-        user_id: current_conversation.user_id,
-      }),
-    );
+    const isBlockedByMe = Boolean(current_conversation.blockedByMe);
 
-    dispatch(ResetConversationSelection());
-    dispatch(ClearCurrentConversation());
-    dispatch(ToggleSidebar());
+    await dispatch(
+      isBlockedByMe
+        ? UnblockUser({
+            user_id: current_conversation.user_id,
+          })
+        : BlockUser({
+            user_id: current_conversation.user_id,
+          }),
+    );
 
     dispatch(
       showSnackbar({
         severity: "success",
-        message: "User blocked successfully",
+        message: isBlockedByMe
+          ? "User unblocked successfully"
+          : "User blocked successfully",
       }),
     );
 
@@ -108,6 +113,8 @@ const Contact = () => {
   const isProtectedSystemContact = Boolean(
     current_conversation.isAI || current_conversation.isSystem,
   );
+
+  const isBlockedByMe = Boolean(current_conversation.blockedByMe);
 
   const sharedMedia = current_messages.filter(
     (message) => message.type === "Media" && message.file,
@@ -327,13 +334,13 @@ const Contact = () => {
                 <Button
                   fullWidth
                   variant="outlined"
-                  color="inherit"
+                  color={isBlockedByMe ? "primary" : "inherit"}
                   startIcon={<Star size={18} />}
                   onClick={() => {
                     setBlockDialogOpen(true);
                   }}
                 >
-                  Block
+                  {isBlockedByMe ? "Unblock" : "Block"}
                 </Button>
                 <Button
                   fullWidth
@@ -358,10 +365,14 @@ const Contact = () => {
           setBlockDialogOpen(false);
         }}
       >
-        <DialogTitle>Block user?</DialogTitle>
+        <DialogTitle>
+          {isBlockedByMe ? "Unblock user?" : "Block user?"}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to block ${current_conversation.name}? They will be removed from your friends and will not be able to message you.`}
+            {isBlockedByMe
+              ? `Unblock ${current_conversation.name}? They will be able to message you again.`
+              : `Are you sure you want to block ${current_conversation.name}? They will be removed from your friends and will not be able to message you.`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -372,8 +383,12 @@ const Contact = () => {
           >
             Cancel
           </Button>
-          <Button color="error" variant="contained" onClick={handleBlockUser}>
-            Block
+          <Button
+            color={isBlockedByMe ? "primary" : "error"}
+            variant="contained"
+            onClick={handleBlockToggle}
+          >
+            {isBlockedByMe ? "Unblock" : "Block"}
           </Button>
         </DialogActions>
       </Dialog>
