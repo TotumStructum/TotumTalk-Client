@@ -130,6 +130,13 @@ const slice = createSlice({
     updateFriends(state, action) {
       state.friends = action.payload.friends;
     },
+    removeFriendById(state, action) {
+      const { user_id } = action.payload;
+
+      state.friends = state.friends.filter(
+        (friend) => friend._id?.toString() !== user_id?.toString(),
+      );
+    },
     updateGroupConversations(state, action) {
       state.groups = sortGroupConversations(
         action.payload.groups.map((group) => mapGroupConversation(group)),
@@ -615,5 +622,28 @@ export const FetchSentFriendRequests = () => {
       .catch((error) => {
         console.error(error);
       });
+  };
+};
+
+export const BlockUser = ({ user_id }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.post(
+      `/user/block/${user_id}`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    dispatch(
+      slice.actions.removeFriendById({
+        user_id,
+      }),
+    );
+
+    return response.data;
   };
 };

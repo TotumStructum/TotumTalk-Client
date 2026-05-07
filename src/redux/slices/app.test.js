@@ -15,6 +15,7 @@ import appReducer, {
   RemoveGroupParticipants,
   UpdateGroupConversation,
   DeleteGroupConversation,
+  BlockUser,
 } from "./app";
 import conversationReducer from "./conversation";
 
@@ -962,5 +963,80 @@ describe("app slice", () => {
     expect(state.app.chat_type).toBe(null);
     expect(state.conversation.group_chat.current_conversation).toBeNull();
     expect(state.conversation.group_chat.current_messages).toHaveLength(0);
+  });
+
+  it("blocks a user through API and removes them from friends state", async () => {
+    axios.post.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          blockedUserId: "user-2",
+        },
+        message: "User blocked successfully",
+      },
+    });
+
+    const store = configureStore({
+      reducer: {
+        app: appReducer,
+        auth: () => ({
+          token: "token-123",
+        }),
+      },
+      preloadedState: {
+        app: {
+          sidebar: {
+            open: false,
+            type: "CONTACT",
+          },
+          snackbar: {
+            open: null,
+            message: null,
+            severity: null,
+          },
+          users: [],
+          friends: [
+            {
+              _id: "user-1",
+              firstName: "John",
+            },
+            {
+              _id: "user-2",
+              firstName: "Jane",
+            },
+          ],
+          friendRequests: [],
+          chat_type: null,
+          room_id: null,
+          groups: [],
+          sentFriendRequests: [],
+        },
+      },
+    });
+
+    const result = await store.dispatch(
+      BlockUser({
+        user_id: "user-2",
+      }),
+    );
+
+    expect(axios.post).toHaveBeenCalledWith(
+      "/user/block/user-2",
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    expect(result.message).toBe("User blocked successfully");
+    expect(store.getState().app.friends).toEqual([
+      {
+        _id: "user-1",
+        firstName: "John",
+      },
+    ]);
   });
 });

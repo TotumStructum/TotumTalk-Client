@@ -23,6 +23,7 @@ import {
   ToggleSidebar,
   UpdateSidebarType,
   showSnackbar,
+  BlockUser,
 } from "../redux/slices/app";
 import {
   ClearCurrentConversation,
@@ -48,6 +49,8 @@ const Contact = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteEveryoneDialogOpen, setDeleteEveryoneDialogOpen] =
     useState(false);
+
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
 
   const handleDeleteConversation = async (scope) => {
     if (!current_conversation?.id) return;
@@ -75,6 +78,29 @@ const Contact = () => {
 
     setDeleteDialogOpen(false);
     setDeleteEveryoneDialogOpen(false);
+  };
+
+  const handleBlockUser = async () => {
+    if (!current_conversation?.user_id) return;
+
+    await dispatch(
+      BlockUser({
+        user_id: current_conversation.user_id,
+      }),
+    );
+
+    dispatch(ResetConversationSelection());
+    dispatch(ClearCurrentConversation());
+    dispatch(ToggleSidebar());
+
+    dispatch(
+      showSnackbar({
+        severity: "success",
+        message: "User blocked successfully",
+      }),
+    );
+
+    setBlockDialogOpen(false);
   };
 
   if (!current_conversation) return null;
@@ -302,8 +328,10 @@ const Contact = () => {
                   fullWidth
                   variant="outlined"
                   color="inherit"
-                  disabled
                   startIcon={<Star size={18} />}
+                  onClick={() => {
+                    setBlockDialogOpen(true);
+                  }}
                 >
                   Block
                 </Button>
@@ -323,6 +351,33 @@ const Contact = () => {
           ) : null}
         </Stack>
       </Box>
+
+      <Dialog
+        open={blockDialogOpen}
+        onClose={() => {
+          setBlockDialogOpen(false);
+        }}
+      >
+        <DialogTitle>Block user?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`Are you sure you want to block ${current_conversation.name}? They will be removed from your friends and will not be able to message you.`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setBlockDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button color="error" variant="contained" onClick={handleBlockUser}>
+            Block
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog
         open={deleteDialogOpen}
         onClose={() => {

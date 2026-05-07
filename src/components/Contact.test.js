@@ -7,6 +7,7 @@ import {
   ResetConversationSelection,
   ToggleSidebar,
   showSnackbar,
+  BlockUser,
 } from "../redux/slices/app";
 import {
   ClearCurrentConversation,
@@ -23,6 +24,7 @@ jest.mock("../redux/slices/app", () => ({
   ToggleSidebar: jest.fn(),
   UpdateSidebarType: jest.fn(),
   showSnackbar: jest.fn(),
+  BlockUser: jest.fn(),
 }));
 
 jest.mock("../redux/slices/conversation", () => ({
@@ -67,12 +69,18 @@ describe("Contact", () => {
       payload,
     }));
 
+    BlockUser.mockImplementation((payload) => ({
+      type: "app/blockUser",
+      payload,
+    }));
+
     useSelector.mockImplementation((selector) =>
       selector({
         conversation: {
           direct_chat: {
             current_conversation: {
               id: "conversation-1",
+              user_id: "user-1",
               name: "John Doe",
               email: "john@example.com",
               online: false,
@@ -173,5 +181,37 @@ describe("Contact", () => {
     expect(
       screen.queryByRole("button", { name: /delete/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("blocks current contact after confirmation", async () => {
+    renderContact();
+
+    fireEvent.click(screen.getByRole("button", { name: /block/i }));
+
+    expect(
+      screen.getByText(
+        "Are you sure you want to block John Doe? They will be removed from your friends and will not be able to message you.",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /^block$/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(BlockUser).toHaveBeenCalledWith({
+        user_id: "user-1",
+      });
+    });
+
+    expect(ResetConversationSelection).toHaveBeenCalledTimes(1);
+    expect(ClearCurrentConversation).toHaveBeenCalledTimes(1);
+    expect(ToggleSidebar).toHaveBeenCalledTimes(1);
+    expect(showSnackbar).toHaveBeenCalledWith({
+      severity: "success",
+      message: "User blocked successfully",
+    });
   });
 });
