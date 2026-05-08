@@ -8,17 +8,33 @@ import {
   useTheme,
   AvatarGroup,
 } from "@mui/material";
-import { CaretDown, MagnifyingGlass, Phone, VideoCamera } from "phosphor-react";
+import {
+  ArrowLeft,
+  CaretDown,
+  MagnifyingGlass,
+  Phone,
+  VideoCamera,
+} from "phosphor-react";
 import React from "react";
 import StyledBadge from "../StyledBadge";
-import { ToggleSidebar, UpdateSidebarType } from "../../redux/slices/app";
+import {
+  ResetConversationSelection,
+  ToggleSidebar,
+  UpdateSidebarType,
+} from "../../redux/slices/app";
+import {
+  ClearCurrentConversation,
+  ClearCurrentGroupConversation,
+} from "../../redux/slices/conversation";
 import { useDispatch, useSelector } from "react-redux";
+import useResponsive from "../../hooks/useResponsive";
 
 const Header = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const isMobile = useResponsive("down", "md");
 
-  const { chat_type } = useSelector((state) => state.app);
+  const { chat_type, sidebar } = useSelector((state) => state.app);
 
   const { current_conversation: directConversation } = useSelector(
     (state) => state.conversation.direct_chat,
@@ -33,16 +49,12 @@ const Header = () => {
     ? groupConversation
     : directConversation;
 
-  const { sidebar } = useSelector((state) => state.app);
-
   if (!current_conversation) return null;
 
   const isAIConversation = Boolean(
     !isGroupChat &&
     (current_conversation.isAI || current_conversation.isSystem),
   );
-
-  const isContactSidebarOpen = sidebar.open && sidebar.type === "CONTACT";
 
   const handleContactSidebarToggle = () => {
     const sidebarType = isGroupChat ? "GROUP_INFO" : "CONTACT";
@@ -68,9 +80,25 @@ const Header = () => {
     }
   };
 
+  const handleBack = (event) => {
+    event.stopPropagation();
+
+    dispatch(ResetConversationSelection());
+
+    if (isGroupChat) {
+      dispatch(ClearCurrentGroupConversation());
+    } else {
+      dispatch(ClearCurrentConversation());
+    }
+
+    if (sidebar.open) {
+      dispatch(ToggleSidebar());
+    }
+  };
+
   return (
     <Box
-      p={2}
+      p={isMobile ? 1 : 2}
       sx={{
         width: "100%",
         height: 72,
@@ -83,104 +111,141 @@ const Header = () => {
       }}
     >
       <Stack
-        alignItems={"center"}
+        alignItems="center"
         direction="row"
-        justifyContent={"space-between"}
+        justifyContent="space-between"
         sx={{ width: "100%", height: "100%" }}
       >
         <Stack
-          onClick={handleContactSidebarToggle}
-          direction={"row"}
-          spacing={2}
-          sx={{ cursor: "pointer" }}
+          direction="row"
+          spacing={isMobile ? 1 : 2}
           alignItems="center"
+          sx={{ minWidth: 0 }}
         >
-          <Box>
-            {isGroupChat ? (
-              <AvatarGroup max={3}>
-                {(current_conversation.participants || []).map(
-                  (participant) => (
-                    <Avatar
-                      key={participant._id}
-                      alt={`${participant.firstName || ""} ${participant.lastName || ""}`.trim()}
-                      src={participant.avatar}
-                    />
-                  ),
-                )}
-              </AvatarGroup>
-            ) : current_conversation.online ? (
-              <StyledBadge
-                overlap="circular"
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                variant="dot"
-              >
+          {isMobile && (
+            <IconButton
+              onClick={handleBack}
+              size="small"
+              aria-label="Go back"
+              sx={{ color: theme.palette.text.primary }}
+            >
+              <ArrowLeft size={22} />
+            </IconButton>
+          )}
+
+          <Stack
+            onClick={handleContactSidebarToggle}
+            direction="row"
+            spacing={isMobile ? 1 : 2}
+            sx={{ cursor: "pointer", minWidth: 0 }}
+            alignItems="center"
+          >
+            <Box sx={{ flexShrink: 0 }}>
+              {isGroupChat ? (
+                <AvatarGroup max={3}>
+                  {(current_conversation.participants || []).map(
+                    (participant) => (
+                      <Avatar
+                        key={participant._id}
+                        alt={`${participant.firstName || ""} ${
+                          participant.lastName || ""
+                        }`.trim()}
+                        src={participant.avatar}
+                        sx={isMobile ? { width: 32, height: 32 } : undefined}
+                      />
+                    ),
+                  )}
+                </AvatarGroup>
+              ) : current_conversation.online ? (
+                <StyledBadge
+                  overlap="circular"
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  variant="dot"
+                >
+                  <Avatar
+                    alt={current_conversation.name}
+                    src={current_conversation.img}
+                    sx={isMobile ? { width: 32, height: 32 } : undefined}
+                  />
+                </StyledBadge>
+              ) : (
                 <Avatar
                   alt={current_conversation.name}
                   src={current_conversation.img}
+                  sx={isMobile ? { width: 32, height: 32 } : undefined}
                 />
-              </StyledBadge>
-            ) : (
-              <Avatar
-                alt={current_conversation.name}
-                src={current_conversation.img}
-              />
-            )}
-          </Box>
+              )}
+            </Box>
 
-          <Stack spacing={0.2}>
-            <Typography variant="subtitle2">
-              {isGroupChat
-                ? current_conversation.title
-                : current_conversation.name}
-            </Typography>
-            <Typography variant="caption">
-              {isGroupChat
-                ? `${current_conversation.participants?.length || 0} members`
-                : isAIConversation
-                  ? "AI assistant"
-                  : current_conversation.online
-                    ? "Online"
-                    : "Offline"}
-            </Typography>
+            <Stack spacing={0.2} sx={{ minWidth: 0 }}>
+              <Typography
+                variant={isMobile ? "body2" : "subtitle2"}
+                sx={{ fontWeight: 600 }}
+                noWrap
+              >
+                {isGroupChat
+                  ? current_conversation.title
+                  : current_conversation.name}
+              </Typography>
+              <Typography variant="caption" noWrap>
+                {isGroupChat
+                  ? `${current_conversation.participants?.length || 0} members`
+                  : isAIConversation
+                    ? "AI assistant"
+                    : current_conversation.online
+                      ? "Online"
+                      : "Offline"}
+              </Typography>
+            </Stack>
           </Stack>
         </Stack>
 
         <Stack
           direction="row"
           alignItems="center"
-          spacing={3}
-          sx={{ height: "100%" }}
+          spacing={isMobile ? 0.5 : 3}
+          sx={{ height: "100%", flexShrink: 0 }}
         >
           <IconButton
-            aria-label="Start video call"
             disabled={isGroupChat || isAIConversation}
+            size={isMobile ? "small" : "medium"}
+            aria-label="Start video call"
           >
-            <VideoCamera />
+            <VideoCamera size={isMobile ? 20 : 24} />
           </IconButton>
+
           <IconButton
             aria-label="Start voice call"
             disabled={isGroupChat || isAIConversation}
+            size={isMobile ? "small" : "medium"}
           >
-            <Phone />
+            <Phone size={isMobile ? 20 : 24} />
           </IconButton>
+
           <IconButton
             aria-label="Search messages"
             onClick={handleMessageSearchOpen}
+            size={isMobile ? "small" : "medium"}
           >
-            <MagnifyingGlass />
+            <MagnifyingGlass size={isMobile ? 20 : 24} />
           </IconButton>
-          <Divider orientation="vertical" flexItem />
-          <IconButton onClick={handleContactSidebarToggle}>
-            <CaretDown
-              style={{
-                transform: sidebar.open ? "rotate(-90deg)" : "rotate(0deg)",
-                transition: "transform 0.2s ease",
-              }}
-            />
-          </IconButton>
+
+          {!isMobile && (
+            <>
+              <Divider orientation="vertical" flexItem />
+              <IconButton onClick={handleContactSidebarToggle}>
+                <CaretDown
+                  style={{
+                    transform: sidebar.open ? "rotate(-90deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </IconButton>
+            </>
+          )}
         </Stack>
       </Stack>
     </Box>

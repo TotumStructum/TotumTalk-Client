@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { Stack } from "@mui/material";
+import { Stack, Box } from "@mui/material";
+import useResponsive from "../../hooks/useResponsive";
 import React, { useEffect, useRef } from "react";
-
 import SideBar from "./SideBar";
 import { useDispatch, useSelector } from "react-redux";
 import { connectSocket } from "../../socket";
@@ -32,6 +32,8 @@ const DashboardLayout = () => {
   );
 
   const conversationsRef = useRef(conversations);
+
+  const isMobile = useResponsive("down", "md");
 
   useEffect(() => {
     conversationsRef.current = conversations;
@@ -216,6 +218,26 @@ const DashboardLayout = () => {
 
   if (!isLoggedIn) {
     return <Navigate to="/auth/login" />;
+  }
+
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100dvh",
+          width: "100vw",
+          overflow: "hidden",
+        }}
+      >
+        <Box sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+          <Outlet />
+        </Box>
+
+        <SideBar />
+      </Box>
+    );
   }
 
   return (

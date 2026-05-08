@@ -10,6 +10,8 @@ import SharedMessages from "../../components/SharedMessages";
 import StarredMessages from "../../components/StarredMessages";
 import MessageSearch from "../../components/MessageSearch";
 
+import useResponsive from "../../hooks/useResponsive";
+
 import NoChatSVG from "../../assets/Illustration/NoChat";
 import {
   ResetConversationSelection,
@@ -24,6 +26,9 @@ const GeneralApp = () => {
 
   const { sidebar, room_id, chat_type } = useSelector((store) => store.app);
   const sidebarOpenRef = useRef(sidebar.open);
+
+  const isMobile = useResponsive("down", "md");
+  const hasConversation = room_id !== null && chat_type === "individual";
 
   useEffect(() => {
     sidebarOpenRef.current = sidebar.open;
@@ -61,6 +66,53 @@ const GeneralApp = () => {
     };
   }, [dispatch]);
 
+  if (isMobile) {
+    if (sidebar.open) {
+      return (
+        <Box
+          sx={{
+            width: "100vw",
+            height: "100%",
+            overflow: "hidden",
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "#F8FAFF"
+                : theme.palette.background.default,
+          }}
+        >
+          {sidebar.type === "CONTACT" && <Contact />}
+          {sidebar.type === "SHARED" && <SharedMessages />}
+          {sidebar.type === "STARRED" && <StarredMessages />}
+          {sidebar.type === "MESSAGE_SEARCH" && <MessageSearch />}
+        </Box>
+      );
+    }
+
+    if (hasConversation) {
+      return (
+        <Box
+          sx={{
+            width: "100vw",
+            height: "100%",
+            overflow: "hidden",
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "#F8FAFF"
+                : theme.palette.background.default,
+          }}
+        >
+          <Conversation />
+        </Box>
+      );
+    }
+
+    return (
+      <Box sx={{ width: "100vw", height: "100%", overflow: "hidden" }}>
+        <Chats />
+      </Box>
+    );
+  }
+
   return (
     <Stack direction={"row"} sx={{ width: "100%" }}>
       <Chats />
@@ -74,7 +126,7 @@ const GeneralApp = () => {
               : theme.palette.background.default,
         }}
       >
-        {room_id !== null && chat_type === "individual" ? (
+        {hasConversation ? (
           <Conversation />
         ) : (
           <Stack

@@ -1,7 +1,15 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useDispatch, useSelector } from "react-redux";
-import { ToggleSidebar, UpdateSidebarType } from "../../redux/slices/app";
+import {
+  ResetConversationSelection,
+  ToggleSidebar,
+  UpdateSidebarType,
+} from "../../redux/slices/app";
+import {
+  ClearCurrentConversation,
+  ClearCurrentGroupConversation,
+} from "../../redux/slices/conversation";
 import Header from "./Header";
 
 jest.mock("react-redux", () => ({
@@ -10,8 +18,14 @@ jest.mock("react-redux", () => ({
 }));
 
 jest.mock("../../redux/slices/app", () => ({
+  ResetConversationSelection: jest.fn(),
   ToggleSidebar: jest.fn(),
   UpdateSidebarType: jest.fn(),
+}));
+
+jest.mock("../../redux/slices/conversation", () => ({
+  ClearCurrentConversation: jest.fn(),
+  ClearCurrentGroupConversation: jest.fn(),
 }));
 
 jest.mock("../StyledBadge", () => {
@@ -61,6 +75,18 @@ describe("Conversation/Header", () => {
       type: "app/updateSidebarType",
       payload: { type },
     }));
+
+    ResetConversationSelection.mockReturnValue({
+      type: "app/resetConversationSelection",
+    });
+
+    ClearCurrentConversation.mockReturnValue({
+      type: "conversation/clearCurrentConversation",
+    });
+
+    ClearCurrentGroupConversation.mockReturnValue({
+      type: "conversation/clearCurrentGroupConversation",
+    });
   });
 
   it("renders current conversation name and online status", () => {

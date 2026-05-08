@@ -7,9 +7,13 @@ import {
   useTheme,
   Menu,
   MenuItem,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper,
 } from "@mui/material";
 import React from "react";
 import { Gear } from "phosphor-react";
+import useResponsive from "../../hooks/useResponsive";
 
 import AntSwitch from "../../components/AntSwitch";
 import useSettings from "../../hooks/useSettings";
@@ -68,6 +72,7 @@ const SideBar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { onToggleMode, themeMode } = useSettings();
+  const isMobile = useResponsive("down", "md");
 
   const selected = getSelectedIndex(pathname);
 
@@ -104,6 +109,109 @@ const SideBar = () => {
       navigate(path);
     }
   };
+
+  if (isMobile) {
+    const allNavItems = [
+      ...Nav_Buttons,
+      { index: 3, icon: <Gear size={22} /> },
+    ];
+
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          position: "sticky",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: (t) => t.zIndex.appBar,
+          borderRadius: 0,
+        }}
+      >
+        <BottomNavigation
+          showLabels={false}
+          value={selected}
+          onChange={(_, newValue) => handleNavigate(newValue)}
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            height: 56,
+          }}
+        >
+          {allNavItems.map((el) => (
+            <BottomNavigationAction
+              key={el.index}
+              icon={el.icon}
+              sx={{
+                color:
+                  selected === el.index
+                    ? theme.palette.primary.main
+                    : theme.palette.text.secondary,
+                minWidth: 0,
+              }}
+            />
+          ))}
+
+          <BottomNavigationAction
+            key="theme"
+            icon={
+              <AntSwitch
+                checked={themeMode === "dark"}
+                onChange={onToggleMode}
+                onClick={(event) => event.stopPropagation()}
+                size="small"
+              />
+            }
+            showLabel={false}
+            sx={{ minWidth: 0 }}
+          />
+
+          <BottomNavigationAction
+            key="profile"
+            icon={
+              <Avatar
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleOpenMenu(event);
+                }}
+                alt="User menu"
+                sx={{ width: 28, height: 28, cursor: "pointer" }}
+              />
+            }
+            showLabel={false}
+            sx={{ minWidth: 0 }}
+          />
+        </BottomNavigation>
+
+        <Menu
+          id="profile-menu-mobile"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleCloseMenu}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Stack spacing={1} px={1}>
+            {Profile_Menu.map((el, idx) => (
+              <MenuItem
+                key={`${el.title}-${idx}`}
+                onClick={() => handleProfileMenuAction(idx)}
+              >
+                <Stack
+                  sx={{ width: 100 }}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <span>{el.title}</span>
+                  {el.icon}
+                </Stack>
+              </MenuItem>
+            ))}
+          </Stack>
+        </Menu>
+      </Paper>
+    );
+  }
 
   return (
     <Box

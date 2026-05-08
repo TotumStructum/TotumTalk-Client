@@ -23,6 +23,7 @@ import {
 import ChatElement from "../../components/ChatElement";
 import Friends from "../../sections/main/Friends";
 import { useSelector } from "react-redux";
+import useResponsive from "../../hooks/useResponsive";
 
 const Chats = () => {
   const [OpenDialog, setOpenDialog] = useState(false);
@@ -41,13 +42,15 @@ const Chats = () => {
     setOpenDialog(true);
   };
 
+  const isMobile = useResponsive("down", "md");
+
   return (
     <>
       <Box
         sx={{
           position: "relative",
-          width: 320,
-          height: "100vh",
+          width: isMobile ? "100vw" : 320,
+          height: isMobile ? "100%" : "100vh",
           backgroundColor:
             theme.palette.mode === "light"
               ? "#f8faff"
@@ -55,7 +58,7 @@ const Chats = () => {
           boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
         }}
       >
-        <Stack p={3} spacing={2} sx={{ maxHeight: "100%" }}>
+        <Stack p={isMobile ? 2 : 3} spacing={2} sx={{ height: "100%" }}>
           <Stack
             direction="row"
             alignItems={"center"}

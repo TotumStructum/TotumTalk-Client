@@ -20,14 +20,17 @@ import {
 import { SimpleBarStyle } from "../../components/Scrollbar";
 import CreateGroup from "../../sections/main/CreateGroup";
 import { useDispatch, useSelector } from "react-redux";
-import { FetchGroupConversations } from "../../redux/slices/app";
+import {
+  FetchGroupConversations,
+  SelectGroupConversation,
+} from "../../redux/slices/app";
 import Conversation from "../../components/Conversation";
 import NoChatSVG from "../../assets/Illustration/NoChat";
-import { SelectGroupConversation } from "../../redux/slices/app";
 import SharedMessages from "../../components/SharedMessages";
 import StarredMessages from "../../components/StarredMessages";
 import GroupInfo from "../../components/GroupInfo";
 import MessageSearch from "../../components/MessageSearch";
+import useResponsive from "../../hooks/useResponsive";
 
 const getParticipantName = (participant) => {
   return (
@@ -125,12 +128,11 @@ const GroupElement = ({ group, isSelected, onSelect }) => {
   );
 };
 
-const Group = () => {
+const GroupListPanel = ({ sx = {}, padding = 3 }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { groups, room_id, chat_type, sidebar } = useSelector(
-    (state) => state.app,
-  );
+
+  const { groups, room_id, chat_type } = useSelector((state) => state.app);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -151,132 +153,191 @@ const Group = () => {
     dispatch(FetchGroupConversations());
   }, [dispatch]);
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
   return (
     <>
-      <Stack direction={"row"} sx={{ width: "100%" }}>
-        <Box
-          sx={{
-            height: "100vh",
-            backgroundColor: (theme) =>
-              theme.palette.mode === "light"
-                ? "#F8FAFF"
-                : theme.palette.background.paper,
-            width: 320,
-            boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
-          }}
-        >
-          <Stack p={3} spacing={2} sx={{ height: "100%" }}>
-            <Stack>
-              <Typography variant="h5">Groups</Typography>
-            </Stack>
-
-            <Stack sx={{ width: "100%" }}>
-              <Search>
-                <SearchIconWrapper>
-                  <MagnifyingGlass color="#709ce6" />
-                </SearchIconWrapper>
-                <StyledInputBase
-                  placeholder="Search..."
-                  inputProps={{ "aria-label": "search" }}
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-              </Search>
-            </Stack>
-
-            <Stack
-              direction={"row"}
-              justifyContent={"space-between"}
-              alignItems={"center"}
-            >
-              <Typography variant="subtitle2" component={Link}>
-                Create New Group
-              </Typography>
-              <IconButton
-                onClick={() => {
-                  setOpenDialog(true);
-                }}
-              >
-                <Plus style={{ color: theme.palette.primary.main }} />
-              </IconButton>
-            </Stack>
-
-            <Divider />
-
-            <SimpleBarStyle
-              timeout={500}
-              clickOnTrack={false}
-              sx={{ flexGrow: 1, minHeight: 0 }}
-            >
-              <Stack spacing={2.4}>
-                {filteredGroups.length > 0 ? (
-                  filteredGroups.map((group) => (
-                    <GroupElement
-                      key={group._id}
-                      group={group}
-                      isSelected={
-                        chat_type === "group" && room_id === group._id
-                      }
-                      onSelect={() => {
-                        dispatch(
-                          SelectGroupConversation({ room_id: group._id }),
-                        );
-                      }}
-                    />
-                  ))
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    {searchQuery.trim()
-                      ? "No groups found."
-                      : "No group conversations yet."}
-                  </Typography>
-                )}
-              </Stack>
-            </SimpleBarStyle>
+      <Box
+        sx={{
+          height: "100%",
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? "#F8FAFF"
+              : theme.palette.background.paper,
+          boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
+          ...sx,
+        }}
+      >
+        <Stack p={padding} spacing={2} sx={{ height: "100%" }}>
+          <Stack>
+            <Typography variant="h5">Groups</Typography>
           </Stack>
-        </Box>
+
+          <Stack sx={{ width: "100%" }}>
+            <Search>
+              <SearchIconWrapper>
+                <MagnifyingGlass color="#709ce6" />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Search..."
+                inputProps={{ "aria-label": "search" }}
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+              />
+            </Search>
+          </Stack>
+
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="subtitle2" component={Link}>
+              Create New Group
+            </Typography>
+            <IconButton
+              onClick={() => {
+                setOpenDialog(true);
+              }}
+            >
+              <Plus style={{ color: theme.palette.primary.main }} />
+            </IconButton>
+          </Stack>
+
+          <Divider />
+
+          <SimpleBarStyle
+            timeout={500}
+            clickOnTrack={false}
+            sx={{ flexGrow: 1, minHeight: 0 }}
+          >
+            <Stack spacing={2.4}>
+              {filteredGroups.length > 0 ? (
+                filteredGroups.map((group) => (
+                  <GroupElement
+                    key={group._id}
+                    group={group}
+                    isSelected={chat_type === "group" && room_id === group._id}
+                    onSelect={() => {
+                      dispatch(SelectGroupConversation({ room_id: group._id }));
+                    }}
+                  />
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {searchQuery.trim()
+                    ? "No groups found."
+                    : "No group conversations yet."}
+                </Typography>
+              )}
+            </Stack>
+          </SimpleBarStyle>
+        </Stack>
+      </Box>
+
+      {openDialog && (
+        <CreateGroup
+          open={openDialog}
+          handleClose={() => {
+            setOpenDialog(false);
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+const Group = () => {
+  const theme = useTheme();
+  const isMobile = useResponsive("down", "md");
+
+  const { room_id, chat_type, sidebar } = useSelector((state) => state.app);
+
+  const hasConversation = room_id !== null && chat_type === "group";
+
+  if (isMobile) {
+    if (sidebar.open) {
+      return (
         <Box
           sx={{
+            width: "100vw",
             height: "100%",
-            width: sidebar.open ? "calc(100vw - 740px)" : "calc(100vw - 420px)",
+            overflow: "hidden",
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : theme.palette.background.default,
           }}
         >
-          {room_id !== null && chat_type === "group" ? (
-            <Conversation />
-          ) : (
-            <Stack
-              spacing={2}
-              sx={{ height: "100%", width: "100%" }}
-              alignItems="center"
-              justifyContent="center"
-            >
-              <NoChatSVG />
-              <Typography variant="subtitle2">
-                Select a group conversation
-              </Typography>
-            </Stack>
-          )}
+          {sidebar.type === "GROUP_INFO" && <GroupInfo />}
+          {sidebar.type === "SHARED" && <SharedMessages />}
+          {sidebar.type === "STARRED" && <StarredMessages />}
+          {sidebar.type === "MESSAGE_SEARCH" && <MessageSearch />}
         </Box>
-        {sidebar.open &&
-          ((sidebar.type === "GROUP_INFO" && <GroupInfo />) ||
-            (sidebar.type === "SHARED" && <SharedMessages />) ||
-            (sidebar.type === "STARRED" && <StarredMessages />) ||
-            (sidebar.type === "MESSAGE_SEARCH" && <MessageSearch />) ||
-            null)}
-      </Stack>
+      );
+    }
 
-      {openDialog && (
-        <CreateGroup open={openDialog} handleClose={handleCloseDialog} />
-      )}
-    </>
+    if (hasConversation) {
+      return (
+        <Box
+          sx={{
+            width: "100vw",
+            height: "100%",
+            overflow: "hidden",
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "#F8FAFF"
+                : theme.palette.background.default,
+          }}
+        >
+          <Conversation />
+        </Box>
+      );
+    }
+
+    return (
+      <Box sx={{ width: "100vw", height: "100%", overflow: "hidden" }}>
+        <GroupListPanel sx={{ width: "100%" }} padding={2} />
+      </Box>
+    );
+  }
+
+  return (
+    <Stack direction="row" sx={{ width: "100%" }}>
+      <GroupListPanel sx={{ width: 320 }} />
+
+      <Box
+        sx={{
+          height: "100%",
+          width: sidebar.open ? "calc(100vw - 740px)" : "calc(100vw - 420px)",
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? "#F8FAFF"
+              : theme.palette.background.default,
+        }}
+      >
+        {hasConversation ? (
+          <Conversation />
+        ) : (
+          <Stack
+            spacing={2}
+            sx={{ height: "100%", width: "100%" }}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <NoChatSVG />
+            <Typography variant="subtitle2">
+              Select a group conversation
+            </Typography>
+          </Stack>
+        )}
+      </Box>
+
+      {sidebar.open &&
+        ((sidebar.type === "GROUP_INFO" && <GroupInfo />) ||
+          (sidebar.type === "SHARED" && <SharedMessages />) ||
+          (sidebar.type === "STARRED" && <StarredMessages />) ||
+          (sidebar.type === "MESSAGE_SEARCH" && <MessageSearch />) ||
+          null)}
+    </Stack>
   );
 };
 
