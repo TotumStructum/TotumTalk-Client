@@ -251,6 +251,21 @@ const slice = createSlice({
       );
     },
 
+    deleteGroupMessage(state, action) {
+      const { group_id, message_id } = action.payload;
+
+      if (state.group_chat.current_conversation?._id === group_id) {
+        state.group_chat.current_messages =
+          state.group_chat.current_messages.filter(
+            (message) => message._id !== message_id,
+          );
+      }
+
+      if (state.group_chat.current_reply?.messageId === message_id) {
+        state.group_chat.current_reply = null;
+      }
+    },
+
     addDirectMessage(state, action) {
       const user_id = getStoredUserId();
       const { conversation_id, message } = action.payload;
@@ -479,6 +494,29 @@ export const DeleteDirectMessageForMe = ({ conversation_id, message_id }) => {
     dispatch(
       slice.actions.deleteDirectMessage({
         conversation_id,
+        message_id,
+      }),
+    );
+
+    return response.data;
+  };
+};
+
+export const DeleteGroupMessageForMe = ({ group_id, message_id }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.delete(
+      `/conversation/group/${group_id}/messages/${message_id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    dispatch(
+      slice.actions.deleteGroupMessage({
+        group_id,
         message_id,
       }),
     );
