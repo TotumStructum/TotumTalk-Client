@@ -76,6 +76,9 @@ const SideBar = () => {
 
   const selected = getSelectedIndex(pathname);
 
+  const mainProfileMenuItems = Profile_Menu.slice(0, 2);
+  const logoutProfileMenuItem = Profile_Menu[2];
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -108,6 +111,11 @@ const SideBar = () => {
     if (path) {
       navigate(path);
     }
+  };
+
+  const handleThemeMenuToggle = (event) => {
+    event.stopPropagation();
+    onToggleMode();
   };
 
   if (isMobile) {
@@ -152,20 +160,6 @@ const SideBar = () => {
           ))}
 
           <BottomNavigationAction
-            key="theme"
-            icon={
-              <AntSwitch
-                checked={themeMode === "dark"}
-                onChange={onToggleMode}
-                onClick={(event) => event.stopPropagation()}
-                size="small"
-              />
-            }
-            showLabel={false}
-            sx={{ minWidth: 0 }}
-          />
-
-          <BottomNavigationAction
             key="profile"
             icon={
               <Avatar
@@ -190,14 +184,15 @@ const SideBar = () => {
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
           transformOrigin={{ vertical: "bottom", horizontal: "center" }}
         >
-          <Stack spacing={1} px={1}>
-            {Profile_Menu.map((el, idx) => (
+          <Stack spacing={0.5} px={1} py={0.5}>
+            {mainProfileMenuItems.map((el, idx) => (
               <MenuItem
                 key={`${el.title}-${idx}`}
                 onClick={() => handleProfileMenuAction(idx)}
+                sx={{ borderRadius: 1 }}
               >
                 <Stack
-                  sx={{ width: 100 }}
+                  sx={{ width: 160 }}
                   direction="row"
                   alignItems="center"
                   justifyContent="space-between"
@@ -207,6 +202,41 @@ const SideBar = () => {
                 </Stack>
               </MenuItem>
             ))}
+
+            <MenuItem onClick={onToggleMode} sx={{ borderRadius: 1 }}>
+              <Stack
+                sx={{ width: 160 }}
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                spacing={2}
+              >
+                <span>Dark mode</span>
+                <AntSwitch
+                  checked={themeMode === "dark"}
+                  onChange={handleThemeMenuToggle}
+                  onClick={(event) => event.stopPropagation()}
+                  size="small"
+                />
+              </Stack>
+            </MenuItem>
+
+            <Divider />
+
+            <MenuItem
+              onClick={() => handleProfileMenuAction(2)}
+              sx={{ borderRadius: 1 }}
+            >
+              <Stack
+                sx={{ width: 160 }}
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <span>{logoutProfileMenuItem.title}</span>
+                {logoutProfileMenuItem.icon}
+              </Stack>
+            </MenuItem>
           </Stack>
         </Menu>
       </Paper>
@@ -313,8 +343,6 @@ const SideBar = () => {
         </Stack>
 
         <Stack alignItems={"center"} spacing={4}>
-          <AntSwitch checked={themeMode === "dark"} onChange={onToggleMode} />
-
           <Avatar
             id="basic-button"
             aria-controls={open ? "basic-menu" : undefined}
@@ -335,16 +363,17 @@ const SideBar = () => {
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "bottom", horizontal: "left" }}
           >
-            <Stack spacing={1} px={1}>
-              {Profile_Menu.map((el, idx) => (
+            <Stack spacing={0.5} px={1} py={0.5}>
+              {mainProfileMenuItems.map((el, idx) => (
                 <MenuItem
                   key={`${el.title}-${idx}`}
                   onClick={() => {
                     handleProfileMenuAction(idx);
                   }}
+                  sx={{ borderRadius: 1 }}
                 >
                   <Stack
-                    sx={{ width: 100 }}
+                    sx={{ width: 160 }}
                     direction="row"
                     alignItems={"center"}
                     justifyContent="space-between"
@@ -354,6 +383,43 @@ const SideBar = () => {
                   </Stack>
                 </MenuItem>
               ))}
+
+              <MenuItem onClick={onToggleMode} sx={{ borderRadius: 1 }}>
+                <Stack
+                  sx={{ width: 160 }}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={2}
+                >
+                  <span>Dark mode</span>
+                  <AntSwitch
+                    checked={themeMode === "dark"}
+                    onChange={handleThemeMenuToggle}
+                    onClick={(event) => event.stopPropagation()}
+                    size="small"
+                  />
+                </Stack>
+              </MenuItem>
+
+              <Divider />
+
+              <MenuItem
+                onClick={() => {
+                  handleProfileMenuAction(2);
+                }}
+                sx={{ borderRadius: 1 }}
+              >
+                <Stack
+                  sx={{ width: 160 }}
+                  direction="row"
+                  alignItems={"center"}
+                  justifyContent="space-between"
+                >
+                  <span>{logoutProfileMenuItem.title}</span>
+                  {logoutProfileMenuItem.icon}
+                </Stack>
+              </MenuItem>
             </Stack>
           </Menu>
         </Stack>
