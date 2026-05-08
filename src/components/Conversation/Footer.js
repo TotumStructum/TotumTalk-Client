@@ -12,10 +12,7 @@ import {
   LinkSimple,
   Smiley,
   PaperPlaneTilt,
-  User,
-  Camera,
   File,
-  Sticker,
   Image,
   X,
 } from "phosphor-react";
@@ -32,39 +29,7 @@ import {
   ClearDirectReplyMessage,
   ClearGroupReplyMessage,
 } from "../../redux/slices/conversation";
-
-const Actions = [
-  {
-    color: "#4da5fe",
-    icon: <Image size={24} />,
-    y: 102,
-    title: "Photo/Video",
-  },
-  {
-    color: "#1b8cfe",
-    icon: <Sticker size={24} />,
-    y: 172,
-    title: "Stickers",
-  },
-  {
-    color: "#0172e4",
-    icon: <Camera size={24} />,
-    y: 242,
-    title: "Image",
-  },
-  {
-    color: "#0159b2",
-    icon: <File size={24} />,
-    y: 312,
-    title: "Document",
-  },
-  {
-    color: "#013f7f",
-    icon: <User size={24} />,
-    y: 382,
-    title: "Contact",
-  },
-];
+import useResponsive from "../../hooks/useResponsive";
 
 const URL_DETECTION_REGEX =
   /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
@@ -83,109 +48,148 @@ const ChatInput = ({
   handleDocumentSelected,
   mediaInputRef,
   handleMediaSelected,
+  isMobile,
 }) => {
   const [openActions, setOpenActions] = React.useState(false);
 
-  const handleActionClick = (title) => {
-    if (title === "Document") {
-      documentInputRef.current?.click();
-    }
+  const uploadActions = [
+    {
+      color: "#4da5fe",
+      icon: <Image size={isMobile ? 20 : 24} />,
+      title: "Photo/Video",
+      action: () => mediaInputRef.current?.click(),
+    },
+    {
+      color: "#0159b2",
+      icon: <File size={isMobile ? 20 : 24} />,
+      title: "Document",
+      action: () => documentInputRef.current?.click(),
+    },
+  ];
 
-    if (title === "Photo/Video" || title === "Image") {
-      mediaInputRef.current?.click();
-    }
-
+  const handleActionClick = (action) => {
+    action();
     setOpenActions(false);
   };
 
   return (
-    <StyledInput
-      fullWidth
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          handleSend();
-        }
-      }}
-      placeholder="Write a message..."
-      variant="filled"
-      InputProps={{
-        disableUnderline: true,
-        startAdornment: (
-          <Stack sx={{ width: "max-content" }}>
-            <input
-              ref={documentInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-              style={{ display: "none" }}
-              onChange={handleDocumentSelected}
-              aria-label="Document file input"
-            />
-            <input
-              ref={mediaInputRef}
-              type="file"
-              aria-label="Media file input"
-              accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
-              style={{ display: "none" }}
-              onChange={handleMediaSelected}
-            />
+    <Box sx={{ position: "relative", width: "100%", minWidth: 0 }}>
+      <input
+        ref={documentInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+        style={{ display: "none" }}
+        onChange={handleDocumentSelected}
+        aria-label="Document file input"
+      />
 
-            <Stack
-              sx={{
-                position: "relative",
-                display: openActions ? "inline-block" : "none",
-              }}
-            >
-              {Actions.map((el) => (
-                <Tooltip key={el.title} placement="right" title={el.title}>
-                  <Fab
-                    onClick={() => {
-                      handleActionClick(el.title);
-                    }}
-                    sx={{
-                      position: "absolute",
-                      top: -el.y,
-                      backgroundColor: el.color,
-                    }}
-                    aria-label={el.title}
-                  >
-                    {el.icon}
-                  </Fab>
-                </Tooltip>
-              ))}
-            </Stack>
+      <input
+        ref={mediaInputRef}
+        type="file"
+        aria-label="Media file input"
+        accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
+        style={{ display: "none" }}
+        onChange={handleMediaSelected}
+      />
 
+      {openActions ? (
+        <Stack
+          spacing={1}
+          sx={{
+            position: "absolute",
+            left: 0,
+            bottom: "calc(100% + 8px)",
+            zIndex: (t) => t.zIndex.modal,
+          }}
+        >
+          {uploadActions.map((el) => (
+            <Tooltip key={el.title} placement="right" title={el.title}>
+              <Fab
+                size={isMobile ? "small" : "medium"}
+                onClick={() => {
+                  handleActionClick(el.action);
+                }}
+                sx={{
+                  backgroundColor: el.color,
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: el.color,
+                  },
+                }}
+                aria-label={el.title}
+              >
+                {el.icon}
+              </Fab>
+            </Tooltip>
+          ))}
+        </Stack>
+      ) : null}
+
+      <StyledInput
+        fullWidth
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+        placeholder="Write a message..."
+        variant="filled"
+        sx={{
+          "& .MuiFilledInput-root": {
+            minHeight: isMobile ? 44 : 48,
+            borderRadius: 2,
+            alignItems: "center",
+            overflow: "visible",
+            pr: 0.5,
+          },
+          "& .MuiInputBase-input": {
+            py: isMobile ? 1 : 1.25,
+            fontSize: isMobile ? "0.95rem" : undefined,
+          },
+          "& .MuiInputAdornment-root": {
+            mt: "0 !important",
+          },
+        }}
+        InputProps={{
+          disableUnderline: true,
+          startAdornment: (
             <InputAdornment position="start">
               <IconButton
+                aria-label="Open upload actions"
+                size={isMobile ? "small" : "medium"}
                 onClick={() => {
                   setOpenActions((prev) => !prev);
                 }}
               >
-                <LinkSimple />
+                <LinkSimple size={isMobile ? 20 : 24} />
               </IconButton>
             </InputAdornment>
-          </Stack>
-        ),
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton
-              onClick={() => {
-                setOpenPicker((prev) => !prev);
-              }}
-            >
-              <Smiley />
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
-    />
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label="Open emoji picker"
+                size={isMobile ? "small" : "medium"}
+                onClick={() => {
+                  setOpenPicker((prev) => !prev);
+                }}
+              >
+                <Smiley size={isMobile ? 20 : 24} />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+    </Box>
   );
 };
 
 function Footer() {
   const theme = useTheme();
+  const isMobile = useResponsive("down", "md");
   const dispatch = useDispatch();
   const [openPicker, setOpenPicker] = React.useState(false);
   const [value, setValue] = React.useState("");
@@ -380,11 +384,12 @@ function Footer() {
 
   return (
     <Box
-      p={2}
       sx={{
         width: "100%",
-        height: 88,
+        flexShrink: 0,
         boxSizing: "border-box",
+        px: isMobile ? 1 : 2,
+        py: isMobile ? 1 : 2,
         backgroundColor:
           theme.palette.mode === "light"
             ? "#f8faff"
@@ -392,15 +397,21 @@ function Footer() {
         boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
       }}
     >
-      <Stack direction={"row"} alignItems={"center"} spacing={3}>
-        <Stack sx={{ width: "100%" }}>
+      <Stack
+        direction="row"
+        alignItems="flex-end"
+        spacing={isMobile ? 1 : 2}
+        sx={{ width: "100%" }}
+      >
+        <Stack sx={{ width: "100%", minWidth: 0 }}>
           <Box
             sx={{
-              display: openPicker ? "inline" : "none",
+              display: openPicker ? "block" : "none",
               zIndex: 10,
               position: "fixed",
-              bottom: 81,
-              right: 100,
+              bottom: isMobile ? 72 : 81,
+              right: isMobile ? 8 : 100,
+              maxWidth: isMobile ? "calc(100vw - 16px)" : "auto",
             }}
           >
             <Picker
@@ -416,8 +427,8 @@ function Footer() {
             <Box
               sx={{
                 mb: 1,
-                px: 1.5,
-                py: 1,
+                px: 1.25,
+                py: 0.75,
                 borderRadius: 1.5,
                 backgroundColor:
                   theme.palette.mode === "light"
@@ -425,12 +436,15 @@ function Footer() {
                     : "rgba(255,255,255,0.06)",
                 borderLeft: `3px solid ${theme.palette.primary.main}`,
                 boxShadow: "0px 0px 2px rgba(0,0,0,0.12)",
+                maxHeight: isMobile ? 64 : 76,
+                overflow: "hidden",
               }}
             >
               <Stack
                 direction="row"
                 alignItems="center"
                 justifyContent="space-between"
+                spacing={1}
               >
                 <Stack sx={{ minWidth: 0 }}>
                   <Typography
@@ -449,6 +463,7 @@ function Footer() {
                   aria-label="Cancel reply"
                   size="small"
                   onClick={clearReply}
+                  sx={{ flexShrink: 0 }}
                 >
                   <X size={16} />
                 </IconButton>
@@ -466,13 +481,15 @@ function Footer() {
             handleDocumentSelected={handleDocumentSelected}
             mediaInputRef={mediaInputRef}
             handleMediaSelected={handleMediaSelected}
+            isMobile={isMobile}
           />
         </Stack>
 
         <Box
           sx={{
-            height: 48,
-            width: 48,
+            height: isMobile ? 44 : 48,
+            width: isMobile ? 44 : 48,
+            flexShrink: 0,
             backgroundColor: theme.palette.primary.main,
             borderRadius: 1.5,
           }}
@@ -482,8 +499,12 @@ function Footer() {
             alignItems="center"
             justifyContent="center"
           >
-            <IconButton aria-label="Send message" onClick={handleSend}>
-              <PaperPlaneTilt color="#fff" />
+            <IconButton
+              aria-label="Send message"
+              onClick={handleSend}
+              size={isMobile ? "small" : "medium"}
+            >
+              <PaperPlaneTilt color="#fff" size={isMobile ? 20 : 24} />
             </IconButton>
           </Stack>
         </Box>

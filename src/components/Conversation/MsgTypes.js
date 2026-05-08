@@ -41,8 +41,12 @@ const getBubbleStyles = (theme, incoming) => ({
       : theme.palette.background.paper
     : theme.palette.primary.main,
   borderRadius: 1.5,
-  width: "max-content",
-  maxWidth: "85%",
+  width: "fit-content",
+  maxWidth: {
+    xs: "92%",
+    md: "85%",
+  },
+  wordBreak: "break-word",
 });
 
 const getTextColor = (theme, incoming) =>

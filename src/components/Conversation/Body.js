@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 
 import { DocMsg, LinkMsg, MediaMsg, TextMsg } from "./MsgTypes";
 
+import useResponsive from "../../hooks/useResponsive";
+
 const URL_PATTERN =
   /((?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#][^\s]*)?)/i;
 
@@ -19,6 +21,8 @@ const Body = ({ menu }) => {
   const currentUserId = window.localStorage.getItem("user_id");
   const scrollRef = useRef(null);
   const { room_id, chat_type } = useSelector((state) => state.app);
+
+  const isMobile = useResponsive("down", "md");
 
   const { current_messages: directMessages } = useSelector(
     (state) => state.conversation.direct_chat,
@@ -66,8 +70,8 @@ const Body = ({ menu }) => {
         height: "100%",
         overflowY: "auto",
         overflowX: "hidden",
-        px: 3,
-        py: 3,
+        px: isMobile ? 1 : 3,
+        py: isMobile ? 1.5 : 3,
         scrollbarWidth: "none",
         msOverflowStyle: "none",
         "&::-webkit-scrollbar": {
@@ -76,7 +80,7 @@ const Body = ({ menu }) => {
         },
       }}
     >
-      <Stack spacing={3}>
+      <Stack spacing={isMobile ? 1.5 : 3}>
         {current_messages.map((message) => {
           const incoming = getSenderId(message.from) !== currentUserId;
 
