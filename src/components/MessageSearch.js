@@ -98,10 +98,14 @@ const MessageSearch = () => {
           }}
         >
           <Stack
-            sx={{ height: "100%", p: 2 }}
+            sx={{
+              height: "100%",
+              px: { xs: 2, md: 2 },
+              py: { xs: 1.5, md: 2 },
+            }}
+            spacing={{ xs: 1.5, md: 3 }}
             direction="row"
             alignItems="center"
-            spacing={3}
           >
             <IconButton
               onClick={() => {
@@ -114,7 +118,11 @@ const MessageSearch = () => {
           </Stack>
         </Box>
 
-        <Stack p={3} spacing={2} sx={{ flexGrow: 1, minHeight: 0 }}>
+        <Stack
+          p={{ xs: 2, md: 3 }}
+          spacing={2}
+          sx={{ flexGrow: 1, minHeight: 0 }}
+        >
           <TextField
             autoFocus
             size="small"

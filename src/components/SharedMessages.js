@@ -111,7 +111,12 @@ const SharedMessages = () => {
                 : theme.palette.background.paper,
           }}
         >
-          <Stack sx={{ p: 2 }} direction="row" alignItems="center" spacing={3}>
+          <Stack
+            sx={{ px: { xs: 2, md: 2 }, py: { xs: 1.5, md: 2 } }}
+            direction="row"
+            alignItems="center"
+            spacing={{ xs: 1.5, md: 3 }}
+          >
             <IconButton onClick={handleBackClick}>
               <CaretLeft />
             </IconButton>
@@ -120,7 +125,8 @@ const SharedMessages = () => {
         </Box>
 
         <Tabs
-          sx={{ px: 2, pt: 2 }}
+          sx={{ px: { xs: 1, md: 2 }, pt: { xs: 1, md: 2 } }}
+          variant="fullWidth"
           value={value}
           onChange={handleChange}
           centered
@@ -131,8 +137,8 @@ const SharedMessages = () => {
         </Tabs>
 
         <Stack
-          p={3}
-          spacing={value === 1 ? 1 : 3}
+          p={{ xs: 2, md: 3 }}
+          spacing={value === 1 ? 1 : { xs: 2, md: 3 }}
           sx={{
             flexGrow: 1,
             minHeight: 0,

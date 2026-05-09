@@ -151,7 +151,10 @@ const Contact = () => {
             sx={{
               boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
               width: "100%",
-              height: 72,
+              height: {
+                xs: 64,
+                md: 72,
+              },
               boxSizing: "border-box",
               backgroundColor:
                 theme.palette.mode === "light"
@@ -160,7 +163,11 @@ const Contact = () => {
             }}
           >
             <Stack
-              sx={{ p: 2, height: "100%" }}
+              sx={{
+                px: { xs: 2, md: 2 },
+                py: { xs: 1.5, md: 2 },
+                height: "100%",
+              }}
               direction="row"
               alignItems="center"
               justifyContent="space-between"
@@ -178,8 +185,8 @@ const Contact = () => {
           </Box>
 
           <Stack
-            p={3}
-            spacing={3}
+            p={{ xs: 2, md: 3 }}
+            spacing={{ xs: 2, md: 3 }}
             sx={{
               flexGrow: 1,
               minHeight: 0,
@@ -190,7 +197,10 @@ const Contact = () => {
               <Avatar
                 src={current_conversation.img}
                 alt={current_conversation.name}
-                sx={{ height: 72, width: 72 }}
+                sx={{
+                  height: { xs: 64, md: 72 },
+                  width: { xs: 64, md: 72 },
+                }}
               />
               <Stack spacing={0.5} alignItems="center">
                 <Typography variant="subtitle1" fontWeight={600}>

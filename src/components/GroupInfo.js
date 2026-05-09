@@ -337,7 +337,10 @@ const GroupInfo = () => {
             sx={{
               boxShadow: "0px 0px 2px rgba(0,0,0,0.25)",
               width: "100%",
-              height: 72,
+              height: {
+                xs: 64,
+                md: 72,
+              },
               boxSizing: "border-box",
               backgroundColor:
                 theme.palette.mode === "light"
@@ -346,11 +349,15 @@ const GroupInfo = () => {
             }}
           >
             <Stack
-              sx={{ p: 2, height: "100%" }}
+              sx={{
+                px: { xs: 2, md: 2 },
+                py: { xs: 1.5, md: 2 },
+                height: "100%",
+              }}
               direction="row"
               alignItems="center"
               justifyContent="space-between"
-              spacing={3}
+              spacing={{ xs: 1.5, md: 3 }}
             >
               <Typography variant="subtitle2">Group Info</Typography>
               <IconButton
@@ -364,8 +371,8 @@ const GroupInfo = () => {
           </Box>
 
           <Stack
-            p={3}
-            spacing={3}
+            p={{ xs: 2, md: 3 }}
+            spacing={{ xs: 2, md: 3 }}
             sx={{
               flexGrow: 1,
               minHeight: 0,
@@ -437,8 +444,8 @@ const GroupInfo = () => {
                     src={message.file}
                     alt="Shared media"
                     sx={{
-                      width: 72,
-                      height: 72,
+                      width: { xs: 64, md: 72 },
+                      height: { xs: 64, md: 72 },
                       borderRadius: 1.5,
                       objectFit: "cover",
                     }}
@@ -533,7 +540,7 @@ const GroupInfo = () => {
           </Stack>
           <Divider />
 
-          <Stack spacing={1.5} sx={{ p: 2 }}>
+          <Stack spacing={1.5} sx={{ p: { xs: 1.5, md: 2 } }}>
             <Button
               color="error"
               variant="outlined"

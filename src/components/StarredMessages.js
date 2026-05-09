@@ -164,10 +164,14 @@ const StarredMessages = () => {
           }}
         >
           <Stack
-            sx={{ height: "100%", p: 2 }}
+            sx={{
+              height: "100%",
+              px: { xs: 2, md: 2 },
+              py: { xs: 1.5, md: 2 },
+            }}
+            spacing={{ xs: 1.5, md: 3 }}
             direction="row"
             alignItems={"center"}
-            spacing={3}
           >
             <IconButton
               onClick={() => {
@@ -187,8 +191,8 @@ const StarredMessages = () => {
             minHeight: 0,
             overflowY: "auto",
           }}
-          p={3}
-          spacing={2}
+          p={{ xs: 2, md: 3 }}
+          spacing={{ xs: 1.5, md: 2 }}
         >
           {starredMessages.length > 0 ? (
             starredMessages.map((message) => {
