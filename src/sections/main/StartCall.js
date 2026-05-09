@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  IconButton,
   Slide,
   Stack,
   Typography,
@@ -12,13 +13,16 @@ import {
   SearchIconWrapper,
   StyledInputBase,
 } from "../../components/Search";
-import { MagnifyingGlass } from "phosphor-react";
+import { MagnifyingGlass, X } from "phosphor-react";
+import useResponsive from "../../hooks/useResponsive";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 const StartCall = ({ open, handleClose }) => {
+  const isMobile = useResponsive("down", "md");
+
   return (
     <Dialog
       fullWidth
@@ -26,11 +30,34 @@ const StartCall = ({ open, handleClose }) => {
       open={open}
       TransitionComponent={Transition}
       keepMounted
-      sx={{ p: 4 }}
       onClose={handleClose}
+      PaperProps={{
+        sx: {
+          width: isMobile ? "calc(100vw - 32px)" : undefined,
+          m: isMobile ? 2 : 4,
+          borderRadius: isMobile ? 3 : 2,
+          overflow: "hidden",
+        },
+      }}
     >
       {/*  */}
-      <DialogTitle sx={{ mb: 3 }}> Start Call</DialogTitle>
+      <DialogTitle sx={{ px: isMobile ? 2 : 3, py: 2 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          Start Call
+          {isMobile && (
+            <IconButton
+              onClick={handleClose}
+              aria-label="Close start call dialog"
+            >
+              <X size={22} />
+            </IconButton>
+          )}
+        </Stack>
+      </DialogTitle>
       {/*  */}
       <DialogContent>
         <Stack spacing={2}>

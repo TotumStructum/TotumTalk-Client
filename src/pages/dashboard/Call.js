@@ -18,9 +18,11 @@ import { useState } from "react";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { SimpleBarStyle } from "../../components/Scrollbar";
 import StartCall from "../../sections/main/StartCall";
+import useResponsive from "../../hooks/useResponsive";
 
 const Call = () => {
   const theme = useTheme();
+  const isMobile = useResponsive("down", "md");
   const [openDialog, setOpenDialog] = useState(false);
 
   const handleCloseDialog = () => {
@@ -29,20 +31,21 @@ const Call = () => {
 
   return (
     <>
-      <Stack direction={"row"} sx={{ width: "100%" }}>
+      <Stack direction="row" sx={{ width: "100%", height: "100%" }}>
         {/* {left} */}
         <Box
           sx={{
-            height: "100vh",
+            height: isMobile ? "100%" : "100vh",
+            width: isMobile ? "100vw" : 320,
             backgroundColor: (theme) =>
               theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : theme.palette.background.paper,
-            width: 320,
+
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Stack p={3} spacing={2} sx={{ height: "100%" }}>
+          <Stack p={isMobile ? 2 : 3} spacing={2} sx={{ height: "100%" }}>
             <Stack>
               <Typography variant="h5">Call Logs</Typography>
             </Stack>

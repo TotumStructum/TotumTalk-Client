@@ -5,7 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Stack } from "@mui/system";
 import { Button } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-
+import useResponsive from "../../hooks/useResponsive";
 import FormProvider, { RHFTextField } from "../../components/hook-form";
 import axios from "../../utils/axios";
 import { showSnackbar } from "../../redux/slices/app";
@@ -13,6 +13,8 @@ import { showSnackbar } from "../../redux/slices/app";
 const ProfileForm = () => {
   const dispatch = useDispatch();
   const token = useSelector((state) => state.auth.token);
+
+  const isMobile = useResponsive("down", "md");
 
   const ProfileSchema = Yup.object().shape({
     firstName: Yup.string().required("First name is required"),
@@ -110,7 +112,7 @@ const ProfileForm = () => {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3}>
+      <Stack spacing={isMobile ? 2 : 3}>
         <RHFTextField
           name="firstName"
           label="First name"
@@ -137,13 +139,14 @@ const ProfileForm = () => {
           helperText="Paste an image URL for now"
         />
 
-        <Stack direction={"row"} justifyContent={"end"}>
+        <Stack direction="row" justifyContent="end">
           <Button
             color="primary"
             size="large"
             type="submit"
             variant="outlined"
             disabled={isSubmitting}
+            fullWidth={isMobile}
           >
             Save
           </Button>

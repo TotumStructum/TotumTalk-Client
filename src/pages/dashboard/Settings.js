@@ -22,10 +22,11 @@ import React, { useState } from "react";
 import Shortcuts from "../../sections/settings/Shortcuts";
 import { useNavigate } from "react-router-dom";
 import { SimpleBarStyle } from "../../components/Scrollbar";
+import useResponsive from "../../hooks/useResponsive";
 
 const Settings = () => {
   const theme = useTheme();
-
+  const isMobile = useResponsive("down", "md");
   const [openShortcuts, setOpenShortcuts] = useState(false);
 
   const handleOpenShortcuts = () => {
@@ -91,11 +92,11 @@ const Settings = () => {
 
   return (
     <>
-      <Stack direction={"row"} sx={{ width: "100%" }}>
+      <Stack direction="row" sx={{ width: "100%", height: "100%" }}>
         <Box
           sx={{
-            height: "100vh",
-            width: 320,
+            height: isMobile ? "100%" : "100vh",
+            width: isMobile ? "100vw" : 320,
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
@@ -104,9 +105,13 @@ const Settings = () => {
           }}
         >
           <Stack p={2} spacing={5} sx={{ height: "100%" }}>
-            <Stack direction={"row"} alignItems={"center"} spacing={3}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={isMobile ? 1.5 : 3}
+            >
               <IconButton onClick={() => navigate(-1)}>
-                <CaretLeft size={24} color={"#4B4B4B"} />
+                <CaretLeft size={24} color={theme.palette.text.primary} />
               </IconButton>
               <Typography variant="h6">Settings</Typography>
             </Stack>
@@ -117,7 +122,11 @@ const Settings = () => {
               sx={{ flexGrow: 1, minHeight: 0 }}
             >
               <Stack spacing={5}>
-                <Stack direction={"row"} spacing={3}>
+                <Stack
+                  direction="row"
+                  spacing={isMobile ? 2 : 3}
+                  alignItems="center"
+                >
                   <Avatar sx={{ width: 56, height: 56 }} alt="Profile" />
                   <Stack spacing={0.5}>
                     <Typography variant="subtitle2">Your profile</Typography>
@@ -127,7 +136,7 @@ const Settings = () => {
                   </Stack>
                 </Stack>
 
-                <Stack spacing={4}>
+                <Stack spacing={isMobile ? 2.5 : 4}>
                   {list.map(({ key, icon, title, onClick }) => (
                     <Stack
                       key={key}

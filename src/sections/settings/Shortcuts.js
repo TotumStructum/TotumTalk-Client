@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
+import useResponsive from "../../hooks/useResponsive";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -104,22 +105,31 @@ const list = [
 ];
 
 const Shortcuts = ({ open, handleClose }) => {
+  const isMobile = useResponsive("down", "md");
+
   return (
     <>
       <Dialog
         fullWidth
-        maxWidth="md"
+        maxWidth={isMobile ? "xs" : "md"}
         open={open}
         onClose={handleClose}
         keepMounted
         TransitionComponent={Transition}
-        sx={{ p: 4 }}
+        PaperProps={{
+          sx: {
+            width: isMobile ? "calc(100vw - 32px)" : undefined,
+            m: isMobile ? 2 : 4,
+            borderRadius: isMobile ? 3 : 2,
+            maxHeight: isMobile ? "76vh" : "calc(100% - 64px)",
+          },
+        }}
       >
         <DialogTitle>Keyboard Shortcuts</DialogTitle>
-        <DialogContent sx={{ mt: 4 }}>
+        <DialogContent sx={{ mt: isMobile ? 1 : 4, px: isMobile ? 2 : 3 }}>
           <Grid container spacing={3}>
             {list.map(({ key, title, combination }) => (
-              <Grid key={key} container item xs={6}>
+              <Grid key={key} container item xs={12} md={6}>
                 <Stack
                   sx={{ width: "100%" }}
                   justifyContent={"space-between"}
@@ -130,7 +140,11 @@ const Shortcuts = ({ open, handleClose }) => {
                   <Typography variant="caption" sx={{ fontSize: 14 }}>
                     {title}
                   </Typography>
-                  <Stack spacing={2} direction={"row"}>
+                  <Stack
+                    spacing={isMobile ? 1 : 2}
+                    direction="row"
+                    flexWrap="wrap"
+                  >
                     {combination.map((el, idx) => {
                       return (
                         <Button
@@ -138,6 +152,7 @@ const Shortcuts = ({ open, handleClose }) => {
                           disabled
                           variant="contained"
                           sx={{ color: "#212121" }}
+                          size={isMobile ? "small" : "medium"}
                         >
                           {el}
                         </Button>
