@@ -42,6 +42,9 @@ const getParticipantName = (participant) => {
 
 const GroupElement = ({ group, isSelected, onSelect }) => {
   const theme = useTheme();
+
+  const isMobile = useResponsive("down", "md");
+
   const participants = Array.isArray(group.participants)
     ? group.participants
     : [];
@@ -69,27 +72,27 @@ const GroupElement = ({ group, isSelected, onSelect }) => {
                 : alpha(theme.palette.common.white, 0.08)
             }`,
       }}
-      p={2}
+      p={isMobile ? 1.5 : 2}
     >
       <Stack
         direction="row"
-        spacing={2}
+        spacing={1.5}
         alignItems="center"
         justifyContent="space-between"
       >
         <Stack
           direction="row"
-          spacing={2}
+          spacing={isMobile ? 1.5 : 2}
           alignItems="center"
-          sx={{ minWidth: 0 }}
+          sx={{ minWidth: 0, flex: 1 }}
         >
           <AvatarGroup
             max={3}
             sx={{
               "& .MuiAvatar-root": {
-                width: 36,
-                height: 36,
-                fontSize: 14,
+                width: isMobile ? 32 : 36,
+                height: isMobile ? 32 : 36,
+                fontSize: isMobile ? 12 : 14,
               },
             }}
           >
@@ -112,7 +115,11 @@ const GroupElement = ({ group, isSelected, onSelect }) => {
           </Stack>
         </Stack>
 
-        <Stack spacing={2} alignItems="center" sx={{ flexShrink: 0 }}>
+        <Stack
+          spacing={isMobile ? 0.75 : 2}
+          alignItems="flex-end"
+          sx={{ flexShrink: 0 }}
+        >
           {group.time ? (
             <Typography sx={{ fontWeight: 600 }} variant="caption">
               {group.time}
@@ -144,9 +151,21 @@ const GroupListPanel = ({ sx = {}, padding = 3 }) => {
 
     if (!query) return groupList;
 
-    return groupList.filter((group) =>
-      group.title?.toLowerCase().includes(query),
-    );
+    return groupList.filter((group) => {
+      const title = group.title?.toLowerCase() || "";
+      const message = group.msg?.toLowerCase() || "";
+      const participants = Array.isArray(group.participants)
+        ? group.participants
+            .map((participant) => getParticipantName(participant).toLowerCase())
+            .join(" ")
+        : "";
+
+      return (
+        title.includes(query) ||
+        message.includes(query) ||
+        participants.includes(query)
+      );
+    });
   }, [groupList, searchQuery]);
 
   useEffect(() => {
@@ -178,7 +197,7 @@ const GroupListPanel = ({ sx = {}, padding = 3 }) => {
               </SearchIconWrapper>
               <StyledInputBase
                 placeholder="Search..."
-                inputProps={{ "aria-label": "search" }}
+                inputProps={{ "aria-label": "Search groups" }}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
