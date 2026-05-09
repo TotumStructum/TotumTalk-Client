@@ -125,17 +125,19 @@ const Shortcuts = ({ open, handleClose }) => {
           },
         }}
       >
-        <DialogTitle>Keyboard Shortcuts</DialogTitle>
+        <DialogTitle sx={{ px: isMobile ? 2 : 3, py: isMobile ? 2 : 2.5 }}>
+          Keyboard Shortcuts
+        </DialogTitle>
         <DialogContent sx={{ mt: isMobile ? 1 : 4, px: isMobile ? 2 : 3 }}>
-          <Grid container spacing={3}>
+          <Grid container spacing={isMobile ? 2 : 3}>
             {list.map(({ key, title, combination }) => (
               <Grid key={key} container item xs={12} md={6}>
                 <Stack
                   sx={{ width: "100%" }}
-                  justifyContent={"space-between"}
-                  spacing={3}
-                  direction={"row"}
-                  alignItems={"center"}
+                  justifyContent="space-between"
+                  spacing={isMobile ? 1.5 : 3}
+                  direction="row"
+                  alignItems="center"
                 >
                   <Typography variant="caption" sx={{ fontSize: 14 }}>
                     {title}
@@ -164,8 +166,12 @@ const Shortcuts = ({ open, handleClose }) => {
             ))}
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={handleClose}>
+        <DialogActions sx={{ px: isMobile ? 2 : 3, pb: isMobile ? 2 : 2 }}>
+          <Button
+            variant="contained"
+            onClick={handleClose}
+            fullWidth={isMobile}
+          >
             Ok
           </Button>
         </DialogActions>

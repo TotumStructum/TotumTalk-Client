@@ -59,7 +59,7 @@ const StartCall = ({ open, handleClose }) => {
         </Stack>
       </DialogTitle>
       {/*  */}
-      <DialogContent>
+      <DialogContent sx={{ px: isMobile ? 2 : 3, pb: isMobile ? 2 : 3 }}>
         <Stack spacing={2}>
           <Stack sx={{ width: "100%" }}>
             <Search>
@@ -68,7 +68,7 @@ const StartCall = ({ open, handleClose }) => {
               </SearchIconWrapper>
               <StyledInputBase
                 placeholder="Search..."
-                inputProps={{ "aria-label": "search" }}
+                inputProps={{ "aria-label": "Search contacts for call" }}
               />
             </Search>
           </Stack>

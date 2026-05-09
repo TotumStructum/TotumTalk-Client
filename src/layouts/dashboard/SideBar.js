@@ -66,6 +66,31 @@ const getSelectedIndex = (pathname) => {
   }
 };
 
+const MOBILE_NAV_ICON_SIZE = 24;
+const MOBILE_NAV_ITEM_SIZE = 44;
+
+const renderMobileIcon = (icon, selected, theme) => {
+  return (
+    <Box
+      sx={{
+        width: MOBILE_NAV_ITEM_SIZE,
+        height: MOBILE_NAV_ITEM_SIZE,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: selected
+          ? theme.palette.primary.main
+          : theme.palette.text.secondary,
+      }}
+    >
+      {React.cloneElement(icon, {
+        size: MOBILE_NAV_ICON_SIZE,
+        weight: selected ? "fill" : "regular",
+      })}
+    </Box>
+  );
+};
+
 const SideBar = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -119,10 +144,7 @@ const SideBar = () => {
   };
 
   if (isMobile) {
-    const allNavItems = [
-      ...Nav_Buttons,
-      { index: 3, icon: <Gear size={22} /> },
-    ];
+    const allNavItems = [...Nav_Buttons, { index: 3, icon: <Gear /> }];
 
     return (
       <Paper
@@ -142,19 +164,20 @@ const SideBar = () => {
           onChange={(_, newValue) => handleNavigate(newValue)}
           sx={{
             backgroundColor: theme.palette.background.paper,
-            height: 56,
+            height: 64,
+            alignItems: "center",
           }}
         >
           {allNavItems.map((el) => (
             <BottomNavigationAction
               key={el.index}
-              icon={el.icon}
+              icon={renderMobileIcon(el.icon, selected === el.index, theme)}
               sx={{
-                color:
-                  selected === el.index
-                    ? theme.palette.primary.main
-                    : theme.palette.text.secondary,
                 minWidth: 0,
+                p: 0,
+                "& .MuiBottomNavigationAction-label": {
+                  display: "none",
+                },
               }}
             />
           ))}
@@ -162,17 +185,34 @@ const SideBar = () => {
           <BottomNavigationAction
             key="profile"
             icon={
-              <Avatar
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleOpenMenu(event);
+              <Box
+                sx={{
+                  width: MOBILE_NAV_ITEM_SIZE,
+                  height: MOBILE_NAV_ITEM_SIZE,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-                alt="User menu"
-                sx={{ width: 28, height: 28, cursor: "pointer" }}
-              />
+              >
+                <Avatar
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleOpenMenu(event);
+                  }}
+                  alt="User menu"
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    cursor: "pointer",
+                  }}
+                />
+              </Box>
             }
             showLabel={false}
-            sx={{ minWidth: 0 }}
+            sx={{
+              minWidth: 0,
+              p: 0,
+            }}
           />
         </BottomNavigation>
 

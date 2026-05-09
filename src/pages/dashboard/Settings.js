@@ -104,7 +104,11 @@ const Settings = () => {
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
           }}
         >
-          <Stack p={2} spacing={5} sx={{ height: "100%" }}>
+          <Stack
+            p={isMobile ? 2 : 2}
+            spacing={isMobile ? 3 : 5}
+            sx={{ height: "100%" }}
+          >
             <Stack
               direction="row"
               alignItems="center"
@@ -121,13 +125,19 @@ const Settings = () => {
               clickOnTrack={false}
               sx={{ flexGrow: 1, minHeight: 0 }}
             >
-              <Stack spacing={5}>
+              <Stack spacing={isMobile ? 3 : 5}>
                 <Stack
                   direction="row"
                   spacing={isMobile ? 2 : 3}
                   alignItems="center"
                 >
-                  <Avatar sx={{ width: 56, height: 56 }} alt="Profile" />
+                  <Avatar
+                    sx={{
+                      width: isMobile ? 48 : 56,
+                      height: isMobile ? 48 : 56,
+                    }}
+                    alt="Profile"
+                  />
                   <Stack spacing={0.5}>
                     <Typography variant="subtitle2">Your profile</Typography>
                     <Typography variant="body2" color="text.secondary">
