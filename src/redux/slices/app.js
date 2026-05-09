@@ -335,10 +335,14 @@ export const FetchFriendRequests = () => {
   };
 };
 
-export const FetchUsers = () => {
+export const FetchUsers = ({ search = "", limit = 20 } = {}) => {
   return async (dispatch, getState) => {
     await axios
       .get("/user/get-users", {
+        params: {
+          search,
+          limit,
+        },
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getState().auth.token}`,
@@ -350,6 +354,12 @@ export const FetchUsers = () => {
       .catch((error) => {
         console.error(error);
       });
+  };
+};
+
+export const ClearUsers = () => {
+  return (dispatch) => {
+    dispatch(slice.actions.updateUsers({ users: [] }));
   };
 };
 

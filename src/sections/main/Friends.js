@@ -6,10 +6,12 @@ import {
   Stack,
   Tab,
   Tabs,
+  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  ClearUsers,
   FetchFriendRequests,
   FetchFriends,
   FetchUsers,
@@ -22,24 +24,86 @@ import {
   SentFriendRequestComponent,
 } from "../../components/Friends";
 import { socket } from "../../socket";
-import { X } from "phosphor-react";
+import { MagnifyingGlass, X } from "phosphor-react";
 import useResponsive from "../../hooks/useResponsive";
+import {
+  Search,
+  SearchIconWrapper,
+  StyledInputBase,
+} from "../../components/Search";
+
+const MIN_USER_SEARCH_LENGTH = 2;
+const USER_SEARCH_DEBOUNCE_MS = 350;
 
 const UsersList = () => {
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(FetchUsers());
-  }, [dispatch]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   const { users } = useSelector((state) => state.app);
+  const trimmedSearchQuery = searchQuery.trim();
+
+  useEffect(() => {
+    if (trimmedSearchQuery.length < MIN_USER_SEARCH_LENGTH) {
+      setHasSearched(false);
+      dispatch(ClearUsers());
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setHasSearched(true);
+      dispatch(
+        FetchUsers({
+          search: trimmedSearchQuery,
+          limit: 20,
+        }),
+      );
+    }, USER_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [dispatch, trimmedSearchQuery]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(ClearUsers());
+    };
+  }, [dispatch]);
 
   return (
-    <>
+    <Stack spacing={2}>
+      <Search>
+        <SearchIconWrapper>
+          <MagnifyingGlass color="#709ce6" />
+        </SearchIconWrapper>
+        <StyledInputBase
+          placeholder="Search users..."
+          value={searchQuery}
+          onChange={(event) => {
+            setSearchQuery(event.target.value);
+          }}
+          inputProps={{ "aria-label": "Search users" }}
+        />
+      </Search>
+
+      <Typography variant="caption" color="text.secondary">
+        {trimmedSearchQuery.length < MIN_USER_SEARCH_LENGTH
+          ? "Type at least 2 characters to search users."
+          : "Search results"}
+      </Typography>
+
       {users.map((el) => (
         <UserComponent key={el._id} {...el} />
       ))}
-    </>
+
+      {hasSearched && users.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No users found.
+        </Typography>
+      ) : null}
+    </Stack>
   );
 };
 
