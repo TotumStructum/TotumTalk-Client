@@ -140,7 +140,18 @@ const StarredMessages = () => {
   );
 
   return (
-    <Box sx={{ width: 320, height: "100vh" }}>
+    <Box
+      sx={{
+        width: {
+          xs: "100vw",
+          md: 320,
+        },
+        height: {
+          xs: "100%",
+          md: "100vh",
+        },
+      }}
+    >
       <Stack sx={{ height: "100%" }}>
         <Box
           sx={{
