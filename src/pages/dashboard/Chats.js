@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ArchiveBox,
   CircleDashed,
@@ -27,12 +27,26 @@ import useResponsive from "../../hooks/useResponsive";
 
 const Chats = () => {
   const [OpenDialog, setOpenDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const theme = useTheme();
 
   const conversations = useSelector(
     (state) => state.conversation?.direct_chat?.conversations ?? [],
   );
+
+  const filteredConversations = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return conversations;
+
+    return conversations.filter((conversation) => {
+      const name = conversation.name?.toLowerCase() || "";
+      const message = conversation.msg?.toLowerCase() || "";
+
+      return name.includes(query) || message.includes(query);
+    });
+  }, [conversations, searchQuery]);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -85,7 +99,12 @@ const Chats = () => {
               <SearchIconWrapper>
                 <MagnifyingGlass color="#709ce6" />
               </SearchIconWrapper>
-              <StyledInputBase placeholder="Search..." />
+              <StyledInputBase
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                inputProps={{ "aria-label": "Search chats" }}
+              />
             </Search>
           </Stack>
 
@@ -105,11 +124,17 @@ const Chats = () => {
               <Typography variant="subtitle2" sx={{ color: "#676767" }}>
                 All Chats
               </Typography>
-              {conversations
-                .filter((el) => !el.pinned)
-                .map((el) => {
-                  return <ChatElement key={el.id} {...el} />;
-                })}
+              {filteredConversations.filter((el) => !el.pinned).length > 0 ? (
+                filteredConversations
+                  .filter((el) => !el.pinned)
+                  .map((el) => <ChatElement key={el.id} {...el} />)
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {searchQuery.trim()
+                    ? "No chats found."
+                    : "No conversations yet."}
+                </Typography>
+              )}
             </Stack>
           </SimpleBarStyle>
         </Stack>

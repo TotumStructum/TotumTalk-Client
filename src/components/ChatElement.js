@@ -2,6 +2,7 @@ import { alpha, useTheme, styled } from "@mui/material/styles";
 import { Avatar, Badge, Box, Chip, Typography, Stack } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectConversation } from "../redux/slices/app";
+import useResponsive from "../hooks/useResponsive";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -35,6 +36,7 @@ const ChatElement = ({
   const theme = useTheme();
   const dispatch = useDispatch();
   const room_id = useSelector((state) => state.app.room_id);
+  const isMobile = useResponsive("down", "md");
 
   const isSelected = room_id === id;
   const isAIConversation = Boolean(isAI || isSystem);
@@ -66,24 +68,38 @@ const ChatElement = ({
                 : alpha(theme.palette.common.white, 0.08)
             }`,
       }}
-      p={2}
+      p={isMobile ? 1.5 : 2}
     >
       <Stack
         direction="row"
-        alignItems={"center"}
+        alignItems="center"
         justifyContent="space-between"
+        spacing={1.5}
       >
-        <Stack direction="row" spacing={2} sx={{ minWidth: 0 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={isMobile ? 1.5 : 2}
+          sx={{ minWidth: 0, flex: 1 }}
+        >
           {online ? (
             <StyledBadge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar src={img} alt={name} />
+              <Avatar
+                src={img}
+                alt={name}
+                sx={isMobile ? { width: 40, height: 40 } : undefined}
+              />
             </StyledBadge>
           ) : (
-            <Avatar src={img} alt={name} />
+            <Avatar
+              src={img}
+              alt={name}
+              sx={isMobile ? { width: 40, height: 40 } : undefined}
+            />
           )}
 
           <Stack spacing={0.3} sx={{ minWidth: 0 }}>
@@ -116,7 +132,11 @@ const ChatElement = ({
           </Stack>
         </Stack>
 
-        <Stack spacing={2} alignItems="center">
+        <Stack
+          spacing={isMobile ? 0.75 : 2}
+          alignItems="flex-end"
+          sx={{ flexShrink: 0 }}
+        >
           <Typography sx={{ fontWeight: 600 }} variant="caption">
             {time}
           </Typography>
