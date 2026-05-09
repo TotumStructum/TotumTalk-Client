@@ -1,4 +1,12 @@
-import { Dialog, DialogContent, Stack, Tab, Tabs } from "@mui/material";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Tab,
+  Tabs,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -14,6 +22,8 @@ import {
   SentFriendRequestComponent,
 } from "../../components/Friends";
 import { socket } from "../../socket";
+import { X } from "phosphor-react";
+import useResponsive from "../../hooks/useResponsive";
 
 const UsersList = () => {
   const dispatch = useDispatch();
@@ -114,6 +124,8 @@ const Friends = ({ open, handleClose }) => {
     setValue(newValue);
   };
 
+  const isMobile = useResponsive("down", "md");
+
   return (
     <Dialog
       fullWidth
@@ -121,34 +133,85 @@ const Friends = ({ open, handleClose }) => {
       open={open}
       keepMounted
       onClose={handleClose}
-      sx={{ p: 4 }}
+      PaperProps={{
+        sx: {
+          width: isMobile ? "calc(100vw - 32px)" : undefined,
+          m: isMobile ? 2 : 4,
+          borderRadius: isMobile ? 3 : 2,
+          maxHeight: isMobile ? "76vh" : "calc(100% - 64px)",
+          overflow: "hidden",
+        },
+      }}
     >
-      <Stack p={2} sx={{ width: "100%" }}>
-        <Tabs value={value} onChange={handleChange} centered>
-          <Tab label={"Explore"} />
-          <Tab label={"Friends"} />
-          <Tab label={"Requests"} />
-          <Tab label={"Sent"} />
+      {isMobile && (
+        <DialogTitle
+          sx={{
+            px: 2,
+            py: 1.5,
+            backgroundColor: (theme) => theme.palette.background.paper,
+            boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            Friends
+            <IconButton onClick={handleClose} aria-label="Close friends dialog">
+              <X size={22} />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+      )}
+
+      <Stack
+        px={isMobile ? 1 : 2}
+        pt={isMobile ? 1 : 2}
+        pb={isMobile ? 1 : 0}
+        sx={{
+          width: "100%",
+          backgroundColor: (theme) => theme.palette.background.paper,
+        }}
+      >
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          centered={!isMobile}
+          variant={isMobile ? "scrollable" : "standard"}
+          scrollButtons={isMobile ? "auto" : false}
+          allowScrollButtonsMobile
+        >
+          <Tab label="Explore" />
+          <Tab label="Friends" />
+          <Tab label="Requests" />
+          <Tab label="Sent" />
         </Tabs>
       </Stack>
-      <DialogContent>
-        <Stack sx={{ height: "100%" }}>
-          <Stack spacing={2.5}>
-            {(() => {
-              switch (value) {
-                case 0:
-                  return <UsersList />;
-                case 1:
-                  return <FriendsList handleClose={handleClose} />;
-                case 2:
-                  return <FriendRequestList />;
-                case 3:
-                  return <SentFriendRequestList />;
-                default:
-                  return null;
-              }
-            })()}
-          </Stack>
+
+      <DialogContent
+        sx={{
+          px: isMobile ? 2 : 3,
+          py: isMobile ? 2 : 3,
+          maxHeight: isMobile ? "48vh" : undefined,
+          overflowY: "auto",
+        }}
+      >
+        <Stack spacing={2.5}>
+          {(() => {
+            switch (value) {
+              case 0:
+                return <UsersList />;
+              case 1:
+                return <FriendsList handleClose={handleClose} />;
+              case 2:
+                return <FriendRequestList />;
+              case 3:
+                return <SentFriendRequestList />;
+              default:
+                return null;
+            }
+          })()}
         </Stack>
       </DialogContent>
     </Dialog>

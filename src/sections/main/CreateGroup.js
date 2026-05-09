@@ -4,12 +4,16 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  IconButton,
   Slide,
   Stack,
 } from "@mui/material";
 import React, { useEffect } from "react";
 import FormProvider from "../../components/hook-form/FormProvider";
 import RHFTextField from "../../components/hook-form/RHFTextField";
+
+import { X } from "phosphor-react";
+import useResponsive from "../../hooks/useResponsive";
 
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
@@ -33,7 +37,7 @@ const getFriendName = (friend) => {
   );
 };
 
-const CreateGroupForm = ({ handleClose }) => {
+const CreateGroupForm = ({ handleClose, isMobile }) => {
   const dispatch = useDispatch();
   const { friends } = useSelector((state) => state.app);
 
@@ -124,17 +128,22 @@ const CreateGroupForm = ({ handleClose }) => {
 
         <Stack
           spacing={2}
-          direction="row"
-          alignItems="center"
+          direction={isMobile ? "column-reverse" : "row"}
+          alignItems={isMobile ? "stretch" : "center"}
           justifyContent="end"
         >
-          <Button onClick={handleClose} disabled={isSubmitting}>
+          <Button
+            onClick={handleClose}
+            disabled={isSubmitting}
+            fullWidth={isMobile}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="contained"
             disabled={isSubmitting || friendOptions.length < 2}
+            fullWidth={isMobile}
           >
             Create
           </Button>
@@ -145,6 +154,8 @@ const CreateGroupForm = ({ handleClose }) => {
 };
 
 const CreateGroup = ({ open, handleClose }) => {
+  const isMobile = useResponsive("down", "md");
+
   return (
     <Dialog
       fullWidth
@@ -153,12 +164,31 @@ const CreateGroup = ({ open, handleClose }) => {
       TransitionComponent={Transition}
       keepMounted
       onClose={handleClose}
-      sx={{ p: 4 }}
+      PaperProps={{
+        sx: {
+          width: isMobile ? "calc(100vw - 24px)" : undefined,
+          m: isMobile ? 1.5 : 4,
+          borderRadius: isMobile ? 3 : 2,
+        },
+      }}
     >
-      <DialogTitle sx={{ mb: 3 }}>Create New Group</DialogTitle>
+      <DialogTitle sx={{ px: isMobile ? 2 : 3, py: 2 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          Create New Group
+          {isMobile && (
+            <IconButton onClick={handleClose} aria-label="Close create group">
+              <X size={22} />
+            </IconButton>
+          )}
+        </Stack>
+      </DialogTitle>
 
-      <DialogContent>
-        <CreateGroupForm handleClose={handleClose} />
+      <DialogContent sx={{ px: isMobile ? 2 : 3, pb: isMobile ? 2 : 3 }}>
+        <CreateGroupForm handleClose={handleClose} isMobile={isMobile} />
       </DialogContent>
     </Dialog>
   );
