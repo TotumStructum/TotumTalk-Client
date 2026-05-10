@@ -21,7 +21,8 @@ import Logo from "../../assets/Images/logo.ico";
 import { Nav_Buttons, Profile_Menu } from "../../data";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LogoutUser } from "../../redux/slices/auth";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { FetchCurrentUser } from "../../redux/slices/app";
 
 const getPath = (index) => {
   switch (index) {
@@ -98,6 +99,20 @@ const SideBar = () => {
   const { pathname } = useLocation();
   const { onToggleMode, themeMode } = useSettings();
   const isMobile = useResponsive("down", "md");
+
+  const token = useSelector((state) => state.auth.token);
+  const currentUser = useSelector((state) => state.app.currentUser);
+
+  const currentUserAvatar = currentUser?.avatar || "";
+  const currentUserName =
+    [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(" ") ||
+    "User menu";
+
+  React.useEffect(() => {
+    if (token && !currentUser) {
+      dispatch(FetchCurrentUser());
+    }
+  }, [dispatch, token, currentUser]);
 
   const selected = getSelectedIndex(pathname);
 
@@ -195,11 +210,12 @@ const SideBar = () => {
                 }}
               >
                 <Avatar
+                  src={currentUserAvatar}
                   onClick={(event) => {
                     event.stopPropagation();
                     handleOpenMenu(event);
                   }}
-                  alt="User menu"
+                  alt={currentUserName}
                   sx={{
                     width: 28,
                     height: 28,
@@ -385,11 +401,12 @@ const SideBar = () => {
         <Stack alignItems={"center"} spacing={4}>
           <Avatar
             id="basic-button"
+            src={currentUserAvatar}
             aria-controls={open ? "basic-menu" : undefined}
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
             onClick={handleOpenMenu}
-            alt="User menu"
+            alt={currentUserName}
           />
 
           <Menu

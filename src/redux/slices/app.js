@@ -96,6 +96,7 @@ const initialState = {
     message: null,
     severity: null,
   },
+  currentUser: null,
   users: [],
   friends: [],
   friendRequests: [],
@@ -124,6 +125,9 @@ const slice = createSlice({
       state.snackbar.open = false;
       state.snackbar.severity = null;
       state.snackbar.message = null;
+    },
+    updateCurrentUser(state, action) {
+      state.currentUser = action.payload.user;
     },
     updateUsers(state, action) {
       state.users = action.payload.users;
@@ -295,6 +299,44 @@ export function showSnackbar({ severity, message }) {
 
 export const closeSnackbar = () => async (dispatch, getState) => {
   dispatch(slice.actions.closeSnackbar());
+};
+
+export const FetchCurrentUser = () => {
+  return async (dispatch, getState) => {
+    const token = getState().auth.token;
+
+    if (!token) {
+      return;
+    }
+
+    await axios
+      .get("/user/me", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        dispatch(
+          slice.actions.updateCurrentUser({
+            user: response.data.data,
+          }),
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+};
+
+export const SetCurrentUser = (user) => {
+  return (dispatch) => {
+    dispatch(
+      slice.actions.updateCurrentUser({
+        user,
+      }),
+    );
+  };
 };
 
 export const FetchFriends = () => {

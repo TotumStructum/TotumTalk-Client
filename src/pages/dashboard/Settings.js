@@ -23,10 +23,17 @@ import Shortcuts from "../../sections/settings/Shortcuts";
 import { useNavigate } from "react-router-dom";
 import { SimpleBarStyle } from "../../components/Scrollbar";
 import useResponsive from "../../hooks/useResponsive";
+import { useSelector } from "react-redux";
 
 const Settings = () => {
   const theme = useTheme();
   const isMobile = useResponsive("down", "md");
+  const currentUser = useSelector((state) => state.app.currentUser);
+
+  const currentUserName =
+    [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(" ") ||
+    "Profile";
+
   const [openShortcuts, setOpenShortcuts] = useState(false);
 
   const handleOpenShortcuts = () => {
@@ -132,11 +139,12 @@ const Settings = () => {
                   alignItems="center"
                 >
                   <Avatar
+                    src={currentUser?.avatar || ""}
                     sx={{
                       width: isMobile ? 48 : 56,
                       height: isMobile ? 48 : 56,
                     }}
-                    alt="Profile"
+                    alt={currentUserName}
                   />
                   <Stack spacing={0.5}>
                     <Typography variant="subtitle2">Your profile</Typography>
