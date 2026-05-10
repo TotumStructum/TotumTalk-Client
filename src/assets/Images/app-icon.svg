@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#0A4F7A"/>
+      <stop offset="20%" stop-color="#3C6E96"/>
+      <stop offset="40%" stop-color="#6187AA"/>
+      <stop offset="58%" stop-color="#83A0BD"/>
+      <stop offset="74%" stop-color="#A6BCD0"/>
+      <stop offset="87%" stop-color="#CAD6E2"/>
+      <stop offset="96%" stop-color="#E7EDF4"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="120" fill="url(#bgGradient)"/>
+</svg>

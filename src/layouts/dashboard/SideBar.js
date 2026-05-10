@@ -17,7 +17,7 @@ import useResponsive from "../../hooks/useResponsive";
 
 import AntSwitch from "../../components/AntSwitch";
 import useSettings from "../../hooks/useSettings";
-import Logo from "../../assets/Images/logo.ico";
+import AppLogo from "../../components/AppLogo";
 import { Nav_Buttons, Profile_Menu } from "../../data";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LogoutUser } from "../../redux/slices/auth";
@@ -317,16 +317,7 @@ const SideBar = () => {
         spacing={3}
       >
         <Stack alignItems="center" spacing={4}>
-          <Box
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              height: 64,
-              width: 64,
-              borderRadius: 1.5,
-            }}
-          >
-            <img src={Logo} alt="Logo" />
-          </Box>
+          <AppLogo size={64} borderRadius={1.5} />
 
           <Stack
             sx={{ width: "max-content" }}
