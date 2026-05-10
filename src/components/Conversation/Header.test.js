@@ -11,6 +11,9 @@ import {
   ClearCurrentGroupConversation,
 } from "../../redux/slices/conversation";
 import Header from "./Header";
+import { StartOutgoingCall } from "../../redux/slices/call";
+import uuidv4 from "../../utils/uuidv4";
+import { socket } from "../../socket";
 
 jest.mock("react-redux", () => ({
   useDispatch: jest.fn(),
@@ -33,6 +36,21 @@ jest.mock("../StyledBadge", () => {
     return <div data-testid="styled-badge">{children}</div>;
   };
 });
+
+jest.mock("../../redux/slices/call", () => ({
+  StartOutgoingCall: jest.fn(),
+}));
+
+jest.mock("../../utils/uuidv4", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock("../../socket", () => ({
+  socket: {
+    emit: jest.fn(),
+  },
+}));
 
 describe("Conversation/Header", () => {
   const dispatch = jest.fn();
@@ -87,6 +105,15 @@ describe("Conversation/Header", () => {
     ClearCurrentGroupConversation.mockReturnValue({
       type: "conversation/clearCurrentGroupConversation",
     });
+
+    uuidv4.mockReturnValue("call-1");
+
+    StartOutgoingCall.mockImplementation((payload) => ({
+      type: "call/startOutgoingCall",
+      payload,
+    }));
+
+    socket.emit.mockClear();
   });
 
   it("renders current conversation name and online status", () => {
@@ -271,5 +298,51 @@ describe("Conversation/Header", () => {
     expect(
       screen.getByRole("button", { name: "Start voice call" }),
     ).toBeDisabled();
+  });
+
+  it("starts a video call from direct chat header", () => {
+    render(<Header />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Start video call",
+      }),
+    );
+
+    expect(StartOutgoingCall).toHaveBeenCalledWith({
+      call: {
+        call_id: "call-1",
+        conversation_id: "conversation-1",
+        call_type: "video",
+        peer: {
+          _id: "user-b",
+          name: "John Doe",
+          avatar: "",
+        },
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "call/startOutgoingCall",
+      payload: {
+        call: {
+          call_id: "call-1",
+          conversation_id: "conversation-1",
+          call_type: "video",
+          peer: {
+            _id: "user-b",
+            name: "John Doe",
+            avatar: "",
+          },
+        },
+      },
+    });
+
+    expect(socket.emit).toHaveBeenCalledWith("call_invite", {
+      to: "user-b",
+      conversation_id: "conversation-1",
+      call_id: "call-1",
+      call_type: "video",
+    });
   });
 });

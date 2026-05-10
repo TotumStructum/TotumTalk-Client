@@ -22,6 +22,15 @@ import {
   AddGroupMessage,
   FetchDirectConversations,
 } from "../../redux/slices/conversation";
+import CallDialogs from "../../components/call/CallDialogs";
+import {
+  AcceptCall,
+  CancelCall,
+  DeclineCall,
+  EndCall,
+  ReceiveIncomingCall,
+  SetCallError,
+} from "../../redux/slices/call";
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
@@ -165,6 +174,83 @@ const DashboardLayout = () => {
       );
     };
 
+    const handleCallIncoming = (data) => {
+      dispatch(ReceiveIncomingCall({ call: data }));
+    };
+
+    const handleCallRinging = () => {
+      dispatch(
+        showSnackbar({
+          severity: "info",
+          message: "Calling...",
+        }),
+      );
+    };
+
+    const handleCallAccepted = (data) => {
+      dispatch(AcceptCall({ call: data }));
+    };
+
+    const handleCallDeclined = () => {
+      dispatch(DeclineCall());
+      dispatch(
+        showSnackbar({
+          severity: "info",
+          message: "Call declined",
+        }),
+      );
+    };
+
+    const handleCallCancelled = () => {
+      dispatch(CancelCall());
+      dispatch(
+        showSnackbar({
+          severity: "info",
+          message: "Call cancelled",
+        }),
+      );
+    };
+
+    const handleCallEnded = () => {
+      dispatch(EndCall());
+      dispatch(
+        showSnackbar({
+          severity: "info",
+          message: "Call ended",
+        }),
+      );
+    };
+
+    const handleCallUnavailable = (data) => {
+      dispatch(
+        SetCallError({
+          message: data?.message || "User is unavailable",
+        }),
+      );
+
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message: data?.message || "User is unavailable",
+        }),
+      );
+    };
+
+    const handleCallError = (data) => {
+      dispatch(
+        SetCallError({
+          message: data?.message || "Call failed",
+        }),
+      );
+
+      dispatch(
+        showSnackbar({
+          severity: "error",
+          message: data?.message || "Call failed",
+        }),
+      );
+    };
+
     const handleStartChat = (data) => {
       const existingConversation = conversationsRef.current.find(
         (el) => el.id === data._id,
@@ -192,6 +278,14 @@ const DashboardLayout = () => {
     currentSocket.on("new_group_message", handleNewGroupMessage);
     currentSocket.on("friend_removed", handleFriendRemoved);
     currentSocket.on("request_cancelled", handleRequestCancelled);
+    currentSocket.on("call_incoming", handleCallIncoming);
+    currentSocket.on("call_ringing", handleCallRinging);
+    currentSocket.on("call_accepted", handleCallAccepted);
+    currentSocket.on("call_declined", handleCallDeclined);
+    currentSocket.on("call_cancelled", handleCallCancelled);
+    currentSocket.on("call_ended", handleCallEnded);
+    currentSocket.on("call_unavailable", handleCallUnavailable);
+    currentSocket.on("call_error", handleCallError);
 
     loadConversations();
     refreshRelationshipData();
@@ -213,6 +307,14 @@ const DashboardLayout = () => {
       currentSocket.off("new_group_message", handleNewGroupMessage);
       currentSocket.off("friend_removed", handleFriendRemoved);
       currentSocket.off("request_cancelled", handleRequestCancelled);
+      currentSocket.off("call_incoming", handleCallIncoming);
+      currentSocket.off("call_ringing", handleCallRinging);
+      currentSocket.off("call_accepted", handleCallAccepted);
+      currentSocket.off("call_declined", handleCallDeclined);
+      currentSocket.off("call_cancelled", handleCallCancelled);
+      currentSocket.off("call_ended", handleCallEnded);
+      currentSocket.off("call_unavailable", handleCallUnavailable);
+      currentSocket.off("call_error", handleCallError);
     };
   }, [isLoggedIn, token, dispatch]);
 
@@ -236,6 +338,7 @@ const DashboardLayout = () => {
         </Box>
 
         <SideBar />
+        <CallDialogs />
       </Box>
     );
   }
@@ -244,6 +347,7 @@ const DashboardLayout = () => {
     <Stack direction="row">
       <SideBar />
       <Outlet />
+      <CallDialogs />
     </Stack>
   );
 };

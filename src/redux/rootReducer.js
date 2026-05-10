@@ -4,6 +4,7 @@ import { createTransform } from "redux-persist";
 import appReducer from "./slices/app";
 import authReducer from "./slices/auth";
 import conversationReducer from "./slices/conversation";
+import callReducer from "./slices/call";
 
 const resetRuntimeUiTransform = createTransform(
   (inboundState, key) => {
@@ -58,12 +59,14 @@ const rootPeristConfig = {
   storage,
   keyPrefix: "redux=",
   transforms: [resetRuntimeUiTransform],
+  blacklist: ["call"],
 };
 
 const rootReducer = combineReducers({
   app: appReducer,
   auth: authReducer,
   conversation: conversationReducer,
+  call: callReducer,
 });
 
 export { rootPeristConfig, rootReducer };

@@ -28,6 +28,9 @@ import {
 } from "../../redux/slices/conversation";
 import { useDispatch, useSelector } from "react-redux";
 import useResponsive from "../../hooks/useResponsive";
+import { socket } from "../../socket";
+import uuidv4 from "../../utils/uuidv4";
+import { StartOutgoingCall } from "../../redux/slices/call";
 
 const Header = () => {
   const theme = useTheme();
@@ -55,6 +58,41 @@ const Header = () => {
     !isGroupChat &&
     (current_conversation.isAI || current_conversation.isSystem),
   );
+
+  const isCallDisabled =
+    isGroupChat ||
+    isAIConversation ||
+    Boolean(current_conversation.blockedByMe);
+
+  const handleStartCall = (callType) => {
+    if (isCallDisabled) {
+      return;
+    }
+
+    const callId = uuidv4();
+
+    const peer = {
+      _id: current_conversation.user_id,
+      name: current_conversation.name,
+      avatar: current_conversation.img || "",
+    };
+
+    const call = {
+      call_id: callId,
+      conversation_id: current_conversation.id,
+      call_type: callType,
+      peer,
+    };
+
+    dispatch(StartOutgoingCall({ call }));
+
+    socket?.emit("call_invite", {
+      to: current_conversation.user_id,
+      conversation_id: current_conversation.id,
+      call_id: callId,
+      call_type: callType,
+    });
+  };
 
   const handleContactSidebarToggle = () => {
     const sidebarType = isGroupChat ? "GROUP_INFO" : "CONTACT";
@@ -210,7 +248,8 @@ const Header = () => {
           sx={{ height: "100%", flexShrink: 0 }}
         >
           <IconButton
-            disabled={isGroupChat || isAIConversation}
+            disabled={isCallDisabled}
+            onClick={() => handleStartCall("video")}
             size={isMobile ? "small" : "medium"}
             aria-label="Start video call"
           >
@@ -219,7 +258,8 @@ const Header = () => {
 
           <IconButton
             aria-label="Start voice call"
-            disabled={isGroupChat || isAIConversation}
+            disabled={isCallDisabled}
+            onClick={() => handleStartCall("audio")}
             size={isMobile ? "small" : "medium"}
           >
             <Phone size={isMobile ? 20 : 24} />
