@@ -17,6 +17,7 @@ import conversationReducer, {
   UpdateDirectConversationBlockState,
   SelectGroupReplyMessage,
   ClearGroupReplyMessage,
+  ToggleGroupMessageStar,
 } from "./conversation";
 
 import axios from "../../utils/axios";
@@ -414,6 +415,69 @@ describe("conversation slice", () => {
 
     expect(state.current_messages[0].starredBy).toEqual([currentUserId]);
   });
+
+  it("toggles group message starred state through API and updates current group messages", async () => {
+    axios.patch.mockResolvedValueOnce({
+      data: {
+        status: "success",
+        data: {
+          _id: "group-message-1",
+          from: {
+            _id: "user-b",
+            firstName: "Group",
+            lastName: "Member",
+          },
+          type: "Text",
+          text: "Important group message",
+          starredBy: [currentUserId],
+        },
+      },
+    });
+
+    const store = createStore();
+
+    await store.dispatch(
+      SetCurrentGroupMessages({
+        messages: [
+          {
+            _id: "group-message-1",
+            from: {
+              _id: "user-b",
+              firstName: "Group",
+              lastName: "Member",
+            },
+            type: "Text",
+            text: "Important group message",
+            starredBy: [],
+          },
+        ],
+      }),
+    );
+
+    await store.dispatch(
+      ToggleGroupMessageStar({
+        group_id: "group-1",
+        message_id: "group-message-1",
+        starred: true,
+      }),
+    );
+
+    expect(axios.patch).toHaveBeenCalledWith(
+      "/conversation/group/group-1/messages/group-message-1/star",
+      { starred: true },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer token-123",
+        },
+      },
+    );
+
+    const state = store.getState().conversation.group_chat;
+
+    expect(state.current_messages[0].starredBy).toEqual([currentUserId]);
+  });
+
   it("deletes a direct conversation through API and clears active conversation", async () => {
     axios.delete.mockResolvedValueOnce({
       data: {

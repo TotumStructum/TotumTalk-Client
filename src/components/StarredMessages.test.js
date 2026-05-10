@@ -141,4 +141,92 @@ describe("StarredMessages", () => {
       payload: "CONTACT",
     });
   });
+
+  it("renders starred group messages with sender name", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          chat_type: "group",
+        },
+        conversation: {
+          direct_chat: {
+            current_messages: [],
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+            current_messages: [
+              {
+                _id: "group-starred",
+                type: "Text",
+                text: "Important group decision",
+                from: {
+                  _id: "user-b",
+                  firstName: "Jane",
+                  lastName: "Group",
+                  email: "jane@example.com",
+                },
+                starredBy: ["user-a"],
+              },
+              {
+                _id: "group-not-starred",
+                type: "Text",
+                text: "Regular group message",
+                from: {
+                  _id: "user-b",
+                  firstName: "Jane",
+                  lastName: "Group",
+                },
+                starredBy: [],
+              },
+            ],
+          },
+        },
+      }),
+    );
+
+    renderStarredMessages();
+
+    expect(screen.getByText("Jane Group")).toBeInTheDocument();
+    expect(screen.getByText("Important group decision")).toBeInTheDocument();
+    expect(screen.queryByText("Regular group message")).not.toBeInTheDocument();
+  });
+
+  it("returns to group info when opened from a group chat", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        app: {
+          chat_type: "group",
+        },
+        conversation: {
+          direct_chat: {
+            current_messages: [],
+          },
+          group_chat: {
+            current_conversation: {
+              _id: "group-1",
+              title: "Study Group",
+            },
+            current_messages: [],
+          },
+        },
+      }),
+    );
+
+    renderStarredMessages();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /back to chat details/i,
+      }),
+    );
+
+    expect(UpdateSidebarType).toHaveBeenCalledWith("GROUP_INFO");
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "app/updateSidebarType",
+      payload: "GROUP_INFO",
+    });
+  });
 });

@@ -184,6 +184,22 @@ describe("GroupInfo", () => {
     });
   });
 
+  it("opens starred messages from group info", () => {
+    renderGroupInfo();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /starred messages/i,
+      }),
+    );
+
+    expect(UpdateSidebarType).toHaveBeenCalledWith("STARRED");
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "app/updateSidebarType",
+      payload: "STARRED",
+    });
+  });
+
   it("closes group info sidebar", () => {
     renderGroupInfo();
 

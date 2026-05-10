@@ -29,6 +29,7 @@ import {
   DeleteDirectMessageForMe,
   SelectDirectReplyMessage,
   ToggleDirectMessageStar,
+  ToggleGroupMessageStar,
   SelectGroupReplyMessage,
   DeleteGroupMessageForMe,
 } from "../../redux/slices/conversation";
@@ -663,17 +664,23 @@ const MessageOptions = ({ el = {} }) => {
   };
 
   const handleStarToggle = () => {
-    if (!isDirectChat || !el.conversationId || !el.messageId) {
+    if (!el.conversationId || !el.messageId) {
       handleClose();
       return;
     }
 
     dispatch(
-      ToggleDirectMessageStar({
-        conversation_id: el.conversationId,
-        message_id: el.messageId,
-        starred: !isStarred,
-      }),
+      isDirectChat
+        ? ToggleDirectMessageStar({
+            conversation_id: el.conversationId,
+            message_id: el.messageId,
+            starred: !isStarred,
+          })
+        : ToggleGroupMessageStar({
+            group_id: el.conversationId,
+            message_id: el.messageId,
+            starred: !isStarred,
+          }),
     );
 
     handleClose();
@@ -710,7 +717,8 @@ const MessageOptions = ({ el = {} }) => {
             const isStarOption = option.title === "Star message";
             const isDeleteOption = option.title === "Delete Message";
 
-            const isGroupSupportedOption = isReplyOption || isDeleteOption;
+            const isGroupSupportedOption =
+              isReplyOption || isStarOption || isDeleteOption;
             const isDisabled = isGroupSupportedOption ? false : !isDirectChat;
 
             return (

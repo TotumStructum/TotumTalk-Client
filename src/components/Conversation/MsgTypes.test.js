@@ -7,6 +7,7 @@ import {
   DeleteDirectMessageForMe,
   SelectDirectReplyMessage,
   ToggleDirectMessageStar,
+  ToggleGroupMessageStar,
   SelectGroupReplyMessage,
 } from "../../redux/slices/conversation";
 import { socket } from "../../socket";
@@ -21,6 +22,7 @@ jest.mock("../../redux/slices/conversation", () => ({
   SelectDirectReplyMessage: jest.fn(),
   ToggleDirectMessageStar: jest.fn(),
   SelectGroupReplyMessage: jest.fn(),
+  ToggleGroupMessageStar: jest.fn(),
 }));
 
 jest.mock("../../socket", () => ({
@@ -68,6 +70,11 @@ describe("MessageOptions", () => {
 
     ToggleDirectMessageStar.mockImplementation((payload) => ({
       type: "conversation/toggleDirectMessageStar",
+      payload,
+    }));
+
+    ToggleGroupMessageStar.mockImplementation((payload) => ({
+      type: "conversation/toggleGroupMessageStar",
       payload,
     }));
 
@@ -142,7 +149,7 @@ describe("MessageOptions", () => {
     });
   });
 
-  it("disables starring for group messages for now", async () => {
+  it("stars a group message from the message menu", async () => {
     renderTextMsg({
       incoming: true,
       message: "Group message",
@@ -154,12 +161,22 @@ describe("MessageOptions", () => {
 
     fireEvent.click(screen.getByRole("button"));
 
-    const menu = await screen.findByRole("menu");
-    const starMenuItem = within(menu).getByRole("menuitem", {
-      name: /star message/i,
+    fireEvent.click(await screen.findByText("Star message"));
+
+    expect(ToggleGroupMessageStar).toHaveBeenCalledWith({
+      group_id: "group-1",
+      message_id: "message-1",
+      starred: true,
     });
 
-    expect(starMenuItem).toHaveAttribute("aria-disabled", "true");
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "conversation/toggleGroupMessageStar",
+      payload: {
+        group_id: "group-1",
+        message_id: "message-1",
+        starred: true,
+      },
+    });
   });
 
   it("deletes a direct message from the message menu", async () => {

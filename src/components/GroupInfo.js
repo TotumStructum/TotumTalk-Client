@@ -21,6 +21,7 @@ import {
   CaretRight,
   PencilSimple,
   SignOut,
+  Star,
   Trash,
   UserPlus,
   X,
@@ -318,6 +319,16 @@ const GroupInfo = () => {
   const sharedCount =
     sharedMedia.length + sharedDocs.length + sharedLinks.length;
 
+  const starredMessagesCount = current_messages.filter((message) =>
+    Array.isArray(message.starredBy)
+      ? message.starredBy.some((userId) => getUserId(userId) === currentUserId)
+      : false,
+  ).length;
+
+  const handleOpenStarredMessages = () => {
+    dispatch(UpdateSidebarType("STARRED"));
+  };
+
   return (
     <>
       <Box
@@ -457,6 +468,42 @@ const GroupInfo = () => {
                 No shared media yet
               </Typography>
             )}
+
+            <Divider />
+
+            <Stack
+              role="button"
+              tabIndex={0}
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{
+                cursor: "pointer",
+                borderRadius: 1,
+                "&:hover": {
+                  color: "primary.main",
+                },
+              }}
+              onClick={handleOpenStarredMessages}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleOpenStarredMessages();
+                }
+              }}
+            >
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Star size={18} />
+                <Typography variant="subtitle2">Starred Messages</Typography>
+              </Stack>
+
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <Typography variant="body2" color="text.secondary">
+                  {starredMessagesCount}
+                </Typography>
+                <CaretRight size={18} />
+              </Stack>
+            </Stack>
 
             <Divider />
 

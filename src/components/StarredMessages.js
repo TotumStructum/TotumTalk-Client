@@ -131,13 +131,41 @@ const StarredMessages = () => {
   const dispatch = useDispatch();
   const currentUserId = window.localStorage.getItem("user_id");
 
-  const { current_messages } = useSelector(
-    (state) => state.conversation.direct_chat,
-  );
+  const chatType = useSelector((state) => state.app?.chat_type || "individual");
 
-  const starredMessages = current_messages.filter((message) =>
+  const conversationState = useSelector((state) => state.conversation);
+
+  const directMessages = conversationState.direct_chat?.current_messages || [];
+  const groupMessages = conversationState.group_chat?.current_messages || [];
+  const isGroupContext =
+    chatType === "group" &&
+    Boolean(conversationState.group_chat?.current_conversation);
+
+  const backSidebarType = isGroupContext ? "GROUP_INFO" : "CONTACT";
+
+  const currentMessages = isGroupContext ? groupMessages : directMessages;
+
+  const starredMessages = currentMessages.filter((message) =>
     isMessageStarredByCurrentUser(message, currentUserId),
   );
+
+  const getStarredSenderLabel = (message) => {
+    const incoming = getSenderId(message.from) !== currentUserId;
+
+    if (!incoming) {
+      return "You";
+    }
+
+    if (isGroupContext && message.from && typeof message.from === "object") {
+      const fullName = `${message.from.firstName || ""} ${
+        message.from.lastName || ""
+      }`.trim();
+
+      return fullName || message.from.email || "Incoming";
+    }
+
+    return "Incoming";
+  };
 
   return (
     <Box
@@ -174,8 +202,9 @@ const StarredMessages = () => {
             alignItems={"center"}
           >
             <IconButton
+              aria-label="Back to chat details"
               onClick={() => {
-                dispatch(UpdateSidebarType("CONTACT"));
+                dispatch(UpdateSidebarType(backSidebarType));
               }}
             >
               <CaretLeft />
@@ -213,7 +242,7 @@ const StarredMessages = () => {
                 >
                   <Stack spacing={0.75}>
                     <Typography variant="caption" color="text.secondary">
-                      {incoming ? "Incoming" : "You"}
+                      {getStarredSenderLabel(message)}
                     </Typography>
 
                     <StarredMessagePreview

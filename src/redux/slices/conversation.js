@@ -207,6 +207,15 @@ const slice = createSlice({
         );
     },
 
+    updateGroupMessageStar(state, action) {
+      const { message } = action.payload;
+
+      state.group_chat.current_messages = state.group_chat.current_messages.map(
+        (currentMessage) =>
+          currentMessage._id === message._id ? message : currentMessage,
+      );
+    },
+
     deleteDirectMessage(state, action) {
       const { conversation_id, message_id } = action.payload;
 
@@ -403,6 +412,29 @@ export const ToggleDirectMessageStar = ({
 
     dispatch(
       slice.actions.updateDirectMessageStar({
+        message: response.data.data,
+      }),
+    );
+
+    return response.data.data;
+  };
+};
+
+export const ToggleGroupMessageStar = ({ group_id, message_id, starred }) => {
+  return async (dispatch, getState) => {
+    const response = await axios.patch(
+      `/conversation/group/${group_id}/messages/${message_id}/star`,
+      { starred },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      },
+    );
+
+    dispatch(
+      slice.actions.updateGroupMessageStar({
         message: response.data.data,
       }),
     );
