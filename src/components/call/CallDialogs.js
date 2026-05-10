@@ -5,11 +5,19 @@ import {
   Button,
   Dialog,
   DialogContent,
+  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { Phone, PhoneDisconnect, VideoCamera } from "phosphor-react";
+import {
+  Microphone,
+  MicrophoneSlash,
+  Phone,
+  PhoneDisconnect,
+  VideoCamera,
+  VideoCameraSlash,
+} from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import useResponsive from "../../hooks/useResponsive";
 import { socket } from "../../socket";
@@ -123,6 +131,68 @@ const CallAvatar = ({ src, name, size }) => (
   </Stack>
 );
 
+const CallControlButton = ({
+  icon,
+  label,
+  color = "default",
+  active = false,
+  onClick,
+}) => {
+  const isDanger = color === "error";
+
+  return (
+    <Stack spacing={0.75} alignItems="center">
+      <IconButton
+        onClick={onClick}
+        sx={{
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          color: isDanger
+            ? "common.white"
+            : active
+              ? "common.black"
+              : "text.primary",
+          backgroundColor: isDanger
+            ? "error.main"
+            : active
+              ? "warning.main"
+              : "background.paper",
+          border: (theme) =>
+            isDanger
+              ? "none"
+              : `1px solid ${alpha(theme.palette.text.primary, 0.16)}`,
+          boxShadow: (theme) => theme.shadows[4],
+          "&:hover": {
+            backgroundColor: isDanger
+              ? "error.dark"
+              : active
+                ? "warning.dark"
+                : "action.hover",
+          },
+          "&.Mui-disabled": {
+            opacity: 0.42,
+          },
+        }}
+      >
+        {icon}
+      </IconButton>
+
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          maxWidth: 86,
+          textAlign: "center",
+          lineHeight: 1.2,
+        }}
+      >
+        {label}
+      </Typography>
+    </Stack>
+  );
+};
+
 const CallDialogs = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -148,6 +218,8 @@ const CallDialogs = () => {
   const [remoteStream, setRemoteStream] = React.useState(null);
   const [mediaStatus, setMediaStatus] = React.useState("idle");
   const [mediaError, setMediaError] = React.useState(null);
+  const [isMicrophoneMuted, setIsMicrophoneMuted] = React.useState(false);
+  const [isCameraOff, setIsCameraOff] = React.useState(false);
 
   const duration = useCallDuration(status, started_at);
 
@@ -157,6 +229,7 @@ const CallDialogs = () => {
   const currentUserName = getPeerName(currentUser);
   const callType = call?.call_type || "audio";
   const isVideo = callType === "video";
+  const isDarkMode = theme.palette.mode === "dark";
 
   const basePayload = React.useMemo(
     () => ({
@@ -195,6 +268,8 @@ const CallDialogs = () => {
     setRemoteStream(null);
     setMediaStatus("idle");
     setMediaError(null);
+    setIsMicrophoneMuted(false);
+    setIsCameraOff(false);
 
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = null;
@@ -599,6 +674,38 @@ const CallDialogs = () => {
     dispatch(EndCall());
   };
 
+  const handleToggleMicrophone = () => {
+    const audioTracks = localStreamRef.current?.getAudioTracks?.() || [];
+
+    if (audioTracks.length === 0) {
+      return;
+    }
+
+    const nextMuted = !isMicrophoneMuted;
+
+    audioTracks.forEach((track) => {
+      track.enabled = !nextMuted;
+    });
+
+    setIsMicrophoneMuted(nextMuted);
+  };
+
+  const handleToggleCamera = () => {
+    const videoTracks = localStreamRef.current?.getVideoTracks?.() || [];
+
+    if (videoTracks.length === 0) {
+      return;
+    }
+
+    const nextCameraOff = !isCameraOff;
+
+    videoTracks.forEach((track) => {
+      track.enabled = !nextCameraOff;
+    });
+
+    setIsCameraOff(nextCameraOff);
+  };
+
   const isIncoming = status === "incoming";
   const isOutgoing = status === "outgoing";
   const isActive = status === "active";
@@ -618,7 +725,7 @@ const CallDialogs = () => {
       sx={{
         position: "relative",
         width: "100%",
-        height: isMobile ? "58vh" : 360,
+        height: isMobile ? 320 : 360,
         borderRadius: isMobile ? 3 : 4,
         overflow: "hidden",
         backgroundColor: "grey.900",
@@ -659,7 +766,7 @@ const CallDialogs = () => {
         </Stack>
       )}
 
-      {localStream ? (
+      {localStream && !isCameraOff ? (
         <Box
           component="video"
           ref={localVideoRef}
@@ -681,6 +788,29 @@ const CallDialogs = () => {
           }}
         />
       ) : null}
+      {localStream && isCameraOff ? (
+        <Stack
+          spacing={0.5}
+          alignItems="center"
+          justifyContent="center"
+          sx={{
+            position: "absolute",
+            right: 16,
+            bottom: 16,
+            width: isMobile ? 110 : 160,
+            height: isMobile ? 150 : 110,
+            borderRadius: 2,
+            backgroundColor: "grey.800",
+            border: "2px solid",
+            borderColor: "common.white",
+            boxShadow: theme.shadows[8],
+            color: "common.white",
+          }}
+        >
+          <VideoCameraSlash size={24} />
+          <Typography variant="caption">Camera off</Typography>
+        </Stack>
+      ) : null}
     </Box>
   );
 
@@ -691,8 +821,8 @@ const CallDialogs = () => {
           src={peer?.avatar || ""}
           alt={peerName}
           sx={{
-            width: isActive ? 132 : 112,
-            height: isActive ? 132 : 112,
+            width: isActive ? 104 : 96,
+            height: isActive ? 104 : 96,
             border: (innerTheme) => `1px solid ${innerTheme.palette.divider}`,
             boxShadow: theme.shadows[4],
           }}
@@ -723,42 +853,95 @@ const CallDialogs = () => {
       </Stack>
     );
 
+  const renderActiveControls = () => (
+    <Box
+      sx={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: isMobile ? 2 : 2.5,
+        flexWrap: "wrap",
+        px: isMobile ? 1 : 0,
+        pb: isMobile ? "max(12px, env(safe-area-inset-bottom))" : 0,
+      }}
+    >
+      <CallControlButton
+        active={isMicrophoneMuted}
+        label={isMicrophoneMuted ? "Unmute" : "Mute"}
+        icon={
+          isMicrophoneMuted ? (
+            <MicrophoneSlash size={24} />
+          ) : (
+            <Microphone size={24} />
+          )
+        }
+        onClick={handleToggleMicrophone}
+      />
+
+      {isVideo ? (
+        <CallControlButton
+          active={isCameraOff}
+          label={isCameraOff ? "Camera On" : "Camera Off"}
+          icon={
+            isCameraOff ? (
+              <VideoCameraSlash size={24} />
+            ) : (
+              <VideoCamera size={24} />
+            )
+          }
+          onClick={handleToggleCamera}
+        />
+      ) : null}
+
+      <CallControlButton
+        color="error"
+        label="Hang Up"
+        icon={<PhoneDisconnect size={24} />}
+        onClick={handleEnd}
+      />
+    </Box>
+  );
+
   return (
     <Dialog
       open
-      fullScreen={isMobile}
+      fullScreen={false}
       fullWidth
-      maxWidth="md"
+      maxWidth={isMobile ? "xs" : "md"}
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 4,
+          borderRadius: 4,
           overflow: "hidden",
-          backgroundColor:
-            isVideo && isActive ? "grey.900" : "background.paper",
+          backgroundColor: "background.paper",
+          m: isMobile ? 2 : 3,
+          width: isMobile ? "calc(100% - 32px)" : undefined,
+          maxHeight: isMobile ? "calc(100vh - 32px)" : undefined,
         },
       }}
     >
       <DialogContent
         sx={{
           p: 0,
-          minHeight: isMobile ? "100vh" : 540,
+          minHeight: isMobile ? "auto" : 540,
           background:
-            isVideo && isActive
+            isVideo && isActive && isDarkMode
               ? `linear-gradient(135deg, ${theme.palette.grey[900]}, ${theme.palette.grey[800]})`
               : `linear-gradient(135deg, ${alpha(
                   theme.palette.primary.main,
                   0.08,
-                )}, ${alpha(theme.palette.background.paper, 0.95)})`,
+                )}, ${alpha(theme.palette.background.paper, 0.96)})`,
         }}
       >
         {!isVideo ? <audio ref={remoteAudioRef} autoPlay playsInline /> : null}
         <Box
           sx={{
-            minHeight: isMobile ? "100vh" : 540,
+            minHeight: isMobile ? "auto" : 540,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            p: isMobile ? 3 : 5,
+            p: isMobile ? 2 : 5,
+            py: isMobile ? 2.5 : 5,
           }}
         >
           <Stack
@@ -768,13 +951,13 @@ const CallDialogs = () => {
             sx={{
               width: "100%",
               maxWidth: isMobile ? "100%" : 760,
-              minHeight: isMobile ? "calc(100vh - 48px)" : 440,
-              borderRadius: isMobile ? 0 : 4,
-              p: isMobile ? 0 : 4,
+              minHeight: isMobile ? "auto" : 440,
+              borderRadius: 3,
+              p: isMobile ? 2 : 4,
               backgroundColor:
-                isVideo && isActive
+                isVideo && isActive && isDarkMode
                   ? alpha(theme.palette.common.black, 0.22)
-                  : alpha(theme.palette.background.paper, 0.82),
+                  : alpha(theme.palette.background.paper, 0.9),
               backdropFilter: "blur(12px)",
               boxShadow: isMobile ? "none" : theme.shadows[8],
             }}
@@ -865,21 +1048,7 @@ const CallDialogs = () => {
                 </Button>
               ) : null}
 
-              {isActive ? (
-                <Button
-                  color="error"
-                  variant="outlined"
-                  size="large"
-                  startIcon={<PhoneDisconnect size={20} />}
-                  onClick={handleEnd}
-                  sx={{
-                    minWidth: isMobile ? "100%" : 160,
-                    borderWidth: 1.5,
-                  }}
-                >
-                  Hang Up
-                </Button>
-              ) : null}
+              {isActive ? renderActiveControls() : null}
             </Stack>
           </Stack>
         </Box>

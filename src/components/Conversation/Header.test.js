@@ -77,6 +77,9 @@ describe("Conversation/Header", () => {
         type: "CONTACT",
       },
     },
+    call: {
+      status: "idle",
+    },
   };
 
   beforeEach(() => {
@@ -344,5 +347,30 @@ describe("Conversation/Header", () => {
       call_id: "call-1",
       call_type: "video",
     });
+  });
+
+  it("disables call buttons while another call is active", () => {
+    useSelector.mockImplementation((selector) =>
+      selector({
+        ...baseState,
+        call: {
+          status: "active",
+        },
+      }),
+    );
+
+    render(<Header />);
+
+    expect(
+      screen.getByRole("button", {
+        name: "Start video call",
+      }),
+    ).toBeDisabled();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Start voice call",
+      }),
+    ).toBeDisabled();
   });
 });

@@ -39,6 +39,8 @@ const Header = () => {
 
   const { chat_type, sidebar } = useSelector((state) => state.app);
 
+  const callStatus = useSelector((state) => state.call?.status || "idle");
+
   const { current_conversation: directConversation } = useSelector(
     (state) => state.conversation.direct_chat,
   );
@@ -60,6 +62,7 @@ const Header = () => {
   );
 
   const isCallDisabled =
+    callStatus !== "idle" ||
     isGroupChat ||
     isAIConversation ||
     Boolean(current_conversation.blockedByMe);
