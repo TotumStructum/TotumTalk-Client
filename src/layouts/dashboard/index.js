@@ -28,8 +28,10 @@ import {
   CancelCall,
   DeclineCall,
   EndCall,
+  FetchCallLogs,
   ReceiveIncomingCall,
   SetCallError,
+  UpsertCallLog,
 } from "../../redux/slices/call";
 
 const DashboardLayout = () => {
@@ -251,6 +253,10 @@ const DashboardLayout = () => {
       );
     };
 
+    const handleCallLogUpdated = (data) => {
+      dispatch(UpsertCallLog({ log: data }));
+    };
+
     const handleStartChat = (data) => {
       const existingConversation = conversationsRef.current.find(
         (el) => el.id === data._id,
@@ -286,9 +292,11 @@ const DashboardLayout = () => {
     currentSocket.on("call_ended", handleCallEnded);
     currentSocket.on("call_unavailable", handleCallUnavailable);
     currentSocket.on("call_error", handleCallError);
+    currentSocket.on("call_log_updated", handleCallLogUpdated);
 
     loadConversations();
     refreshRelationshipData();
+    dispatch(FetchCallLogs());
 
     currentSocket.auth = { token };
     currentSocket.connect();
@@ -315,6 +323,7 @@ const DashboardLayout = () => {
       currentSocket.off("call_ended", handleCallEnded);
       currentSocket.off("call_unavailable", handleCallUnavailable);
       currentSocket.off("call_error", handleCallError);
+      currentSocket.off("call_log_updated", handleCallLogUpdated);
     };
   }, [isLoggedIn, token, dispatch]);
 

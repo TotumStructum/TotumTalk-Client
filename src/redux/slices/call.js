@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import axios from "../../utils/axios";
 
 const initialState = {
   status: "idle", // idle | outgoing | incoming | active
@@ -6,6 +7,8 @@ const initialState = {
   call: null,
   started_at: null,
   error: null,
+  logs: [],
+  isLoadingLogs: false,
 };
 
 const normalizeCall = (call = {}) => ({
@@ -23,6 +26,14 @@ const clearCallState = (state) => {
   state.call = null;
   state.started_at = null;
 };
+
+const sortCallLogs = (logs) =>
+  [...logs].sort((a, b) => {
+    const aTime = new Date(a.createdAt || a.started_at || 0).getTime();
+    const bTime = new Date(b.createdAt || b.started_at || 0).getTime();
+
+    return bTime - aTime;
+  });
 
 const slice = createSlice({
   name: "call",
@@ -81,6 +92,29 @@ const slice = createSlice({
       clearCallState(state);
       state.error = action.payload.message;
     },
+    setCallLogsLoading(state, action) {
+      state.isLoadingLogs = action.payload.isLoading;
+    },
+    setCallLogs(state, action) {
+      state.logs = sortCallLogs(action.payload.logs || []);
+    },
+    upsertCallLog(state, action) {
+      const log = action.payload.log;
+
+      if (!log?._id) return;
+
+      const existingIndex = state.logs.findIndex(
+        (currentLog) => currentLog._id === log._id,
+      );
+
+      if (existingIndex >= 0) {
+        state.logs[existingIndex] = log;
+      } else {
+        state.logs.unshift(log);
+      }
+
+      state.logs = sortCallLogs(state.logs);
+    },
   },
 });
 
@@ -124,4 +158,33 @@ export const SetCallError =
   ({ message }) =>
   (dispatch) => {
     dispatch(slice.actions.setCallError({ message }));
+  };
+
+export const FetchCallLogs = () => {
+  return async (dispatch, getState) => {
+    dispatch(slice.actions.setCallLogsLoading({ isLoading: true }));
+
+    try {
+      const response = await axios.get("/call/logs", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getState().auth.token}`,
+        },
+      });
+
+      dispatch(
+        slice.actions.setCallLogs({
+          logs: response.data.data || [],
+        }),
+      );
+    } finally {
+      dispatch(slice.actions.setCallLogsLoading({ isLoading: false }));
+    }
+  };
+};
+
+export const UpsertCallLog =
+  ({ log }) =>
+  (dispatch) => {
+    dispatch(slice.actions.upsertCallLog({ log }));
   };
