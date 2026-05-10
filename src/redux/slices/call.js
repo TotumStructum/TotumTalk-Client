@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   status: "idle", // idle | outgoing | incoming | active
+  direction: null, // outgoing | incoming
   call: null,
   started_at: null,
   error: null,
@@ -16,18 +17,29 @@ const normalizeCall = (call = {}) => ({
   to: call.to || null,
 });
 
+const clearCallState = (state) => {
+  state.status = "idle";
+  state.direction = null;
+  state.call = null;
+  state.started_at = null;
+};
+
 const slice = createSlice({
   name: "call",
   initialState,
   reducers: {
     startOutgoingCall(state, action) {
       state.status = "outgoing";
+      state.direction = "outgoing";
       state.call = normalizeCall(action.payload.call);
+      state.started_at = null;
       state.error = null;
     },
     receiveIncomingCall(state, action) {
       state.status = "incoming";
+      state.direction = "incoming";
       state.call = normalizeCall(action.payload.call);
+      state.started_at = null;
       state.error = null;
     },
     acceptCall(state, action) {
@@ -50,34 +62,24 @@ const slice = createSlice({
       state.error = null;
     },
     declineCall(state) {
-      state.status = "idle";
-      state.call = null;
+      clearCallState(state);
       state.error = null;
-      state.started_at = null;
     },
     cancelCall(state) {
-      state.status = "idle";
-      state.call = null;
+      clearCallState(state);
       state.error = null;
-      state.started_at = null;
     },
     endCall(state) {
-      state.status = "idle";
-      state.call = null;
+      clearCallState(state);
       state.error = null;
-      state.started_at = null;
     },
     resetCall(state) {
-      state.status = "idle";
-      state.call = null;
+      clearCallState(state);
       state.error = null;
-      state.started_at = null;
     },
     setCallError(state, action) {
+      clearCallState(state);
       state.error = action.payload.message;
-      state.status = "idle";
-      state.call = null;
-      state.started_at = null;
     },
   },
 });

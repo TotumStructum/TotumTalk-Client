@@ -37,6 +37,7 @@ describe("call slice", () => {
     const state = store.getState().call;
 
     expect(state.status).toBe("outgoing");
+    expect(state.direction).toBe("outgoing");
     expect(state.call.call_id).toBe("call-1");
     expect(state.call.call_type).toBe("video");
     expect(state.call.peer.name).toBe("John Doe");
@@ -63,6 +64,7 @@ describe("call slice", () => {
     const state = store.getState().call;
 
     expect(state.status).toBe("incoming");
+    expect(state.direction).toBe("incoming");
     expect(state.call.peer.firstName).toBe("Jane");
   });
 
@@ -143,6 +145,7 @@ describe("call slice", () => {
     expect(store.getState().call.status).toBe("idle");
     expect(store.getState().call.call).toBeNull();
     expect(store.getState().call.started_at).toBeNull();
+    expect(store.getState().call.direction).toBeNull();
   });
 
   it("stores call error and clears active call", () => {
