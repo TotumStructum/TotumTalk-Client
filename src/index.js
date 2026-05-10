@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "./i18n";
+import { registerServiceWorker } from "./serviceWorkerRegistration";
 
 import SettingsProvider from "./contexts/SettingsContext";
 import { store } from "./redux/store";
@@ -27,3 +28,4 @@ root.render(
 );
 
 reportWebVitals();
+registerServiceWorker();
