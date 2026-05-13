@@ -241,50 +241,89 @@ const ProfileForm = () => {
         <Box
           sx={{
             display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: isMobile ? "stretch" : "center",
-            justifyContent: "space-between",
+            flexDirection: "column",
+            alignItems: "center",
             gap: 2,
-            p: 2,
+            width: "100%",
+            p: {
+              xs: 2.5,
+              sm: 3,
+            },
             borderRadius: 2,
             border: (theme) => `1px solid ${theme.palette.divider}`,
             backgroundColor: (theme) => theme.palette.background.paper,
+            textAlign: "center",
+            overflow: "hidden",
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar
-              src={avatarValue || ""}
-              alt="Profile avatar"
-              sx={{
-                width: isMobile ? 64 : 72,
-                height: isMobile ? 64 : 72,
-              }}
-            />
+          <Avatar
+            src={avatarValue || ""}
+            alt="Profile avatar"
+            sx={{
+              width: {
+                xs: 96,
+                sm: 104,
+              },
+              height: {
+                xs: 96,
+                sm: 104,
+              },
+              flexShrink: 0,
+            }}
+          />
 
-            <Stack spacing={0.5}>
-              <Typography variant="subtitle2">Profile photo</Typography>
-              <Typography variant="caption" color="text.secondary">
-                Upload JPG, PNG, WEBP or GIF. Max size: 5 MB.
+          <Stack
+            spacing={0.75}
+            alignItems="center"
+            sx={{
+              width: "100%",
+              maxWidth: 280,
+              minWidth: 0,
+            }}
+          >
+            <Typography variant="subtitle2">Profile photo</Typography>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                width: "100%",
+                lineHeight: 1.5,
+              }}
+            >
+              Upload JPG, PNG, WEBP or GIF. Max size: 5 MB.
+            </Typography>
+
+            {avatarValue ? (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  width: "100%",
+                  lineHeight: 1.5,
+                }}
+              >
+                Avatar is saved in your profile.
               </Typography>
-              {avatarValue ? (
-                <Typography variant="caption" color="text.secondary">
-                  Avatar is saved in your profile.
-                </Typography>
-              ) : null}
-            </Stack>
+            ) : null}
           </Stack>
 
           <Stack
-            direction={isMobile ? "column" : "row"}
+            direction="column"
             spacing={1}
-            alignItems={isMobile ? "stretch" : "center"}
+            alignItems="stretch"
+            sx={{
+              width: "100%",
+              maxWidth: 280,
+            }}
           >
             <Button
               component="label"
               variant="outlined"
               disabled={isUploadingAvatar || isSubmitting}
-              fullWidth={isMobile}
+              fullWidth
               startIcon={<Camera size={20} />}
+              sx={{ whiteSpace: "nowrap" }}
             >
               {isUploadingAvatar
                 ? "Uploading..."
@@ -304,8 +343,9 @@ const ProfileForm = () => {
               <Button
                 color="error"
                 disabled={isUploadingAvatar || isSubmitting}
-                fullWidth={isMobile}
+                fullWidth
                 onClick={handleRemoveAvatar}
+                sx={{ whiteSpace: "nowrap" }}
               >
                 Remove
               </Button>
