@@ -3,16 +3,6 @@ import axios from "../../utils/axios";
 
 const getStoredUserId = () => window.localStorage.getItem("user_id");
 
-const getSenderId = (from) => {
-  if (!from) return null;
-
-  if (typeof from === "object") {
-    return from._id?.toString() || null;
-  }
-
-  return from.toString();
-};
-
 const formatMessageTime = (value) => {
   if (!value) return "";
 

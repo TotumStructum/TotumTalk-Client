@@ -144,9 +144,8 @@ const GroupListPanel = ({ sx = {}, padding = 3 }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const groupList = Array.isArray(groups) ? groups : [];
-
   const filteredGroups = useMemo(() => {
+    const groupList = Array.isArray(groups) ? groups : [];
     const query = searchQuery.trim().toLowerCase();
 
     if (!query) return groupList;
@@ -166,7 +165,7 @@ const GroupListPanel = ({ sx = {}, padding = 3 }) => {
         participants.includes(query)
       );
     });
-  }, [groupList, searchQuery]);
+  }, [groups, searchQuery]);
 
   useEffect(() => {
     dispatch(FetchGroupConversations());
